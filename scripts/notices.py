@@ -119,9 +119,41 @@ def check(base):
     return 1 if errors else 0
 
 
+BLOCK_START = re.compile(r"^(?:[-*+] |\d+[.)] |> |#{1,6} |\|)")
+
+
+def unwrap(markdown):
+    """Join the lines of each paragraph, as a Markdown renderer does.
+
+    Sources are wrapped for editing, but Slack shows every newline, so a sentence
+    would break mid-line. New lines start only at a list item, quote, heading, table
+    row, a hard break (trailing backslash or two spaces) and around fenced code.
+    """
+    out, fenced = [], False
+    for line in markdown.splitlines():
+        if line.lstrip().startswith("```"):
+            fenced = not fenced
+            out.append(line)
+            continue
+        joinable = (out and out[-1].strip() and line.strip() and not fenced
+                    and not BLOCK_START.match(line.lstrip()) and not out[-1].lstrip().startswith("```")
+                    and not out[-1].endswith(("\\", "  ")))
+        if joinable:
+            out[-1] = out[-1] + " " + line.strip()
+        else:
+            out.append(line)
+    # Drop the hard-break markers (trailing backslash or spaces) outside code fences.
+    result, fenced = [], False
+    for line in out:
+        if line.lstrip().startswith("```"):
+            fenced = not fenced
+        result.append(line if fenced or line.lstrip().startswith("```") else re.sub(r"(\\| +)$", "", line))
+    return "\n".join(result)
+
+
 def mrkdwn(markdown, base, page):
-    """Notice Markdown to Slack mrkdwn: bold, and links as absolute site URLs."""
-    text = absolute_links(markdown, base, page, fmt="<{url}|{text}>")
+    """Notice Markdown to Slack mrkdwn: paragraphs unwrapped, bold, links absolute."""
+    text = absolute_links(unwrap(markdown), base, page, fmt="<{url}|{text}>")
     return re.sub(r"\*\*(.+?)\*\*", r"*\1*", text)
 
 

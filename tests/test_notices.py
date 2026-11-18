@@ -47,6 +47,13 @@ class ParseTests(unittest.TestCase):
             with self.assertRaises(ValueError, msg=what):
                 notices.parse(path, text)
 
+    def test_unwrap_joins_paragraph_lines_only(self):
+        src = ("긴 문장이\n다음 줄로 이어집니다.\n\n- 항목 하나가\n  두 줄입니다\n- 항목 둘\n"
+               "강제 줄바꿈\\\n다음\n```\ncode a\ncode b\n```\n끝")
+        self.assertEqual(notices.unwrap(src),
+                         "긴 문장이 다음 줄로 이어집니다.\n\n- 항목 하나가 두 줄입니다\n- 항목 둘 강제 줄바꿈\n"
+                         "다음\n```\ncode a\ncode b\n```\n끝")
+
     def test_slack_blocks(self):
         n = notices.parse("docs/news/posts/2026-11-19-docs-site.md", GOOD)
         b = notices.blocks(n, "https://x.example/docs/")
@@ -54,6 +61,9 @@ class ParseTests(unittest.TestCase):
         self.assertEqual(b[1]["text"]["text"],
                          "요약 *강조*와 <https://x.example/docs/policy/#디버깅|규정>, "
                          "<https://x.example/docs/start/connect/|연결>.")
+        wrapped = GOOD.replace("요약 **강조**와", "요약\n**강조**와")
+        b = notices.blocks(notices.parse("docs/news/posts/2026-11-19-docs-site.md", wrapped), "https://x.example/docs/")
+        self.assertNotIn("\n", b[1]["text"]["text"])
         self.assertEqual(b[2]["elements"][0]["url"], "https://x.example/docs/news/2026/11/19/docs-site/")
         self.assertIn("공지, 규정", b[3]["elements"][0]["text"])
 

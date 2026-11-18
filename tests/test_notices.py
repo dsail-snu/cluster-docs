@@ -92,6 +92,18 @@ class GitTests(unittest.TestCase):
         self.commit("notice")
         self.assertEqual(notices.check(self.base), 0)
 
+    def test_snippet_change_needs_notice(self):
+        (self.root / "snippets").mkdir()
+        (self.root / "snippets/rules.md").write_text("- rule\n")
+        self.commit("rule block")
+        self.assertEqual(notices.check(self.base), 1)
+
+    def test_rule_neutral_edit_can_waive_the_notice(self):
+        (self.root / "docs/policy/index.md").write_text("# 규정\n\n문장만 다듬음\n")
+        self.git("add", "-A")
+        self.git("commit", "-q", "-m", "docs: reword\n\nNo-Notice: wording only, no rule changed")
+        self.assertEqual(notices.check(self.base), 0)
+
     def test_announce_dry_run_lists_added_notices_only(self):
         (self.root / "docs/news/posts/2026-11-19-docs-site.md").write_text(GOOD)
         self.commit("notice")

@@ -15,15 +15,18 @@ import os
 import re
 import subprocess
 import sys
-import tomllib
 import urllib.request
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from siteurls import absolute_links, site_url  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[1]
 POSTS = "docs/news/posts"
-POLICY = "docs/policy/"
+# Paths whose changes change the rules: the policy pages and the rule blocks they include.
+POLICY = ("docs/policy/", "snippets/")
 CATEGORIES = {
     "policy": (":scroll:", "규정"),
     "update": (":arrows_counterclockwise:", "업데이트"),
@@ -42,8 +45,8 @@ class Notice:
     title: str
     summary: str
 
-    def url(self, site_url):
-        return f"{site_url.rstrip('/')}/news/{self.date:%Y/%m/%d}/{self.slug}/"
+    def url(self, site):
+        return f"{site}news/{self.date:%Y/%m/%d}/{self.slug}/"
 
 
 def parse(path, text):
@@ -106,43 +109,37 @@ def check(base):
     _, errors = all_notices()
     if base:
         files = changed(base)
-        if any(p.startswith(POLICY) for p in files) and not any(p.startswith(POSTS + "/") for p in files):
-            errors.append(f"{POLICY} changed without a notice in {POSTS}/ (see CONTRIBUTING.md)")
+        # A rule-neutral edit (rewording, restructuring) says so with a "No-Notice: <why>" trailer.
+        waived = re.search(r"^No-Notice: \S", git("log", "--format=%B", f"{base}..HEAD"), re.M)
+        if (any(p.startswith(POLICY) for p in files) and not waived
+                and not any(p.startswith(POSTS + "/") for p in files)):
+            errors.append(f"{' or '.join(POLICY)} changed without a notice in {POSTS}/ (see CONTRIBUTING.md)")
     for err in errors:
         print(err, file=sys.stderr)
     return 1 if errors else 0
 
 
-def mrkdwn(markdown, site_url, page):
-    """Notice Markdown to Slack mrkdwn: bold, links (relative ones resolved on the site)."""
-    def link(m):
-        text, target = m.group(1), m.group(2)
-        if not re.match(r"[a-z]+://", target):
-            page_dir = Path("/" + page).parent
-            resolved = os.path.normpath(page_dir / target).lstrip("/")
-            resolved = re.sub(r"(index)?\.md(#|$)", r"\2", resolved)
-            target = f"{site_url.rstrip('/')}/{resolved}"
-            target = target if target.endswith(("/", "#")) or "#" in target else target + "/"
-        return f"<{target}|{text}>"
-    text = re.sub(r"\[([^\]]+)\]\(([^)\s]+)\)", link, markdown)
+def mrkdwn(markdown, base, page):
+    """Notice Markdown to Slack mrkdwn: bold, and links as absolute site URLs."""
+    text = absolute_links(markdown, base, page, fmt="<{url}|{text}>")
     return re.sub(r"\*\*(.+?)\*\*", r"*\1*", text)
 
 
-def blocks(notice, site_url):
+def blocks(notice, base):
     icon = CATEGORIES[notice.categories[0]][0]
     labels = ", ".join(CATEGORIES[c][1] for c in notice.categories)
     page = notice.path.removeprefix("docs/")
     return [
         {"type": "header", "text": {"type": "plain_text", "text": f"{icon} {notice.title}"[:150], "emoji": True}},
-        {"type": "section", "text": {"type": "mrkdwn", "text": mrkdwn(notice.summary, site_url, page)[:2900]}},
+        {"type": "section", "text": {"type": "mrkdwn", "text": mrkdwn(notice.summary, base, page)[:2900]}},
         {"type": "actions", "elements": [{"type": "button", "text": {"type": "plain_text", "text": "자세히 보기"},
-                                          "url": notice.url(site_url)}]},
+                                          "url": notice.url(base)}]},
         {"type": "context", "elements": [{"type": "mrkdwn", "text": f"{labels}  |  {notice.date:%Y-%m-%d}"}]},
     ]
 
 
 def announce(base, head, dry_run):
-    site_url = tomllib.loads((ROOT / "zensical.toml").read_text())["project"]["site_url"]
+    site = site_url(ROOT)
     added = [p for p in changed(base, head, status="A") if p.startswith(POSTS + "/") and p.endswith(".md")]
     webhook = os.environ.get("SLACK_WEBHOOK_URL", "")
     if added and not webhook and not dry_run:
@@ -150,7 +147,7 @@ def announce(base, head, dry_run):
         return 1
     for rel in added:
         notice = parse(rel, git("show", f"{head}:{rel}"))
-        payload = {"text": notice.title, "blocks": blocks(notice, site_url)}
+        payload = {"text": notice.title, "blocks": blocks(notice, site)}
         if dry_run:
             print(json.dumps(payload, ensure_ascii=False, indent=1))
             continue

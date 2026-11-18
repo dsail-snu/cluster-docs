@@ -79,6 +79,9 @@ pymdownx.highlight.pygments_lang_class = true
 pymdownx.inlinehilite = {}
 pymdownx.keys = {}
 pymdownx.superfences = {}
+# Shared rule blocks (snippets/) included by several pages; a missing one fails the build.
+pymdownx.snippets.base_path = ["snippets"]
+pymdownx.snippets.check_paths = true
 pymdownx.tabbed.alternate_style = true
 pymdownx.tasklist.custom_checkbox = true
 

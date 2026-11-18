@@ -6,7 +6,7 @@
 |------------|------|
 | `#infra-help` | 질문, 문제 신고. 여기에 물어보세요 |
 | `#infra-announce` | 공지 (읽기 전용) |
-| `#infra-status` | 클러스터 상태 |
+| `#infra-status` | 클러스터 상태: 매시간 GPU 사용 현황, 오래 노는 잡 알림 |
 
 먼저 [자주 묻는 질문과 문제 해결](guide/troubleshooting.md)에 같은 증상이 있는지 확인하세요.
 

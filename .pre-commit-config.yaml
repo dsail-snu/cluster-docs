@@ -1,0 +1,38 @@
+---
+# Install with: uv run pre-commit install   (all three hook types, see below)
+# Site rules for the sensitive guard come from the private pattern file:
+#   git config deepops.sensitivePatterns <path to cluster-config/sensitive-patterns>
+# Without it the guard still runs its built-in secret rules (as CI does).
+minimum_pre_commit_version: "3.5.0"
+default_install_hook_types: [pre-commit, commit-msg, pre-push]
+default_stages: [pre-commit]
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        args: ["--markdown-linebreak-ext=md"]
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: check-yaml
+
+  - repo: https://github.com/12kimih/deepops
+    rev: 17e2e108101d0b02e2215feca2b71770c3c1049e
+    hooks:
+      - id: sensitive-guard
+      - id: sensitive-guard-message
+      - id: sensitive-guard-push
+      - id: sensitive-guard-tree
+
+  - repo: local
+    hooks:
+      - id: notices
+        name: notices are well formed
+        entry: python3 scripts/notices.py check
+        language: system
+        pass_filenames: false
+        always_run: true

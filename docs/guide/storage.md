@@ -71,7 +71,7 @@ trap 'touch <스크래치 경로>/$USER/ckpt.request' TERM
 ## 데이터 옮기기
 
 !!! warning "AI 에이전트로 전송할 때"
-    접속 재시도 횟수와 간격 등 [AI 에이전트 규칙](../policy/index.md#ai-에이전트-규칙)을 먼저 숙지시키세요.
+    접속 재시도 횟수와 간격 등 [AI 에이전트 규칙](../policy/ai-agents.md)을 먼저 숙지시키세요.
 
 내 PC와 클러스터 사이 (`<로그인 주소>`, `<SSH 포트>`는 계정 발급 때 관리자가 알려 줍니다):
 

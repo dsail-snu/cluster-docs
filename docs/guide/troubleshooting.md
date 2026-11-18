@@ -156,7 +156,7 @@ sreport cluster AccountUtilizationByUser start=<시작 날짜> -t hours   # 기�
 ### AI 에이전트에게 잡 제출이나 SSH를 시켜도 되나요?
 
 됩니다. 단, 접속 재시도 제한, 제출 전 현황 확인, 잡 제출 규칙 등
-[AI 에이전트 규칙](../policy/index.md#ai-에이전트-규칙)을 세션을 시작할 때 반드시 숙지시키세요.
+[AI 에이전트 규칙](../policy/ai-agents.md)을 세션을 시작할 때 반드시 숙지시키세요.
 에이전트가 한 일의 책임은 사용자에게 있습니다.
 
 ## 그래도 안 되면

@@ -12,7 +12,10 @@ nav = [
     "start/first-job.md",
     "start/slurm-basics.md",
   ] },
-  { "사용 규정" = "policy/index.md" },
+  { "사용 규정" = [
+    "policy/index.md",
+    "policy/ai-agents.md",
+  ] },
   { "가이드" = [
     "guide/job-recipes.md",
     "guide/containers.md",

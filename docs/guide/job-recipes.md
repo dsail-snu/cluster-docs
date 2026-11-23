@@ -405,9 +405,11 @@ tar -czf ~/myproject-venv.tar.gz .venv
 # 잡 스크립트 안에서 (/tmp 는 잡마다 따로 있고 잡이 끝나면 지워집니다)
 tar -xzf ~/myproject-venv.tar.gz -C /tmp
 source /tmp/.venv/bin/activate
-export UV_CACHE_DIR=/tmp/uv-cache PIP_CACHE_DIR=/tmp/pip-cache
 python train.py
 ```
+
+- 잡 안에서는 uv와 pip의 패키지 캐시(`UV_CACHE_DIR`, `PIP_CACHE_DIR`)가 이미 잡의 `/tmp`를 가리킵니다.
+  -> [환경 변수](storage.md#환경-변수)
 
 - 의존성을 바꿨으면 다시 `uv sync --frozen` 하고 묶습니다.
 - 가상환경의 Python은 uv가 내 홈에 설치한 인터프리터를 가리킵니다. 홈은 모든 노드에서 같으므로 그대로 동작합니다.

@@ -23,6 +23,28 @@
 df -h /home <스크래치 경로>          # 공간 전체의 용량과 마운트 확인
 ```
 
+## 환경 변수
+
+클러스터는 모든 로그인과 잡에 아래 환경 변수를 정해 둡니다. 직접 설정한 값이 있으면 그 값이 이깁니다.
+잡 안에서 값이 다른 것은 작은 파일이 많은 캐시를 잡의 `/tmp`(노드 로컬, 잡이 끝나면 지워짐)에 두기 위해서입니다.
+
+<!-- BEGIN GENERATED: env:table -->
+| 변수 | 로그인 | 잡 안 |
+|---|---|---|
+| `HF_HOME` | `~/.cache/huggingface` | 같음 |
+| `HF_HUB_CACHE` | `/home/shared/models/hub` | 같음 |
+| `PIP_CACHE_DIR` | `~/.cache/pip` | `/tmp/pip-cache` |
+| `UV_CACHE_DIR` | `~/.cache/uv` | `/tmp/uv-cache` |
+<!-- END GENERATED: env:table -->
+
+`HF_HOME`은 로그인 토큰이 들어 있는 각자의 디렉터리입니다. 공유 위치로 옮기지 마세요.
+
+## 공용 모델
+
+<!-- BEGIN GENERATED: models -->
+공용 모델 캐시는 `/home/shared/models/hub`에 있고, 모든 로그인과 잡에서 `HF_HUB_CACHE`가 그곳을 가리킵니다. Hugging Face 라이브러리는 그대로 이 캐시에서 모델을 읽습니다. **읽기 전용**이라 여기에는 내려받을 수 없습니다. 여럿이 쓸 모델은 관리자에게 요청하고, 혼자 잠깐 쓸 모델은 받을 곳을 그 명령에만 주세요(`hf download --cache-dir <내 디렉터리>`, `from_pretrained(..., cache_dir=...)`).
+<!-- END GENERATED: models -->
+
 ## 어디에 무엇을 둘까
 
 | 무엇 | 어디에 |

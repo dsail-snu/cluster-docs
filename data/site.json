@@ -448,6 +448,28 @@
     "scratch_cleanup_from": "2026-11-25",
     "submit_holds_from": "2026-12-09"
   },
+  "environment": [
+    {
+      "job": "",
+      "login": "~/.cache/huggingface",
+      "name": "HF_HOME"
+    },
+    {
+      "job": "",
+      "login": "/home/shared/models/hub",
+      "name": "HF_HUB_CACHE"
+    },
+    {
+      "job": "/tmp/pip-cache",
+      "login": "~/.cache/pip",
+      "name": "PIP_CACHE_DIR"
+    },
+    {
+      "job": "/tmp/uv-cache",
+      "login": "~/.cache/uv",
+      "name": "UV_CACHE_DIR"
+    }
+  ],
   "policy": {
     "cancel_after_hours": 6,
     "cancel_warn_hours": 1,

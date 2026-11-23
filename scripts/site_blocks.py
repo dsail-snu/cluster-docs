@@ -23,6 +23,11 @@ Generators:
                   inode_hard, inode_warn (a count); quota:ratio, files per TB
   rule:idle       the idle-GPU rule as a sentence: notices from the idle hours, and the
                   cancel with its warning, or that no cancel is active (cancel 0)
+  env:table       the users' environment variables: each with its value in a login and
+                  in a job (the cluster's one list, user_environment)
+  env:NAME        the login value of the variable NAME, inline
+  models          the shared model cache as a sentence: where it is (HF_HUB_CACHE), or
+                  that there is none
   slurm:FIELD     one Slurm value (kill_wait_seconds, preempt_grace_seconds,
                   sigkill_after_seconds)
 
@@ -84,6 +89,29 @@ def quota(data, arg):
     return count(q[field]) + "\n"
 
 
+def env(data):
+    return {e["name"]: e for e in data.get("environment", [])}
+
+
+def env_table(data):
+    rows = ["| 변수 | 로그인 | 잡 안 |", "|---|---|---|"]
+    for e in data.get("environment", []):
+        login = f"`{e['login']}`" if e["login"] else "없음"
+        job = f"`{e['job']}`" if e["job"] else "같음"
+        rows.append(f"| `{e['name']}` | {login} | {job} |")
+    return "\n".join(rows) + "\n"
+
+
+def models(data):
+    hub = env(data).get("HF_HUB_CACHE")
+    if not hub:
+        return ("공용 모델 캐시는 아직 없습니다. 모델은 각자 `HF_HOME` 아래에 내려받습니다.\n")
+    return (f"공용 모델 캐시는 `{hub['login']}`에 있고, 모든 로그인과 잡에서 `HF_HUB_CACHE`가 그곳을 가리킵니다. "
+            "Hugging Face 라이브러리는 그대로 이 캐시에서 모델을 읽습니다. **읽기 전용**이라 여기에는 "
+            "내려받을 수 없습니다. 여럿이 쓸 모델은 관리자에게 요청하고, 혼자 잠깐 쓸 모델은 받을 곳을 그 명령에만 "
+            "주세요(`hf download --cache-dir <내 디렉터리>`, `from_pretrained(..., cache_dir=...)`).\n")
+
+
 def body(data, name):
     kind, _, arg = name.partition(":")
     if kind == "options":
@@ -98,6 +126,12 @@ def body(data, name):
         return f"{data['dates'][arg]}\n"
     if kind == "slurm":
         return f"{data['slurm'][arg]}\n"
+    if name == "env:table":
+        return env_table(data)
+    if kind == "env":
+        return f"`{env(data)[arg]['login']}`\n"
+    if name == "models":
+        return models(data)
     raise SystemExit(f"unknown generated block: {name}")
 
 

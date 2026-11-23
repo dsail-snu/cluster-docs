@@ -97,7 +97,7 @@ scp -P <SSH 포트> file.tar.gz <아이디>@<로그인 주소>:<스크래치 경
 사람마다 `/home`과 `<스크래치 경로>`에 용량과 파일 수 한도가 있습니다. 지금은 사용량을 집계만 하고,
 **<!-- BEGIN GENERATED: date:limits_from -->2026-12-09<!-- END GENERATED: date:limits_from -->부터** 아래 상한이 적용됩니다. 상한을 넘으면 쓰기가 막히고, 같은 날부터 새 잡도
 제출할 수 없습니다(<!-- BEGIN GENERATED: date:submit_holds_from -->2026-12-09<!-- END GENERATED: date:submit_holds_from -->).
-경고는 상한의 90%에서 Slack으로 알려 줍니다.
+경고는 상한의 <!-- BEGIN GENERATED: policy:warn_percent -->90%<!-- END GENERATED: policy:warn_percent -->에서 Slack으로 알려 줍니다.
 
 | 공간 | 용량 상한 | 파일 수 상한 |
 |---|---|---|
@@ -114,8 +114,8 @@ scp -P <SSH 포트> file.tar.gz <아이디>@<로그인 주소>:<스크래치 경
 
 - **<!-- BEGIN GENERATED: date:scratch_cleanup_from -->2026-11-25<!-- END GENERATED: date:scratch_cleanup_from -->부터** 사람마다 `<스크래치 경로>/<아이디>`가 있습니다. 높은 대역폭이 필요한 실험 데이터를 두는 **빠른 NVMe** 공간이며,
   **백업 용도가 아닙니다.** 오래 보관할 것은 `/home`에 두세요.
-- **60일 동안 읽거나 쓰지 않은 파일은 자동으로 정리됩니다.** 정리 대상이 되면 Slack DM으로 알려 주고,
-  **14일 뒤** 그때까지도 쓰지 않은 파일을 지웁니다. 그 사이에 쓴 파일은 남습니다.
+- **<!-- BEGIN GENERATED: policy:stale_days -->60<!-- END GENERATED: policy:stale_days -->일 동안 읽거나 쓰지 않은 파일은 자동으로 정리됩니다.** 정리 대상이 되면 Slack DM으로 알려 주고,
+  **<!-- BEGIN GENERATED: policy:grace_days -->14<!-- END GENERATED: policy:grace_days -->일 뒤** 그때까지도 쓰지 않은 파일을 지웁니다. 그 사이에 쓴 파일은 남습니다.
 - 지워질 파일과 날짜는 `scratch-space` 명령으로 언제든 확인할 수 있습니다. 같은 목록이
   `<스크래치 경로>/<아이디>/.purge-list`에도 매일 갱신됩니다.
 - 정리를 피할 목적으로 접근 시각만 일괄 갱신하는 것(예: 전체 `touch`)은 금지합니다.

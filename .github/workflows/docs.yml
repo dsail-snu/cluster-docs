@@ -25,6 +25,8 @@ jobs:
       - run: uv sync --locked
       - name: Unit tests
         run: uv run python -m unittest discover -s tests
+      - name: Generated blocks match data/site.json (the cluster's facts, from deepops site_facts.py)
+        run: uv run python scripts/site_blocks.py --check
       - name: Notices, and a notice for every policy change
         run: uv run python scripts/notices.py check "$BASE"
         env:

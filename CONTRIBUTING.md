@@ -49,6 +49,13 @@ Slack에 그대로 올라갈 요약 한두 문장.
 `docs/policy/` 아래 규정 페이지나 `snippets/`의 규칙 조각을 바꾸는 커밋에는 공지 글이 함께 있어야 CI를 통과합니다.
 규칙은 그대로이고 표현이나 구조만 바꿨다면, 커밋 메시지에 `No-Notice: <이유>` 줄을 넣으면 됩니다.
 
+## 생성되는 값
+
+명령 옵션 표나 정책 값(정리 기간, 경고 비율)처럼 클러스터의 코드와 설정에 이미 있는 값은 손으로 쓰지 않습니다.
+페이지에 `<!-- BEGIN GENERATED: options:sq -->`와 `<!-- END GENERATED: options:sq -->` 사이의 블록을 두면
+`scripts/site_blocks.py`가 `data/site.json`에서 채웁니다. `data/site.json`은 deepops의
+`scripts/docs/site_facts.py`가 만들고(공개해도 되는 값만), CI는 블록이 데이터와 다르면 실패합니다.
+
 ## 여러 페이지가 함께 쓰는 규칙
 
 `snippets/` 아래 파일은 여러 페이지가 `--8<-- "파일.md"`로 불러옵니다 (예: 잡 제출 규칙은 사용 규정과

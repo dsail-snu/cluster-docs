@@ -1,0 +1,448 @@
+{
+  "commands": {
+    "gpu-usage": {
+      "options": [
+        {
+          "flags": [
+            "--source"
+          ],
+          "help": "auto (default: Slurm's figures where the job has them, else Prometheus'), slurm or prometheus",
+          "metavar": "WHERE"
+        },
+        {
+          "flags": [
+            "--json"
+          ],
+          "help": "the figures as JSON, for scripts",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "--theme"
+          ],
+          "help": "catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command",
+          "metavar": "FLAVOUR"
+        },
+        {
+          "flags": [
+            "--themes"
+          ],
+          "help": "list the flavours with a swatch",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "--color",
+            "--colour"
+          ],
+          "help": "always, never or auto (default; $NO_COLOR is honoured)",
+          "metavar": "WHEN"
+        },
+        {
+          "flags": [
+            "--no-color",
+            "--no-colour"
+          ],
+          "help": "the same as --color never",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "--ascii"
+          ],
+          "help": "ASCII glyphs for terminals without UTF-8",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "--wide"
+          ],
+          "help": "every column at full width, whatever the terminal fits",
+          "metavar": ""
+        }
+      ],
+      "summary": "what a job's GPUs did: utilisation, SM activity, memory and power, running or finished",
+      "usage": "gpu-usage [OPTIONS] JOB"
+    },
+    "qos": {
+      "options": [
+        {
+          "flags": [
+            "-m",
+            "--mine"
+          ],
+          "help": "only the QoS you may submit against",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "-a",
+            "--all"
+          ],
+          "help": "include QoS held by no user (Slurm's built-in normal)",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "-u",
+            "--user"
+          ],
+          "help": "answer for someone else instead of you",
+          "metavar": "NAME"
+        },
+        {
+          "flags": [
+            "--usage"
+          ],
+          "help": "the live usage figures (--no-usage skips the job list)",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "--json"
+          ],
+          "help": "the model as JSON, for scripts (ignores $QOS_OPTIONS)",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "--theme"
+          ],
+          "help": "catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command",
+          "metavar": "FLAVOUR"
+        },
+        {
+          "flags": [
+            "--themes"
+          ],
+          "help": "list the flavours with a swatch",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "--color",
+            "--colour"
+          ],
+          "help": "always, never or auto (default; $NO_COLOR is honoured)",
+          "metavar": "WHEN"
+        },
+        {
+          "flags": [
+            "--no-color",
+            "--no-colour"
+          ],
+          "help": "the same as --color never",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "--ascii"
+          ],
+          "help": "ASCII glyphs for terminals without UTF-8",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "--wide"
+          ],
+          "help": "every column at full width, whatever the terminal fits",
+          "metavar": ""
+        }
+      ],
+      "summary": "the QoS levels you can submit against",
+      "usage": "qos [OPTIONS]"
+    },
+    "scratch-space": {
+      "options": [
+        {
+          "flags": [
+            "--root"
+          ],
+          "help": "the scratch space (default /scratch)",
+          "metavar": "DIR"
+        },
+        {
+          "flags": [
+            "--theme"
+          ],
+          "help": "catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command",
+          "metavar": "FLAVOUR"
+        },
+        {
+          "flags": [
+            "--themes"
+          ],
+          "help": "list the flavours with a swatch",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "--color",
+            "--colour"
+          ],
+          "help": "always, never or auto (default; $NO_COLOR is honoured)",
+          "metavar": "WHEN"
+        },
+        {
+          "flags": [
+            "--no-color",
+            "--no-colour"
+          ],
+          "help": "the same as --color never",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "--ascii"
+          ],
+          "help": "ASCII glyphs for terminals without UTF-8",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "--wide"
+          ],
+          "help": "every column at full width, whatever the terminal fits",
+          "metavar": ""
+        }
+      ],
+      "summary": "which of your files on the scratch space are due to be cleaned up, and when",
+      "usage": "scratch-space [OPTIONS]"
+    },
+    "sq": {
+      "options": [
+        {
+          "flags": [
+            "-m",
+            "--me"
+          ],
+          "help": "only your jobs",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "-u",
+            "--user"
+          ],
+          "help": "only these users (comma list; * and ? match)",
+          "metavar": "USER"
+        },
+        {
+          "flags": [
+            "-p",
+            "--partition"
+          ],
+          "help": "only these partitions",
+          "metavar": "PART"
+        },
+        {
+          "flags": [
+            "-w",
+            "--nodelist"
+          ],
+          "help": "only these nodes (a hostlist like gpu[1-3,8], or globs)",
+          "metavar": "NODES"
+        },
+        {
+          "flags": [
+            "-t",
+            "--states",
+            "--state"
+          ],
+          "help": "only these job states (R,PD or running,pending; all includes finished)",
+          "metavar": "STATES"
+        },
+        {
+          "flags": [
+            "-j",
+            "--jobs"
+          ],
+          "help": "only these job IDs",
+          "metavar": "IDS"
+        },
+        {
+          "flags": [
+            "-A",
+            "--account"
+          ],
+          "help": "only these accounts",
+          "metavar": "ACCOUNTS"
+        },
+        {
+          "flags": [
+            "-q",
+            "--qos"
+          ],
+          "help": "only these QoS",
+          "metavar": "QOS"
+        },
+        {
+          "flags": [
+            "-n",
+            "--name"
+          ],
+          "help": "only these job names",
+          "metavar": "NAMES"
+        },
+        {
+          "flags": [
+            "--queue"
+          ],
+          "help": "the job list: mine (default; a job filter shows what it selects), all, or none",
+          "metavar": "WHICH"
+        },
+        {
+          "flags": [
+            "-Q"
+          ],
+          "help": "everyone's jobs in the job list (--queue all)",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "--no-queue"
+          ],
+          "help": "no job list (--queue none)",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "-U",
+            "--users"
+          ],
+          "help": "who holds what, and each user's share of the GPUs",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "-W",
+            "--why"
+          ],
+          "help": "why jobs wait: reason families, then Slurm's codes",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "--resources"
+          ],
+          "help": "the CPU / memory / GPU table",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "-d",
+            "--detail"
+          ],
+          "help": "full node states and reasons, and who is behind each pending reason",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "--group"
+          ],
+          "help": "pending jobs above running ones (--no-group: job ID order)",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "--split"
+          ],
+          "help": "break each pool into the partitions it is split across",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "-T",
+            "--totals",
+            "--show-partitions"
+          ],
+          "help": "pool totals only",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "-N",
+            "--nodes",
+            "--show-nodes"
+          ],
+          "help": "a flat node list, as in sinfo -N",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "--gres"
+          ],
+          "help": "the generic resource to count (default: the one most nodes have)",
+          "metavar": "NAME"
+        },
+        {
+          "flags": [
+            "-i",
+            "--interval",
+            "--iterate"
+          ],
+          "help": "redraw every SEC seconds (at least 2); while Slurm fails or does not answer, the wait doubles, up to 60s or SEC if longer",
+          "metavar": "SEC"
+        },
+        {
+          "flags": [
+            "--json"
+          ],
+          "help": "the model as JSON, for scripts (ignores $SQ_OPTIONS)",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "--theme"
+          ],
+          "help": "catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command",
+          "metavar": "FLAVOUR"
+        },
+        {
+          "flags": [
+            "--themes"
+          ],
+          "help": "list the flavours with a swatch",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "--color",
+            "--colour"
+          ],
+          "help": "always, never or auto (default; $NO_COLOR is honoured)",
+          "metavar": "WHEN"
+        },
+        {
+          "flags": [
+            "--no-color",
+            "--no-colour"
+          ],
+          "help": "the same as --color never",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "--ascii"
+          ],
+          "help": "ASCII glyphs for terminals without UTF-8",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "--wide"
+          ],
+          "help": "every column at full width, whatever the terminal fits",
+          "metavar": ""
+        }
+      ],
+      "summary": "the Slurm queue, who holds what, and what each partition pool has left",
+      "usage": "sq [OPTIONS]"
+    }
+  },
+  "policy": {
+    "grace_days": 14,
+    "stale_days": 60,
+    "warn_fraction": 0.9
+  }
+}

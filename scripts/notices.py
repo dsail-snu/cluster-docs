@@ -76,7 +76,8 @@ def parse(path, text):
         raise ValueError("a '# title' line is required")
     if "<!-- more -->" not in body:
         raise ValueError("'<!-- more -->' must end the summary")
-    summary = body[title.end():body.index("<!-- more -->")].strip()
+    # A generated value (scripts/site_blocks.py) reads as its value alone in Slack.
+    summary = re.sub(r"<!-- (BEGIN|END) GENERATED: \S+ -->", "", body[title.end():body.index("<!-- more -->")]).strip()
     if not summary:
         raise ValueError("a summary is required before '<!-- more -->'")
     expected = f"{day:%Y-%m-%d}-{slug}.md"

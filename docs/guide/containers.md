@@ -8,8 +8,8 @@ Docker/NGC 이미지를 **Slurm 잡 안에서** 실행하는 방법입니다.
 | Pyxis | Enroot를 `srun`/`sbatch`에 붙여 주는 Slurm 플러그인 |
 | Podman | root 권한 없이 이미지를 만들고 실행하는 도구 (잡 안에서 이미지를 빌드할 때) |
 
-Slurm 잡에서 컨테이너를 돌릴 때는 **Enroot와 Pyxis**, 이미지를 직접 만들 때는 **Podman**을 권장합니다.
-Docker는 설치되어 있지만 권장하는 방법이 아닙니다.
+일반 사용자는 Slurm 잡에서 컨테이너를 돌릴 때 **Enroot와 Pyxis**, 이미지를 직접 만들 때 **Podman**을 씁니다.
+**<!-- BEGIN GENERATED: date:docker_admin_only_from -->2026-11-25<!-- END GENERATED: date:docker_admin_only_from -->부터** `docker` 그룹은 관리자 전용이 되어, 일반 사용자는 Docker를 쓸 수 없습니다.
 
 !!! question "왜 Docker가 아닌가요?"
     여러 사람이 함께 쓰는 클러스터에서는 root 권한 없이 안전하게 컨테이너를 돌려야 합니다.

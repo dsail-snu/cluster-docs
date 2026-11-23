@@ -31,6 +31,12 @@ class ParseTests(unittest.TestCase):
         self.assertEqual((n.slug, n.categories, n.title), ("docs-site", ["notice", "policy"], "제목"))
         self.assertEqual(n.url("https://x.example/docs/"), "https://x.example/docs/news/2026/11/19/docs-site/")
 
+    def test_a_generated_value_reads_as_the_value(self):
+        text = GOOD.replace("요약", "요약 <!-- BEGIN GENERATED: date:x -->2030-01-02<!-- END GENERATED: date:x -->부터", 1)
+        summary = notices.parse("docs/news/posts/2026-11-19-docs-site.md", text).summary
+        self.assertNotIn("GENERATED", summary)
+        self.assertIn("2030-01-02부터", summary)
+
     def test_errors(self):
         cases = {
             "front matter": "# 제목\n",

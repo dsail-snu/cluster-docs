@@ -18,6 +18,7 @@ with --check, so a page whose block no longer matches the data fails the build.
 Generators:
   options:CMD     the options of the cluster command CMD, as a table
   policy:FIELD    one policy value (stale_days, grace_days, warn_percent)
+  date:NAME       one announced date (the site's schedule)
   slurm:FIELD     one Slurm value (kill_wait_seconds, preempt_grace_seconds,
                   sigkill_after_seconds)
 
@@ -57,6 +58,8 @@ def body(data, name):
         return options(data, arg)
     if kind == "policy":
         return policy(data, arg)
+    if kind == "date":
+        return f"{data['dates'][arg]}\n"
     if kind == "slurm":
         return f"{data['slurm'][arg]}\n"
     raise SystemExit(f"unknown generated block: {name}")

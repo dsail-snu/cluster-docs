@@ -440,6 +440,14 @@
       "usage": "sq [OPTIONS]"
     }
   },
+  "dates": {
+    "docker_admin_only_from": "2026-11-25",
+    "home_data_move": "2026-12-09",
+    "limits_from": "2026-12-09",
+    "notice_day": "2026-11-25",
+    "scratch_cleanup_from": "2026-11-25",
+    "submit_holds_from": "2026-12-09"
+  },
   "policy": {
     "grace_days": 14,
     "stale_days": 60,

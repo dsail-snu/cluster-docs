@@ -64,16 +64,45 @@ mkdir -p logs && sbatch train.sbatch
 #SBATCH --output=logs/%x-%j.out
 
 set -euo pipefail
+export PYTHONUNBUFFERED=1           # print 출력이 로그에 바로 찍히게
+# GPU 한 장당 CPU 스레드 수. 정하지 않으면 라이브러리마다 노드의 모든 코어를 쓰려 합니다.
+export OMP_NUM_THREADS=$(( SLURM_CPUS_ON_NODE / SLURM_GPUS_ON_NODE ))
 nvidia-smi
 
-torchrun --standalone --nproc_per_node=4 train_ddp.py
-# 또는: python -m torch.distributed.run --standalone --nproc_per_node=4 train_ddp.py
+torchrun --standalone --nproc_per_node="$SLURM_GPUS_ON_NODE" train_ddp.py
+# 또는: python -m torch.distributed.run --standalone --nproc_per_node="$SLURM_GPUS_ON_NODE" train_ddp.py
 ```
 
 - CPU와 메모리는 GPU 수에 비례해 자동으로 따라옵니다.
 - 한 노드에 요청할 수 있는 GPU 수는 그 노드에 달린 GPU 수까지입니다. `sinfo -o "%N %G"`로 확인하세요.
 - 노드 간 고속 인터커넥트가 없는 클러스터에서는 **단일 노드 안에서** 여러 GPU를 쓰는 것이
   표준입니다. 여러 노드에 걸친 학습이 필요하면 먼저 [관리자에게 문의](../help.md)하세요.
+
+### 여러 노드에 걸친 DDP (꼭 필요할 때만)
+
+노드마다 `torchrun`을 하나씩 띄우고, 모두 잡의 첫 노드에서 만나게(rendezvous) 합니다.
+노드마다 같은 수의 GPU를 받습니다.
+
+```bash
+#!/bin/bash
+#SBATCH --job-name=ddp-multi
+#SBATCH --nodes=2
+#SBATCH --ntasks-per-node=1         # 노드마다 torchrun 하나
+#SBATCH --gres=gpu:<GPU 타입>:4     # 노드당 GPU 4장
+#SBATCH --time=1-00:00:00
+#SBATCH --output=logs/%x-%j.out
+
+set -euo pipefail
+export PYTHONUNBUFFERED=1
+MASTER_ADDR=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n1)
+MASTER_PORT=$(( 20000 + SLURM_JOB_ID % 20000 ))   # 잡마다 달라 포트가 겹치지 않음
+export MASTER_ADDR MASTER_PORT
+export OMP_NUM_THREADS=$(( SLURM_CPUS_ON_NODE / SLURM_GPUS_ON_NODE ))
+
+srun torchrun --nnodes="$SLURM_NNODES" --nproc_per_node="$SLURM_GPUS_ON_NODE" \
+    --rdzv_backend=c10d --rdzv_id="$SLURM_JOB_ID" --rdzv_endpoint="$MASTER_ADDR:$MASTER_PORT" \
+    train_ddp.py
+```
 
 ---
 
@@ -114,6 +143,21 @@ nvidia-smi
 python -c "import torch; print(torch.cuda.is_available(), torch.cuda.get_device_name(0))"
 exit          # 끝나면 반드시 빠져나와 GPU를 반납합니다
 ```
+
+### 짧은 실행을 반복할 때: 한 번 잡고 그 안에서 반복
+
+디버깅하며 짧은 잡을 `sbatch`로 계속 내면, 낼 때마다 다른 사람의 기본 QoS 잡을 선점해 처음부터 다시 돌게
+만들 수 있습니다. 반복 실행이 필요하면 GPU를 **한 번만** 잡고 그 안에서 반복하세요.
+
+```bash
+salloc --qos=<팀 QoS> --gres=gpu:<GPU 타입>:1 --time=02:00:00   # 이 터미널은 닫지 않음
+# 다른 터미널(로그인 노드)에서, 할당 안에서 명령을 반복 실행:
+srun --jobid=<JOBID> --overlap python train.py --epochs 1
+```
+
+코드는 로그인 노드에서 고쳐도 `/home`이 공유되므로 계산 노드에서 그대로 보입니다.
+할당은 아무것도 돌리지 않아도 GPU를 계속 잡고 있으니, **끝나면 바로** `exit`(salloc 터미널) 또는
+`scancel <JOBID>`로 반납하세요.
 
 ### 이미 돌고 있는 내 잡의 노드에 들어가기
 
@@ -259,6 +303,8 @@ wait "$PID"
 
 - 일정 스텝마다 `$CKPT_DIR`에 저장합니다. 임시 파일에 쓴 뒤 이름을 바꾸면 저장 도중
   끊겨도 마지막 체크포인트가 깨지지 않습니다.
+- 학습 중의 체크포인트는 빠른 `<스크래치 경로>`에 두고, **계속 보관할 체크포인트(최종 모델 등)는 `/home`으로
+  옮기세요.** `<스크래치 경로>`에서 60일 동안 쓰지 않은 파일은 자동으로 정리됩니다([스토리지](storage.md#용량-한도와-정리)).
 - 시작할 때 `$CKPT_DIR`에 체크포인트가 있으면 불러와서 이어갑니다.
 - `SIGUSR1`이나 `SIGTERM`을 받으면 즉시 체크포인트를 저장하고 종료합니다. 선점 유예 시간
   (<!-- BEGIN GENERATED: slurm:preempt_grace_seconds -->120<!-- END GENERATED: slurm:preempt_grace_seconds -->초) 안에 저장이 끝나야 합니다.

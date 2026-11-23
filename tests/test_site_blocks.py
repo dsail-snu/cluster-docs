@@ -14,6 +14,7 @@ DATA = {
         {"flags": ["-u", "--user"], "metavar": "LOGIN", "help": "one person | theirs"}]}},
     "policy": {"stale_days": 60, "grace_days": 14, "warn_fraction": 0.9},
     "slurm": {"kill_wait_seconds": 30, "preempt_grace_seconds": 30, "sigkill_after_seconds": 60},
+    "quota": {"/data": {"block_hard_tib": 2.0, "block_warn_tib": 1.8, "inode_hard": 6000000, "inode_warn": 5400000}},
 }  # fmt: skip
 
 
@@ -32,6 +33,15 @@ class Blocks(unittest.TestCase):
         self.assertIn("**6시간** 동안 쓰지 않은 잡은 자동으로 취소", site_blocks.idle_rule(on))
         self.assertIn("**1시간 전**", site_blocks.idle_rule(on))
         self.assertIn("켜져 있지 않습니다", site_blocks.idle_rule(off))
+
+    def test_quota_limits_in_tb_and_korean_counts(self):
+        page = "<!-- BEGIN GENERATED: quota:/data:block_hard --><!-- END GENERATED: quota:/data:block_hard -->, " \
+               "<!-- BEGIN GENERATED: quota:/data:inode_hard --><!-- END GENERATED: quota:/data:inode_hard -->, " \
+               "<!-- BEGIN GENERATED: quota:ratio --><!-- END GENERATED: quota:ratio -->"  # fmt: skip
+        out = site_blocks.fill(page, DATA)
+        self.assertIn("-->2 TB<!--", out)
+        self.assertIn("-->600만<!--", out)
+        self.assertIn("-->300만<!--", out)
 
     def test_policy_values(self):
         page = "<!-- BEGIN GENERATED: policy:warn_percent -->\n<!-- END GENERATED: policy:warn_percent -->"

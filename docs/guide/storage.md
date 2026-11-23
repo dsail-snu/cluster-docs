@@ -101,10 +101,10 @@ scp -P <SSH 포트> file.tar.gz <아이디>@<로그인 주소>:<스크래치 경
 
 | 공간 | 용량 상한 | 파일 수 상한 |
 |---|---|---|
-| `/home` | 10 TB | 3,000만 개 |
-| `<스크래치 경로>` | 5 TB | 1,500만 개 |
+| `/home` | <!-- BEGIN GENERATED: quota:/home:block_hard -->10 TB<!-- END GENERATED: quota:/home:block_hard --> | <!-- BEGIN GENERATED: quota:/home:inode_hard -->3,000만<!-- END GENERATED: quota:/home:inode_hard -->개 |
+| `<스크래치 경로>` | <!-- BEGIN GENERATED: quota:/scratch:block_hard -->5 TB<!-- END GENERATED: quota:/scratch:block_hard --> | <!-- BEGIN GENERATED: quota:/scratch:inode_hard -->1,500만<!-- END GENERATED: quota:/scratch:inode_hard -->개 |
 
-- 파일 수 한도는 용량에 비례합니다(1 TB당 300만 개). 작은 파일 수천만 개는 파일 서버의 모든 사용자를 느리게 하니
+- 파일 수 한도는 용량에 비례합니다(1 TB당 <!-- BEGIN GENERATED: quota:ratio -->300만<!-- END GENERATED: quota:ratio -->개). 작은 파일 수천만 개는 파일 서버의 모든 사용자를 느리게 하니
   묶음 포맷(tar, WebDataset, HDF5, Arrow 등)을 쓰세요.
 - 내 사용량은 `du` 대신 제공되는 보기로 확인하세요: 매일 아침 Slack 디스크 리포트(상위 사용자, 정리하면 좋을 폴더),
   `<스크래치 경로>`는 `scratch-space`.

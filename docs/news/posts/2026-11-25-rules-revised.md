@@ -29,7 +29,7 @@ categories: [policy]
 
 **스토리지** ([스토리지와 데이터](../../guide/storage.md#용량-한도와-정리))
 
-- **<!-- BEGIN GENERATED: date:limits_from -->2026-12-09<!-- END GENERATED: date:limits_from -->부터** 사람마다 `/home` 10 TB와 파일 3,000만 개, `<스크래치 경로>` 5 TB와 파일 1,500만 개가 상한입니다.
+- **<!-- BEGIN GENERATED: date:limits_from -->2026-12-09<!-- END GENERATED: date:limits_from -->부터** 사람마다 `/home` <!-- BEGIN GENERATED: quota:/home:block_hard -->10 TB<!-- END GENERATED: quota:/home:block_hard -->와 파일 <!-- BEGIN GENERATED: quota:/home:inode_hard -->3,000만<!-- END GENERATED: quota:/home:inode_hard -->개, `<스크래치 경로>` <!-- BEGIN GENERATED: quota:/scratch:block_hard -->5 TB<!-- END GENERATED: quota:/scratch:block_hard -->와 파일 <!-- BEGIN GENERATED: quota:/scratch:inode_hard -->1,500만<!-- END GENERATED: quota:/scratch:inode_hard -->개가 상한입니다.
   경고는 상한의 <!-- BEGIN GENERATED: policy:warn_percent -->90%<!-- END GENERATED: policy:warn_percent -->에서 옵니다. 같은 날부터 상한을 넘은 사람은 새 잡을 제출할 수 없고, 공용 데이터 폴더(`/home/data`)의
   내용은 각 폴더 주인의 홈으로 옮겨집니다. 그 전에 필요한 것을 챙기세요.
 - **<!-- BEGIN GENERATED: date:scratch_cleanup_from -->2026-11-25<!-- END GENERATED: date:scratch_cleanup_from -->부터** `<스크래치 경로>/<아이디>`는 빠른 NVMe 작업 공간이며 백업이 아닙니다. <!-- BEGIN GENERATED: policy:stale_days -->60<!-- END GENERATED: policy:stale_days -->일 동안 쓰지 않은 파일은 DM 알림 <!-- BEGIN GENERATED: policy:grace_days -->14<!-- END GENERATED: policy:grace_days -->일 뒤

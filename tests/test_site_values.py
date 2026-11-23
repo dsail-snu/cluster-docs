@@ -23,6 +23,9 @@ def typed_forms(data):
     if p.get("cancel_after_hours"):
         forms |= {f"{p['cancel_after_hours']}시간"}
     forms |= {f"{v}초" for k, v in s.items() if k.endswith("_seconds")}
+    for q in data.get("quota", {}).values():
+        forms |= {f"{q['block_hard_tib']:g} TB", f"{q['block_warn_tib']:g} TB"}
+        forms |= {site_blocks.count(q["inode_hard"]), site_blocks.count(q["inode_warn"])}
     return forms
 
 

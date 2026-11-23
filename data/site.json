@@ -456,6 +456,20 @@
     "stale_days": 60,
     "warn_fraction": 0.9
   },
+  "quota": {
+    "/home": {
+      "block_hard_tib": 10.0,
+      "block_warn_tib": 9.0,
+      "inode_hard": 30000000,
+      "inode_warn": 27000000
+    },
+    "/scratch": {
+      "block_hard_tib": 5.0,
+      "block_warn_tib": 4.5,
+      "inode_hard": 15000000,
+      "inode_warn": 13500000
+    }
+  },
   "slurm": {
     "kill_wait_seconds": 120,
     "preempt_grace_seconds": 120,

@@ -19,6 +19,8 @@ Generators:
   options:CMD     the options of the cluster command CMD, as a table
   policy:FIELD    one policy value (stale_days, grace_days, warn_percent)
   date:NAME       one announced date (the site's schedule)
+  quota:MOUNT:F   a limit of the filesystem at MOUNT: block_hard, block_warn (TB),
+                  inode_hard, inode_warn (a count); quota:ratio, files per TB
   rule:idle       the idle-GPU rule as a sentence: notices from the idle hours, and the
                   cancel with its warning, or that no cancel is active (cancel 0)
   slurm:FIELD     one Slurm value (kill_wait_seconds, preempt_grace_seconds,
@@ -66,12 +68,30 @@ def idle_rule(data):
     return text + "\n"
 
 
+def count(n):
+    """A file count as Korean writes it: 30000000 -> 3,000만."""
+    return f"{n // 10000:,}만" if n % 10000 == 0 and n >= 10000 else f"{n:,}"
+
+
+def quota(data, arg):
+    if arg == "ratio":
+        q = next(iter(data["quota"].values()))
+        return count(round(q["inode_hard"] / q["block_hard_tib"])) + "\n"
+    mount, _, field = arg.rpartition(":")
+    q = data["quota"][mount]
+    if field.startswith("block"):
+        return f"{q[field + '_tib']:g} TB\n"
+    return count(q[field]) + "\n"
+
+
 def body(data, name):
     kind, _, arg = name.partition(":")
     if kind == "options":
         return options(data, arg)
     if kind == "policy":
         return policy(data, arg)
+    if kind == "quota":
+        return quota(data, arg)
     if name == "rule:idle":
         return idle_rule(data)
     if kind == "date":

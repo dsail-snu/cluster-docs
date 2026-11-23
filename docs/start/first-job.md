@@ -50,10 +50,10 @@ scancel <JOBID>                # 취소
 ## 3. GPU를 붙잡고 대화형으로 만지기 (디버그 잡)
 
 인터랙티브 셸은 빠져나올 때까지 GPU를 점유하므로 **규정상 디버그 잡**입니다.
-**팀 QoS, 잡 이름 `debug`, 짧은 `--time`** 이 필수입니다. -> [규정: 디버깅](../policy/index.md#디버깅)
+**팀 QoS와 짧은 `--time`** 이 필수입니다. -> [규정: 디버깅](../policy/index.md#디버깅)
 
 ```bash
-srun --qos=<팀 QoS> --job-name=debug --time=01:00:00 \
+srun --qos=<팀 QoS> --time=01:00:00 \
      --gres=gpu:<GPU 타입>:1 --pty bash -i
 
 nvidia-smi

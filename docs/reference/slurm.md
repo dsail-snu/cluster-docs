@@ -56,7 +56,7 @@ sacctmgr show qos format=Name,Priority,Preempt%40,GrpTRES%40,MaxWall
 ```
 
 - 팀 QoS는 **반드시 본인 소속 팀 것**을 쓰세요. -> [규정](../policy/index.md#잡-제출-규칙)
-- 디버깅용 GPU 점유 잡은 **팀 QoS + 이름 `debug`** 규칙을 지키고, 다 쓰면 즉시 반납합니다. -> [규정: 디버깅](../policy/index.md#디버깅)
+- GPU를 점유하는 세션은 **팀 QoS**로 실행하고, 다 쓰면 즉시 반납합니다. -> [규정: 디버깅](../policy/index.md#디버깅)
 
 ```bash
 sbatch --qos=<팀 QoS> job.sbatch    # --qos 생략 시 기본 QoS
@@ -242,7 +242,7 @@ sacctmgr show qos format=Name,Priority,Flags,MaxWall,MaxTRESPU%30,GrpTRES%30
 --ntasks=N / --ntasks-per-node=N 태스크 분배 (GPU 잡은 GPU 수 이하)
 
 # 메타, 스케줄
---job-name=NAME                  잡 이름 (디버깅 잡은 debug)
+--job-name=NAME                  잡 이름
 --qos=<팀 QoS>                   QoS (생략하면 기본 QoS)
 --time=D-HH:MM:SS                최대 실행 시간 (짧게 적을수록 backfill에 유리)
 --dependency=afterok:JOBID       선행 잡이 성공한 뒤 시작

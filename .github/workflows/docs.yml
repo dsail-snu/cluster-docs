@@ -39,6 +39,8 @@ jobs:
           uv run python scripts/check_links.py
       - name: Export the agent rules (published as agents/AGENTS.md)
         run: uv run python scripts/agent_rules.py --out site/agents/AGENTS.md
+      - name: Write llms.txt and llms-full.txt (the site for AI agents, at its root)
+        run: uv run python scripts/llms.py --out site
       - if: github.event_name == 'push'
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9  # v5.0.0
         with:

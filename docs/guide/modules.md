@@ -67,30 +67,22 @@ nvcc --version               # 로드된 버전 확인
 
 ---
 
-## Python 환경 (conda, venv)
+## Python 환경 (uv)
 
-대부분의 딥러닝 작업은 **개인 conda 또는 venv 환경 + CUDA가 포함된 pip 휠**이나
-**컨테이너**로 충분합니다.
-
-### conda
-
-```bash
-# Miniconda를 홈에 설치 (최초 1회, 설치 파일은 공식 사이트에서 받습니다)
-bash Miniconda3-latest-Linux-x86_64.sh -b -p ~/miniconda3
-
-source ~/miniconda3/etc/profile.d/conda.sh
-conda create -n torch python=3.11 -y
-conda activate torch
-pip install torch            # CUDA 버전에 맞는 정확한 명령은 pytorch.org 에서 확인
-```
-
-### venv
+Python 환경은 **[uv](https://docs.astral.sh/uv/)를 권장합니다.** 프로젝트마다 환경이 디렉터리 안에 생기고,
+`uv.lock`으로 누가 어디서 실행해도 같은 패키지 버전을 씁니다. 설치가 빠르고, 내려받은 패키지는
+한 곳에 캐시해 다시 받지 않습니다. 대부분의 딥러닝 작업은 **uv 환경 + CUDA가 포함된 pip 휠**이나
+**[컨테이너](containers.md)**로 충분합니다.
 
 ```bash
-python3 -m venv ~/envs/torch
-source ~/envs/torch/bin/activate
-pip install --upgrade pip
-pip install torch
+# uv 설치 (최초 1회, 홈의 ~/.local/bin 에 설치됩니다. 설치 방법은 uv 공식 문서 참고)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# 새 프로젝트
+uv init myproject && cd myproject
+uv python install 3.12        # 필요한 Python 버전도 uv가 받아 둡니다
+uv add torch                  # CUDA 버전에 맞는 정확한 지정은 pytorch.org 와 uv 문서의 PyTorch 안내 참고
+uv run python train.py        # 프로젝트 환경으로 실행 (활성화가 필요 없습니다)
 ```
 
 ### 팁
@@ -99,10 +91,9 @@ pip install torch
 |---|---|
 | PyTorch, TensorFlow만 쓴다 | pip 휠에 CUDA 런타임이 들어 있어 보통 `module load cuda`가 필요 없습니다 (드라이버만 맞으면 됨) |
 | 직접 CUDA 코드를 컴파일한다 (custom 커널 등) | `module load cuda/<버전>`으로 `nvcc`를 맞춥니다 |
-| 홈 용량이 부족하다 | `conda clean --all`, `pip cache purge` 로 캐시 정리. 용량 확인은 [스토리지](storage.md) |
-| 로그인할 때마다 conda가 켜져 느리다 | `conda config --set auto_activate_base false` |
-| 환경을 다른 곳에서 재현하고 싶다 | `conda env export > environment.yml` 또는 `pip freeze > requirements.txt` |
-| conda와 모듈을 함께 쓴다 | `module load`를 먼저 하고 `conda activate`를 나중에 합니다 |
+| 홈 용량이 부족하다 | `uv cache prune` 으로 쓰지 않는 캐시를 정리. 용량 확인은 [스토리지](storage.md) |
+| 환경을 다른 곳에서 재현하고 싶다 | `pyproject.toml`과 `uv.lock`을 함께 두면 `uv sync`로 똑같이 만듭니다 |
+| 이미 conda 환경이 있다 | 그대로 써도 됩니다. 새 프로젝트부터 uv로 옮기는 것을 권장합니다 |
 
 ---
 
@@ -120,15 +111,13 @@ set -euo pipefail
 # (선택) CUDA 모듈
 # module load cuda/<버전>
 
-# conda 환경
-source ~/miniconda3/etc/profile.d/conda.sh
-conda activate torch
-
-python train.py
+# 프로젝트 디렉터리에서 uv 환경으로 실행
+cd ~/myproject
+uv run python train.py
 ```
 
 !!! warning
-    로그인 노드에서 `module load`나 `conda activate`를 해 둔 상태에 기대지 마세요.
+    로그인 노드에서 `module load`나 환경 활성화를 해 둔 상태에 기대지 마세요.
     **항상 스크립트 안에서** 환경을 준비해야 어디서 실행해도 같은 결과가 나옵니다.
 
 더 많은 예제는 [잡 레시피](job-recipes.md#실행-환경-준비)를 보세요.

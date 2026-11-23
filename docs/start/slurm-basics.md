@@ -70,8 +70,8 @@ squeue --me       # 내 잡만
 
 ```bash
 # GPU 1장으로 대화형 셸. GPU 타입은 반드시 명시하고,
-# 규정상 팀 QoS, 잡 이름 debug, 짧은 --time 이 필요합니다.
-srun --qos=<팀 QoS> --job-name=debug --time=01:00:00 \
+# 규정상 팀 QoS와 짧은 --time 이 필요합니다.
+srun --qos=<팀 QoS> --time=01:00:00 \
      --gres=gpu:<GPU 타입>:1 --pty bash -i
 ```
 
@@ -91,7 +91,7 @@ exit                           # 끝나면 반드시 나가서 자원 반납
 
 !!! warning "인터랙티브 셸은 GPU를 계속 점유합니다"
     빠져나오기 전까지 GPU를 계속 붙잡고 있으므로 규정상 "GPU 점유"에 해당합니다.
-    디버깅 목적이면 **팀 QoS와 잡 이름 `debug`** 규칙을 지키고, 다 쓰면 즉시 빠져나오세요. -> [규정: 디버깅](../policy/index.md#디버깅)
+    **팀 QoS**로 실행하고, 다 쓰면 즉시 빠져나오세요. -> [규정: 디버깅](../policy/index.md#디버깅)
 
 ## 실습 3: 배치 잡 제출하기 (`sbatch`)
 
@@ -110,11 +110,9 @@ exit                           # 끝나면 반드시 나가서 자원 반납
 echo "Host: $(hostname)  |  Job: $SLURM_JOB_ID"
 nvidia-smi
 
-# 필요하면 모듈이나 conda 환경 준비
+# 필요하면 모듈 준비, uv 프로젝트 환경으로 실행
 # module load <모듈 이름>
-# source ~/miniconda3/bin/activate myenv
-
-python train.py --epochs 50
+uv run python train.py --epochs 50
 ```
 
 제출하고 확인합니다.
@@ -130,7 +128,7 @@ tail -f logs/resnet-<JOBID>.out  # 로그 실시간 보기
 
 | 지시문 | 의미 |
 |--------|------|
-| `--job-name=NAME` | 잡 이름 (`squeue`에 표시). 디버그 잡은 `debug` |
+| `--job-name=NAME` | 잡 이름 (`squeue`에 표시) |
 | `--gres=gpu:<GPU 타입>:N` | GPU 타입과 개수. **항상 명시** |
 | `--output=` / `--error=` | 로그 파일. `%x`=잡 이름, `%j`=JOBID, `%N`=노드 이름 |
 | `--time=D-HH:MM:SS` | 최대 실행 시간. 필요한 만큼만 (짧을수록 빨리 시작). 상한은 `qos`로 확인 |
@@ -174,7 +172,7 @@ sacct --starttime=today      # 오늘 내 잡들
 2. **GPU 잡은 파티션, CPU, 메모리를 설정하지 마세요.** Slurm은 **GPU 타입만 보고** 그 타입의 노드가 있는 파티션으로 잡을 자동으로 보냅니다.
    CPU와 메모리도 GPU 수에 맞춰 충분히 자동 할당됩니다. 더 잡으면 그 노드의 남은 GPU를 다른 사람이 쓰지 못합니다. -> [자동 할당과 라우팅](../reference/slurm.md#자동-할당과-라우팅)
 3. **CPU 전용 잡**은 `--cpus-per-task`를 필요한 만큼 지정하면 됩니다. 파티션은 적지 마세요.
-4. **디버깅용 GPU 점유**(인터랙티브 셸, 노트북, 대기 중인 추론 서버 등)는 팀 QoS와 잡 이름 `debug`로 실행하고, 다 쓰면 즉시 반납하세요. -> [규정: 디버깅](../policy/index.md#디버깅)
+4. **GPU를 점유하는 세션**(인터랙티브 셸, 노트북, 대기 중인 추론 서버 등)은 팀 QoS로 실행하고, 다 쓰면 즉시 반납하세요. -> [규정: 디버깅](../policy/index.md#디버깅)
 5. **무거운 연산은 로그인 노드에서 금지.** 항상 Slurm으로 제출하세요.
 
 ## 다음 단계

@@ -99,11 +99,11 @@ python preprocess.py --workers "$SLURM_CPUS_PER_TASK"
 
 ## 디버그 인터랙티브
 
-GPU를 점유하는 인터랙티브 셸은 **규정상 디버그 잡**입니다. `<팀 QoS>`와 잡 이름 `debug`를
-반드시 쓰고, 다 쓰면 즉시 빠져나오세요. ([디버깅 규정](../policy/index.md#디버깅))
+GPU를 점유하는 인터랙티브 셸은 `<팀 QoS>`로 실행하고, 다 쓰면 즉시 빠져나오세요.
+([GPU 점유 규정](../policy/index.md#디버깅))
 
 ```bash
-srun --qos=<팀 QoS> --job-name=debug --time=04:00:00 \
+srun --qos=<팀 QoS> --time=04:00:00 \
      --gres=gpu:<GPU 타입>:1 --pty bash -i
 ```
 
@@ -123,19 +123,19 @@ srun --jobid=<JOBID> --overlap --pty bash -i   # 그 잡의 노드에서 셸
 htop; nvidia-smi; nvtop                         # 상태 확인
 ```
 
-자원을 새로 잡지 않고 기존 잡 안으로 들어가므로 디버그 잡 규칙과 무관합니다.
+자원을 새로 잡지 않고 기존 잡 안으로 들어가므로 GPU 점유 규칙과 무관합니다.
 자세한 모니터링은 [모니터링](monitoring.md)을 보세요.
 
 ---
 
 ## 원격 Jupyter 노트북
 
-Jupyter도 **GPU를 점유하는 디버그 잡**입니다. `<팀 QoS>` + `debug` 규칙을 지키고, 다 쓰면
+Jupyter도 **GPU를 점유하는 세션**입니다. `<팀 QoS>`로 실행하고, 다 쓰면
 즉시 종료하세요. 계산 노드에서 노트북을 띄우고 SSH 터널로 접속합니다.
 
 ```bash
 #!/bin/bash
-#SBATCH --job-name=debug            # 규정: debug
+#SBATCH --job-name=jupyter
 #SBATCH --qos=<팀 QoS>              # 규정: 팀 QoS
 #SBATCH --time=04:00:00             # 필요한 만큼만
 #SBATCH --gres=gpu:<GPU 타입>:1
@@ -276,8 +276,8 @@ wait "$PID"
 Docker/NGC 이미지를 Slurm 잡에서 바로 실행합니다. 자세한 내용은 [컨테이너](containers.md)를 보세요.
 
 ```bash
-# 인터랙티브 컨테이너 셸 (대화형이므로 디버그 잡 규칙 적용)
-srun --qos=<팀 QoS> --job-name=debug --time=04:00:00 \
+# 인터랙티브 컨테이너 셸 (GPU를 점유하므로 팀 QoS로)
+srun --qos=<팀 QoS> --time=04:00:00 \
      --gres=gpu:<GPU 타입>:1 \
      --container-image=nvcr.io#nvidia/pytorch:<태그> \
      --container-mounts=$HOME:$HOME --container-workdir=$HOME \
@@ -302,12 +302,12 @@ srun --container-image=nvcr.io#nvidia/pytorch:<태그> \
 ## 서버형 잡 (vLLM 등)
 
 !!! warning "요청을 기다리는 서버도 GPU 점유입니다"
-    대기 중인 vLLM 서버는 요청이 없어도 GPU를 잡고 있습니다. 규정상 **디버그 잡 규칙**
-    (`<팀 QoS>` + 이름 `debug`)을 적용하고, 다 쓰면 즉시 종료하세요.
+    대기 중인 vLLM 서버는 요청이 없어도 GPU를 잡고 있습니다. 규정상 **GPU 점유 규칙**
+    (`<팀 QoS>`)을 적용하고, 다 쓰면 즉시 종료하세요.
 
 ```bash
 #!/bin/bash
-#SBATCH --job-name=debug            # 규정 준수
+#SBATCH --job-name=vllm
 #SBATCH --qos=<팀 QoS>
 #SBATCH --time=04:00:00             # 필요한 만큼만
 #SBATCH --gres=gpu:<GPU 타입>:1     # 큰 모델이면 VRAM이 큰 GPU 타입으로
@@ -330,14 +330,11 @@ vllm serve <모델> --port ${PORT}
 잡으로 전달되지 않으니 **항상 스크립트 안에서** 준비하세요.
 
 ```bash
-# (A) conda
-source ~/miniconda3/etc/profile.d/conda.sh
-conda activate myenv
+# (A) uv 프로젝트 (권장): 활성화 없이 프로젝트 환경으로 실행
+cd ~/myproject
+uv run python train.py
 
-# (B) venv
-source ~/envs/myenv/bin/activate
-
-# (C) CUDA 모듈 (module avail cuda 로 사용 가능 버전 확인)
+# (B) CUDA 모듈 (module avail cuda 로 사용 가능 버전 확인)
 module load cuda/<버전>
 ```
 
@@ -350,8 +347,8 @@ module load cuda/<버전>
 | 옵션 | 의미 | 권장 |
 |---|---|---|
 | `--gres=gpu:<GPU 타입>:N` | GPU 타입, 개수 | GPU 잡은 **항상 명시** |
-| `--job-name=` | 잡 이름 | 디버그는 `debug` |
-| `--qos=` | QoS | 디버그, 우선 실행이 필요할 때 `<팀 QoS>` |
+| `--job-name=` | 잡 이름 | 알아보기 쉬운 이름 |
+| `--qos=` | QoS | GPU 점유 세션, 우선 실행이 필요할 때 `<팀 QoS>` |
 | `--time=D-HH:MM:SS` | 최대 실행 시간 | 필요한 만큼만. 상한은 `qos`로 확인 |
 | `--cpus-per-task=` | 태스크당 CPU | CPU 전용 잡만. GPU 잡은 **생략** |
 | `--nodes=1` | 노드 수 | 멀티 GPU는 단일 노드 권장 |

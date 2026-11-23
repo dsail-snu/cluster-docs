@@ -6,6 +6,10 @@ Docker/NGC 이미지를 **Slurm 잡 안에서** 실행하는 방법입니다.
 |---|---|
 | Enroot | root 권한 없이 동작하는 컨테이너 런타임 |
 | Pyxis | Enroot를 `srun`/`sbatch`에 붙여 주는 Slurm 플러그인 |
+| Podman | root 권한 없이 이미지를 만들고 실행하는 도구 (잡 안에서 이미지를 빌드할 때) |
+
+Slurm 잡에서 컨테이너를 돌릴 때는 **Enroot와 Pyxis**, 이미지를 직접 만들 때는 **Podman**을 권장합니다.
+Docker는 설치되어 있지만 권장하는 방법이 아닙니다.
 
 !!! question "왜 Docker가 아닌가요?"
     여러 사람이 함께 쓰는 클러스터에서는 root 권한 없이 안전하게 컨테이너를 돌려야 합니다.
@@ -30,7 +34,7 @@ srun --help | grep container      # Pyxis 옵션이 보이면 사용 가능
 
 ```bash
 # 대화형이므로 디버그 잡 규칙이 적용됩니다
-srun --qos=<팀 QoS> --job-name=debug --time=04:00:00 \
+srun --qos=<팀 QoS> --time=04:00:00 \
      --gres=gpu:<GPU 타입>:1 \
      --container-image=nvcr.io#nvidia/pytorch:<태그> \
      --container-mounts=$HOME:$HOME,<스크래치 경로>:<스크래치 경로> \
@@ -113,7 +117,7 @@ Enroot 표기는 `<레지스트리>#<이미지>:<태그>` 입니다. 레지스�
 
 ```bash
 # 1) 디버그 인터랙티브 셸 확보
-srun --qos=<팀 QoS> --job-name=debug --time=01:00:00 --gres=gpu:<GPU 타입>:1 --pty bash -i
+srun --qos=<팀 QoS> --time=01:00:00 --gres=gpu:<GPU 타입>:1 --pty bash -i
 
 # 2) 이미지 import -> .sqsh 파일 생성
 mkdir -p ~/images && cd ~/images
@@ -135,7 +139,7 @@ srun --gres=gpu:<GPU 타입>:1 --container-image=$HOME/images/pytorch.sqsh pytho
 베이스 이미지에 패키지를 더 깐 상태를 저장할 때 씁니다.
 
 ```bash
-srun --qos=<팀 QoS> --job-name=debug --time=01:00:00 --gres=gpu:<GPU 타입>:1 \
+srun --qos=<팀 QoS> --time=01:00:00 --gres=gpu:<GPU 타입>:1 \
      --container-image=nvcr.io#nvidia/pytorch:<태그> \
      --container-save=$HOME/images/my-pytorch.sqsh \
      --pty bash

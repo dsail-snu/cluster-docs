@@ -22,12 +22,14 @@ ADMONITION = re.compile(r'^!!! \w+(?: "([^"]*)")?\n((?:    .*\n|\n(?=    ))+)', 
 MARKER = "<!-- cluster-agent-rules -->"
 
 
-def include(text, root):
+def include(text, root, used=None):
     def repl(m):
         path = root / "snippets" / m.group(1)
         if not path.is_file():
             raise FileNotFoundError(f"snippet {m.group(1)} not found")
-        return include(path.read_text().rstrip("\n"), root)
+        if used is not None:
+            used.append(path)
+        return include(path.read_text().rstrip("\n"), root, used)
     return SNIPPET.sub(repl, text)
 
 
@@ -37,6 +39,21 @@ def plain_admonitions(text):
         title = f"**{m.group(1)}**\n" if m.group(1) else ""
         return "\n".join("> " + line if line else ">" for line in (title + body).split("\n")) + "\n"
     return ADMONITION.sub(repl, text)
+
+
+def sources(root=ROOT):
+    """The files the export is made of: the page and every snippet it includes."""
+    used = []
+    include((root / "docs" / PAGE).read_text(), root, used)
+    return [root / "docs" / PAGE, *dict.fromkeys(used)]
+
+
+def revision(root=ROOT):
+    """The last commit that changed the export's sources, not HEAD: a commit elsewhere in
+    the repository leaves the published bytes, and so the cluster's pinned hash, alone."""
+    paths = [str(p.relative_to(root)) for p in sources(root)]
+    return subprocess.run(["git", "log", "-1", "--format=%h", "--", *paths], cwd=root,
+                          capture_output=True, text=True).stdout.strip()
 
 
 def export(root=ROOT, revision=""):
@@ -52,9 +69,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--out", default="-", help="output file (default: stdout)")
     args = ap.parse_args()
-    rev = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, capture_output=True,
-                         text=True).stdout.strip()
-    text = export(revision=rev)
+    text = export(revision=revision())
     if args.out == "-":
         sys.stdout.write(text)
     else:

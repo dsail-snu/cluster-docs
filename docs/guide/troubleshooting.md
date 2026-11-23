@@ -167,7 +167,7 @@ sreport cluster AccountUtilizationByUser start=<시작 날짜> -t hours   # 기�
 ### Jupyter, 인터랙티브 셸, 띄워 둔 추론 서버도 규제 대상인가요?
 
 네. 사용자가 GPU를 쓰는 시점을 직접 정하는 **모든 GPU 점유**가 디버그 잡 규칙 대상입니다.
-`<팀 QoS>`와 잡 이름 `debug`로 제출하고, 다 쓰면 바로 종료하세요. -> [디버깅 규정](../policy/index.md#디버깅)
+`<팀 QoS>`로 제출하고, 다 쓰면 바로 종료하세요. -> [GPU 점유 규정](../policy/index.md#디버깅)
 
 ### AI 에이전트에게 잡 제출이나 SSH를 시켜도 되나요?
 

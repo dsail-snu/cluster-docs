@@ -1,6 +1,7 @@
 """Tests for scripts/agent_rules.py and scripts/siteurls.py."""
 import importlib.util
 import re
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -42,7 +43,8 @@ class ExportTests(unittest.TestCase):
         self.assertIsNone(re.search(r"\]\((?!https?://)[^)]*\)", text), "relative link left")
         # Rules pulled in from the shared snippets are present.
         self.assertIn("1, 2, 4, 8", text)
-        self.assertIn("--job-name=debug", text)
+        self.assertIn("--qos=<팀 QoS>", text)
+        self.assertNotIn("--job-name=debug", text)
 
     def test_includes_and_admonitions(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -60,6 +62,29 @@ class ExportTests(unittest.TestCase):
             (root / "docs/policy/ai-agents.md").write_text('--8<-- "missing.md"\n')
             with self.assertRaises(FileNotFoundError):
                 agent_rules.export(root)
+
+
+class RevisionTests(unittest.TestCase):
+    def test_the_stamp_is_the_last_commit_of_the_sources_not_head(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "docs/policy").mkdir(parents=True)
+            (root / "snippets").mkdir()
+            (root / "snippets/a.md").write_text("- rule\n")
+            (root / "docs/policy/ai-agents.md").write_text('# T\n\n--8<-- "a.md"\n')
+            git = ["git", "-C", tmp, "-c", "user.name=t", "-c", "user.email=t@example.invalid"]
+            subprocess.run([*git, "init", "-q"], check=True)
+            subprocess.run([*git, "add", "-A"], check=True)
+            subprocess.run([*git, "commit", "-qm", "rules"], check=True)
+            rules = subprocess.run([*git, "rev-parse", "--short", "HEAD"], capture_output=True, text=True).stdout.strip()
+            self.assertEqual([p.name for p in agent_rules.sources(root)], ["ai-agents.md", "a.md"])
+            (root / "other.md").write_text("x\n")
+            subprocess.run([*git, "add", "-A"], check=True)
+            subprocess.run([*git, "commit", "-qm", "other page"], check=True)
+            self.assertEqual(agent_rules.revision(root), rules, "another page's commit leaves the stamp")
+            (root / "snippets/a.md").write_text("- rule 2\n")
+            subprocess.run([*git, "commit", "-qam", "snippet"], check=True)
+            self.assertNotEqual(agent_rules.revision(root), rules, "a snippet's commit moves it")
 
 
 if __name__ == "__main__":

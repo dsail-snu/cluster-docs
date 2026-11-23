@@ -386,6 +386,33 @@ module load cuda/<버전>
 
 자세한 내용은 [소프트웨어 모듈](modules.md)을 보세요.
 
+### 실행 환경 묶어서 쓰기
+
+가상환경은 작은 파일 수천 개라 잡마다 공유 스토리지에서 그대로 읽으면 파일 서버에 부담이 됩니다.
+한 번 만들어 **파일 하나로 묶어** `/home`에 두고, 잡이 시작할 때 그 잡의 `/tmp`에 풀어서 씁니다.
+
+uv 가상환경은 만든 경로를 안에 적어 두므로, 다른 곳에 풀어 쓰려면 `--relocatable`로 만듭니다.
+
+```bash
+# 로그인 노드에서 한 번 (프로젝트에 uv.lock 이 있을 때)
+cd ~/myproject
+uv venv --relocatable .venv
+uv sync --frozen
+tar -czf ~/myproject-venv.tar.gz .venv
+```
+
+```bash
+# 잡 스크립트 안에서 (/tmp 는 잡마다 따로 있고 잡이 끝나면 지워집니다)
+tar -xzf ~/myproject-venv.tar.gz -C /tmp
+source /tmp/.venv/bin/activate
+export UV_CACHE_DIR=/tmp/uv-cache PIP_CACHE_DIR=/tmp/pip-cache
+python train.py
+```
+
+- 의존성을 바꿨으면 다시 `uv sync --frozen` 하고 묶습니다.
+- 가상환경의 Python은 uv가 내 홈에 설치한 인터프리터를 가리킵니다. 홈은 모든 노드에서 같으므로 그대로 동작합니다.
+- 컨테이너 이미지(`.sqsh`, 파일 하나)도 같은 효과입니다. -> [컨테이너 잡](#컨테이너-잡)
+
 ---
 
 ## 자주 쓰는 `#SBATCH` 옵션

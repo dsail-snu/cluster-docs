@@ -19,6 +19,8 @@ Generators:
   options:CMD     the options of the cluster command CMD, as a table
   policy:FIELD    one policy value (stale_days, grace_days, warn_percent)
   date:NAME       one announced date (the site's schedule)
+  rule:idle       the idle-GPU rule as a sentence: notices from the idle hours, and the
+                  cancel with its warning, or that no cancel is active (cancel 0)
   slurm:FIELD     one Slurm value (kill_wait_seconds, preempt_grace_seconds,
                   sigkill_after_seconds)
 
@@ -52,12 +54,26 @@ def policy(data, field):
     return f"{p[field]}\n"
 
 
+def idle_rule(data):
+    p = data["policy"]
+    text = (f"GPU를 할당받은 채 **{p['idle_hours']}시간 넘게 쓰지 않으면** 매시간 사용 현황 리포트마다 "
+            "Slack으로 알림이 갑니다.")
+    if p["cancel_after_hours"]:
+        text += (f" **{p['cancel_after_hours']}시간** 동안 쓰지 않은 잡은 자동으로 취소되고, "
+                 f"취소 **{p['cancel_warn_hours']}시간 전**에 미리 알려 줍니다.")
+    else:
+        text += " 쓰지 않는 잡의 자동 취소는 켜져 있지 않습니다."
+    return text + "\n"
+
+
 def body(data, name):
     kind, _, arg = name.partition(":")
     if kind == "options":
         return options(data, arg)
     if kind == "policy":
         return policy(data, arg)
+    if name == "rule:idle":
+        return idle_rule(data)
     if kind == "date":
         return f"{data['dates'][arg]}\n"
     if kind == "slurm":

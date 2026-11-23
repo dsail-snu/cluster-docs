@@ -15,7 +15,8 @@ categories: [policy]
 **잡과 GPU**
 
 - 잡 이름을 `debug`로 짓는 규칙은 없어졌습니다. GPU를 점유하는 세션(인터랙티브 셸, 노트북, 대기 중인 서버)은
-  **팀 QoS**로 실행하고, 다 쓰면 바로 반납하세요. GPU를 2시간 넘게 쓰지 않으면 Slack으로 알림이 갑니다.
+  **팀 QoS**로 실행하고, 다 쓰면 바로 반납하세요.
+- **<!-- BEGIN GENERATED: date:notice_day -->2026-11-25<!-- END GENERATED: date:notice_day -->부터** <!-- BEGIN GENERATED: rule:idle -->GPU를 할당받은 채 **2시간 넘게 쓰지 않으면** 매시간 사용 현황 리포트마다 Slack으로 알림이 갑니다. **6시간** 동안 쓰지 않은 잡은 자동으로 취소되고, 취소 **1시간 전**에 미리 알려 줍니다.<!-- END GENERATED: rule:idle -->
 - 이미 시스템이 막고 있던 두 가지를 규정에 적었습니다. CPU 전용 잡은 GPU 노드를 통째로 차지할 수 없고,
   한 잡에는 GPU 타입 하나만 요청할 수 있습니다.
 

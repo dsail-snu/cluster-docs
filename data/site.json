@@ -449,7 +449,10 @@
     "submit_holds_from": "2026-12-09"
   },
   "policy": {
+    "cancel_after_hours": 6,
+    "cancel_warn_hours": 1,
     "grace_days": 14,
+    "idle_hours": 2,
     "stale_days": 60,
     "warn_fraction": 0.9
   },

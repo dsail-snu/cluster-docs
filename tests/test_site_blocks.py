@@ -26,6 +26,13 @@ class Blocks(unittest.TestCase):
         self.assertIn("one person \\| theirs", out)
         self.assertNotIn("old", out)
 
+    def test_the_idle_rule_says_whether_a_cancel_is_active(self):
+        on = dict(DATA, policy=dict(DATA["policy"], idle_hours=2, cancel_after_hours=6, cancel_warn_hours=1))
+        off = dict(DATA, policy=dict(on["policy"], cancel_after_hours=0))
+        self.assertIn("**6시간** 동안 쓰지 않은 잡은 자동으로 취소", site_blocks.idle_rule(on))
+        self.assertIn("**1시간 전**", site_blocks.idle_rule(on))
+        self.assertIn("켜져 있지 않습니다", site_blocks.idle_rule(off))
+
     def test_policy_values(self):
         page = "<!-- BEGIN GENERATED: policy:warn_percent -->\n<!-- END GENERATED: policy:warn_percent -->"
         self.assertIn("90%", site_blocks.fill(page, DATA))

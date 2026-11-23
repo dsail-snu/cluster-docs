@@ -129,11 +129,12 @@ Slurm은 "이 QoS가 무엇을 선점하는지"만 기록하고 반대 방향은
 
 ### 선점되면 일어나는 일
 
-1. 잡에 **SIGTERM** 이 옵니다. 최소 실행 시간 보장은 없으므로 막 시작한 잡도 대상이 됩니다.
-2. 유예 시간(`KillWait`)이 지나면 **SIGKILL** 로 종료됩니다.
-3. 배치 잡은 **requeue** 됩니다. 큐로 돌아가 나중에 **처음부터** 다시 실행됩니다.
+1. 잡의 모든 프로세스에 곧바로 **SIGTERM** 이 옵니다. 최소 실행 시간 보장은 없으므로 막 시작한 잡도 대상이 됩니다.
+2. 유예 시간(`GraceTime`) 동안 잡은 계속 돌 수 있습니다. 이 클러스터에서는 <!-- BEGIN GENERATED: slurm:preempt_grace_seconds -->120<!-- END GENERATED: slurm:preempt_grace_seconds -->초입니다.
+3. 유예가 끝나면 Slurm이 잡을 끝내고, 그래도 남은 프로세스는 `KillWait` 뒤 **SIGKILL** 로 종료됩니다. 선점부터 SIGKILL까지 최대 <!-- BEGIN GENERATED: slurm:sigkill_after_seconds -->240<!-- END GENERATED: slurm:sigkill_after_seconds -->초입니다.
+4. 배치 잡은 **requeue** 됩니다. 큐로 돌아가 다시 실행되고, 체크포인트가 있으면 거기서 이어 갑니다.
 
-유예 시간은 `scontrol show config | grep KillWait` 로 확인합니다.
+유예 안에 체크포인트를 저장하세요: `SIGTERM` 을 잡거나(아래), `sbatch --signal` 로 미리 신호를 받습니다. 다시 시작한 잡은 그 체크포인트에서 이어 돌면 됩니다.
 
 ### 유예 시간을 쓰려면 SIGTERM을 잡으세요
 

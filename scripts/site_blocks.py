@@ -7,12 +7,19 @@ A page marks a block
     <!-- BEGIN GENERATED: options:sq -->
     <!-- END GENERATED: options:sq -->
 
-and this script writes its body; a hand edit inside a block is overwritten. CI runs it
+and this script writes its body; a hand edit inside a block is overwritten. A single
+value sits inline, both markers on its line, so it reads inside a sentence or a list item
+(a marker on a line of its own would end a list item):
+
+    유예 시간은 <!-- BEGIN GENERATED: slurm:preempt_grace_seconds -->120<!-- END GENERATED: slurm:preempt_grace_seconds -->초입니다.
+ CI runs it
 with --check, so a page whose block no longer matches the data fails the build.
 
 Generators:
   options:CMD     the options of the cluster command CMD, as a table
   policy:FIELD    one policy value (stale_days, grace_days, warn_percent)
+  slurm:FIELD     one Slurm value (kill_wait_seconds, preempt_grace_seconds,
+                  sigkill_after_seconds)
 
 Usage: site_blocks.py [--check]
 Standard library only.
@@ -25,7 +32,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data" / "site.json"
-BLOCK = re.compile(r"(<!-- BEGIN GENERATED: (\S+) -->\n)(.*?)(<!-- END GENERATED: \2 -->)", re.S)
+# A block may sit indented in a list item: its body takes the BEGIN marker's indent.
+BLOCK = re.compile(r"^([ ]*)(<!-- BEGIN GENERATED: (\S+) -->\n)(.*?)([ ]*<!-- END GENERATED: \3 -->)", re.S | re.M)
 
 
 def options(data, command):
@@ -49,11 +57,22 @@ def body(data, name):
         return options(data, arg)
     if kind == "policy":
         return policy(data, arg)
+    if kind == "slurm":
+        return f"{data['slurm'][arg]}\n"
     raise SystemExit(f"unknown generated block: {name}")
 
 
+INLINE = re.compile(r"(<!-- BEGIN GENERATED: (\S+) -->)([^\n]*?)(<!-- END GENERATED: \2 -->)")
+
+
 def fill(text, data):
-    return BLOCK.sub(lambda m: m.group(1) + body(data, m.group(2)) + m.group(4), text)
+    def one(m):
+        indent = m.group(1)
+        lines = body(data, m.group(3)).splitlines(keepends=True)
+        return indent + m.group(2) + "".join(indent + line if line.strip() else line for line in lines) + m.group(5)
+
+    text = BLOCK.sub(one, text)
+    return INLINE.sub(lambda m: m.group(1) + body(data, m.group(2)).strip() + m.group(4), text)
 
 
 def main(argv=None):

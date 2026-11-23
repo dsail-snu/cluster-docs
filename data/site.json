@@ -69,7 +69,7 @@
         {
           "flags": [
             "-m",
-            "--mine"
+            "--me"
           ],
           "help": "only the QoS you may submit against",
           "metavar": ""
@@ -293,7 +293,8 @@
         },
         {
           "flags": [
-            "-Q"
+            "-a",
+            "--all"
           ],
           "help": "everyone's jobs in the job list (--queue all)",
           "metavar": ""
@@ -352,9 +353,8 @@
         },
         {
           "flags": [
-            "-T",
-            "--totals",
-            "--show-partitions"
+            "-P",
+            "--partitions"
           ],
           "help": "pool totals only",
           "metavar": ""
@@ -444,5 +444,10 @@
     "grace_days": 14,
     "stale_days": 60,
     "warn_fraction": 0.9
+  },
+  "slurm": {
+    "kill_wait_seconds": 120,
+    "preempt_grace_seconds": 120,
+    "sigkill_after_seconds": 240
   }
 }

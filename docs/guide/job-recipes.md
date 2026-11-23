@@ -214,7 +214,7 @@ sbatch --dependency=afterok:$TRAIN eval.sbatch
 
 | 상황 | 받는 신호 | 다시 큐로 |
 |---|---|---|
-| 선점 | `SIGTERM`, 짧은 유예 뒤 종료 | `--requeue`면 Slurm이 자동으로 |
+| 선점 | 곧바로 `SIGTERM`, 유예 시간 뒤 종료 (아래 값) | `--requeue`면 Slurm이 자동으로 |
 | 시간 만료 직전 | `--signal`로 지정한 신호 (아래는 `USR1`) | 스크립트가 직접 `scontrol requeue` |
 
  주기적으로 체크포인트를 저장하고, 시작할 때 마지막 체크포인트에서
@@ -260,8 +260,8 @@ wait "$PID"
 - 일정 스텝마다 `$CKPT_DIR`에 저장합니다. 임시 파일에 쓴 뒤 이름을 바꾸면 저장 도중
   끊겨도 마지막 체크포인트가 깨지지 않습니다.
 - 시작할 때 `$CKPT_DIR`에 체크포인트가 있으면 불러와서 이어갑니다.
-- `SIGUSR1`이나 `SIGTERM`을 받으면 즉시 체크포인트를 저장하고 종료합니다. 선점 유예 시간은
-  짧으니 저장이 빨리 끝나야 합니다.
+- `SIGUSR1`이나 `SIGTERM`을 받으면 즉시 체크포인트를 저장하고 종료합니다. 선점 유예 시간
+  (<!-- BEGIN GENERATED: slurm:preempt_grace_seconds -->120<!-- END GENERATED: slurm:preempt_grace_seconds -->초) 안에 저장이 끝나야 합니다.
 - 막 시작한 잡도 선점될 수 있으니 첫 체크포인트를 너무 늦게 잡지 마세요.
 
 !!! note

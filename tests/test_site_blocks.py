@@ -34,6 +34,17 @@ class Blocks(unittest.TestCase):
         self.assertIn("**1시간 전**", site_blocks.idle_rule(on))
         self.assertIn("켜져 있지 않습니다", site_blocks.idle_rule(off))
 
+    def test_the_shared_model_cache_is_read_by_name_never_as_hf_hub_cache(self):
+        """The shared cache is writer-owned: a page telling people their HF_HUB_CACHE
+        points there sends every download of an uncached file into a refusal."""
+        shared = dict(DATA, environment=[{"name": "SHARED_HF_HUB_CACHE", "login": "/srv/hub", "job": ""}])
+        text = site_blocks.models(shared)
+        self.assertIn("`/srv/hub`", text)
+        self.assertIn("`SHARED_HF_HUB_CACHE`가 그곳을 가리킵니다", text)
+        self.assertNotIn("`HF_HUB_CACHE`가 그곳을", text)
+        wrong = dict(DATA, environment=[{"name": "HF_HUB_CACHE", "login": "/srv/hub", "job": ""}])
+        self.assertIn("아직 없습니다", site_blocks.models(wrong))
+
     def test_quota_limits_in_tb_and_korean_counts(self):
         page = "<!-- BEGIN GENERATED: quota:/data:block_hard --><!-- END GENERATED: quota:/data:block_hard -->, " \
                "<!-- BEGIN GENERATED: quota:/data:inode_hard --><!-- END GENERATED: quota:/data:inode_hard -->, " \

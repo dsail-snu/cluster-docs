@@ -26,7 +26,8 @@ Generators:
   env:table       the users' environment variables: each with its value in a login and
                   in a job (the cluster's one list, user_environment)
   env:NAME        the login value of the variable NAME, inline
-  models          the shared model cache as a sentence: where it is (HF_HUB_CACHE), or
+  models          the shared model cache as a sentence: where it is (SHARED_HF_HUB_CACHE,
+                  read by naming it; each person's own HF_HUB_CACHE stays theirs), or
                   that there is none
   slurm:FIELD     one Slurm value (kill_wait_seconds, preempt_grace_seconds,
                   sigkill_after_seconds)
@@ -103,13 +104,15 @@ def env_table(data):
 
 
 def models(data):
-    hub = env(data).get("HF_HUB_CACHE")
+    hub = env(data).get("SHARED_HF_HUB_CACHE")
     if not hub:
-        return ("공용 모델 캐시는 아직 없습니다. 모델은 각자 `HF_HOME` 아래에 내려받습니다.\n")
-    return (f"공용 모델 캐시는 `{hub['login']}`에 있고, 모든 로그인과 잡에서 `HF_HUB_CACHE`가 그곳을 가리킵니다. "
-            "Hugging Face 라이브러리는 그대로 이 캐시에서 모델을 읽습니다. **읽기 전용**이라 여기에는 "
-            "내려받을 수 없습니다. 여럿이 쓸 모델은 관리자에게 요청하고, 혼자 잠깐 쓸 모델은 받을 곳을 그 명령에만 "
-            "주세요(`hf download --cache-dir <내 디렉터리>`, `from_pretrained(..., cache_dir=...)`).\n")
+        return "공용 모델 캐시는 아직 없습니다. 모델은 각자 `HF_HOME` 아래에 내려받습니다.\n"
+    return (f"공용 모델 캐시는 `{hub['login']}`에 있고, 모든 로그인과 잡에서 `SHARED_HF_HUB_CACHE`가 그곳을 가리킵니다. "
+            "**읽기 전용**이라 여기에는 내려받을 수 없으니, 각자의 `HF_HUB_CACHE`로 바꾸지 말고 읽을 때 "
+            "이 경로를 직접 주세요: `from_pretrained(<모델>, cache_dir=os.environ[\"SHARED_HF_HUB_CACHE\"], "
+            "local_files_only=True)`, 또는 `HF_HUB_OFFLINE=1 hf download <모델> --cache-dir \"$SHARED_HF_HUB_CACHE\"`가 "
+            "출력하는 스냅샷 경로. 그 밖의 모델은 평소처럼 각자의 캐시(`HF_HOME` 아래)에 내려받고, 여럿이 쓸 모델은 "
+            "관리자에게 요청하세요.\n")
 
 
 def body(data, name):

@@ -311,7 +311,7 @@
             "-U",
             "--users"
           ],
-          "help": "who holds what, and each user's share of the GPUs",
+          "help": "who holds what (each GPU type under a high QoS and a low one), each user's share of the GPUs, and each team's high QoS quota in use",
           "metavar": ""
         },
         {
@@ -455,14 +455,14 @@
       "name": "HF_HOME"
     },
     {
-      "job": "",
-      "login": "/home/shared/models/hub",
-      "name": "HF_HUB_CACHE"
-    },
-    {
       "job": "/tmp/pip-cache",
       "login": "~/.cache/pip",
       "name": "PIP_CACHE_DIR"
+    },
+    {
+      "job": "",
+      "login": "/home/shared/models/hub",
+      "name": "SHARED_HF_HUB_CACHE"
     },
     {
       "job": "/tmp/uv-cache",

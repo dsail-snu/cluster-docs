@@ -1,5 +1,6 @@
 ---
-# Check every change; on main, publish the site and announce new notices in Slack.
+# Check every change; on main, publish the site. Its notices.json is what the cluster bot
+# posts in Slack, each notice on its date (deepops cluster_bot.notices): no Slack secret here.
 name: docs
 
 on:
@@ -43,6 +44,8 @@ jobs:
         run: uv run python scripts/agent_rules.py --out site/agents/AGENTS.md
       - name: Write llms.txt and llms-full.txt (the site for AI agents, at its root)
         run: uv run python scripts/llms.py --out site
+      - name: Export the notices as Slack messages (notices.json, read by the cluster bot)
+        run: uv run python scripts/notices.py export site/notices.json
       - if: github.event_name == 'push'
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9  # v5.0.0
         with:
@@ -61,18 +64,3 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346  # v5.0.1
-
-  announce:
-    if: github.event_name == 'push'
-    needs: deploy
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-        with:
-          fetch-depth: 0
-      - name: Post new notices to Slack
-        run: python3 scripts/notices.py announce "$BEFORE" "$GITHUB_SHA"
-        env:
-          # Incoming webhook that can post only to the announcement channel.
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_ANNOUNCE_WEBHOOK }}
-          BEFORE: ${{ github.event.before != '0000000000000000000000000000000000000000' && github.event.before || '4b825dc642cb6eb9a060e54bf8d69288fbee4904' }}

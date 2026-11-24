@@ -3,19 +3,20 @@
 
   check [BASE]            validate every notice; with BASE (a git revision), also
                           require a new or changed notice when docs/policy/ changed
-  announce BASE HEAD      post the notices added between two revisions to Slack
-                          (incoming webhook in $SLACK_WEBHOOK_URL; --dry-run prints)
+  export OUT              write every notice as its Slack message to OUT (the site's
+                          notices.json): {"notices": [{id, date, text, blocks}]}
 
 The notice format lives here and in CONTRIBUTING.md only; the site generator reads the
-same files, so the site, its feed and Slack always show the same notice.
+same files, so the site, its feed and Slack always show the same notice. This repository
+holds no Slack credential: the cluster's bot reads notices.json from the published site
+and posts each notice in the announcement channel once, on its date (deepops
+roles/cluster_bot, cluster_bot.notices); id is the notice's page.
 """
 import argparse
 import json
-import os
 import re
 import subprocess
 import sys
-import urllib.request
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
@@ -171,26 +172,17 @@ def blocks(notice, base):
     ]
 
 
-def announce(base, head, dry_run):
-    site = site_url(ROOT)
-    added = [p for p in changed(base, head, status="A") if p.startswith(POSTS + "/") and p.endswith(".md")]
-    webhook = os.environ.get("SLACK_WEBHOOK_URL", "")
-    if added and not webhook and not dry_run:
-        print("SLACK_WEBHOOK_URL is not set", file=sys.stderr)
+def export(out):
+    notices, errors = all_notices()
+    for err in errors:
+        print(err, file=sys.stderr)
+    if errors:
         return 1
-    for rel in added:
-        notice = parse(rel, git("show", f"{head}:{rel}"))
-        payload = {"text": notice.title, "blocks": blocks(notice, site)}
-        if dry_run:
-            print(json.dumps(payload, ensure_ascii=False, indent=1))
-            continue
-        req = urllib.request.Request(webhook, data=json.dumps(payload).encode(),
-                                     headers={"Content-Type": "application/json"})
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            if resp.status != 200:
-                print(f"{rel}: Slack answered {resp.status}", file=sys.stderr)
-                return 1
-        print(f"announced {rel}")
+    site = site_url(ROOT)
+    doc = {"notices": [{"id": n.url(site), "date": f"{n.date:%Y-%m-%d}", "text": n.title, "blocks": blocks(n, site)}
+                       for n in sorted(notices, key=lambda n: (n.date, n.slug))]}
+    Path(out).parent.mkdir(parents=True, exist_ok=True)
+    Path(out).write_text(json.dumps(doc, ensure_ascii=False, indent=1) + "\n")
     return 0
 
 
@@ -199,14 +191,12 @@ def main():
     sub = ap.add_subparsers(dest="cmd", required=True)
     c = sub.add_parser("check")
     c.add_argument("base", nargs="?")
-    a = sub.add_parser("announce")
-    a.add_argument("base")
-    a.add_argument("head")
-    a.add_argument("--dry-run", action="store_true")
+    e = sub.add_parser("export")
+    e.add_argument("out")
     args = ap.parse_args()
     if args.cmd == "check":
         return check(args.base)
-    return announce(args.base, args.head, args.dry_run)
+    return export(args.out)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 """Tests for scripts/notices.py."""
 import importlib.util
+import json
 import subprocess
 import tempfile
 import unittest
@@ -75,7 +76,7 @@ class ParseTests(unittest.TestCase):
 
 
 class GitTests(unittest.TestCase):
-    """check and announce against a throwaway repository."""
+    """check and export against a throwaway repository."""
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name)
@@ -120,15 +121,28 @@ class GitTests(unittest.TestCase):
         self.git("commit", "-q", "-m", "docs: reword\n\nNo-Notice: wording only, no rule changed")
         self.assertEqual(notices.check(self.base), 0)
 
-    def test_announce_dry_run_lists_added_notices_only(self):
+    def test_export_writes_each_notice_as_its_slack_message(self):
+        """The cluster bot posts what this file holds (deepops cluster_bot.notices): one
+        entry per notice, its page as the id, its date, the Slack text and blocks."""
         (self.root / "docs/news/posts/2026-11-19-docs-site.md").write_text(GOOD)
-        self.commit("notice")
-        head = self.git("rev-parse", "HEAD").strip()
-        self.assertEqual(notices.announce(self.base, head, dry_run=True), 0)
-        (self.root / "docs/news/posts/2026-11-19-docs-site.md").write_text(GOOD + "\n수정\n")
-        self.commit("edit")
-        self.assertEqual(notices.changed(head, "HEAD", status="A"), [])
+        out = self.root / "site/notices.json"
+        self.assertEqual(notices.export(out), 0)
+        doc = json.loads(out.read_text())
+        [n] = doc["notices"]
+        self.assertEqual(n["id"], "https://x.example/docs/news/2026/11/19/docs-site/")
+        self.assertEqual(n["date"], "2026-11-19")
+        self.assertTrue(n["text"])
+        self.assertEqual(n["blocks"][0]["type"], "header")
 
+    def test_export_refuses_a_broken_notice(self):
+        (self.root / "docs/news/posts/broken.md").write_text("no front matter\n")
+        self.assertEqual(notices.export(self.root / "site/notices.json"), 1)
+        self.assertFalse((self.root / "site/notices.json").exists())
+
+    def test_no_slack_credential_is_read(self):
+        source = Path(notices.__file__).read_text()
+        self.assertNotIn("WEBHOOK", source)
+        self.assertNotIn("urlopen", source)
 
 if __name__ == "__main__":
     unittest.main()

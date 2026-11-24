@@ -512,6 +512,11 @@
       "name": "UV_CACHE_DIR"
     }
   ],
+  "login": {
+    "cpus": 8,
+    "memory_gib": 64,
+    "tasks": 4096
+  },
   "policy": {
     "cancel_after_hours": 6,
     "cancel_warn_hours": 1,
@@ -520,6 +525,8 @@
     "idle_notify": [
       "mention"
     ],
+    "interactive_team_qos": true,
+    "leave_grace_days": 60,
     "stale_days": 60,
     "warn_fraction": 0.9
   },

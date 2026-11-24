@@ -54,11 +54,17 @@ srun --jobid=<JOBID> --overlap --pty bash -i
 
 ## 로그인 노드
 
-로그인 노드는 모두가 함께 쓰는 접속 지점입니다. 안정성을 위해 **사용자별 자원 한도**(동시 사용 코어, 메모리, 프로세스와 스레드 수)가 걸려 있습니다. 정확한 값은 로그인 배너에 표시됩니다.
+로그인 노드는 모두가 함께 쓰는 접속 지점입니다. 안정성을 위해 **사용자별 자원 한도**가 걸려 있습니다. <!-- BEGIN GENERATED: login:limits -->로그인 노드에는 한 사람당 CPU 8개, 메모리 64 GB, 프로세스 4,096개까지 쓰실 수 있도록 제한이 걸려 있습니다.<!-- END GENERATED: login:limits -->
 
 - VSCode 접속, 코드 편집, 가벼운 작업에는 지장이 없는 수준입니다.
 - **무거운 연산은 반드시 Slurm으로 계산 노드에 제출**하세요. -> [첫 잡 실행하기](../start/first-job.md)
 - 원격 편집은 **VSCode Remote-SSH**를 쓰세요. VSCode Tunnel은 로그인 노드의 CPU를 많이 차지합니다.
+
+## 계정 기간
+
+계정에 끝나는 날이 정해져 있으면, 그다음 날부터 새 잡을 제출하실 수 없습니다(이미 실행 중인 잡은 계속됩니다).
+파일을 옮기실 수 있도록 로그인은 <!-- BEGIN GENERATED: policy:leave_grace_days -->60<!-- END GENERATED: policy:leave_grace_days -->일 더 유지됩니다. 졸업 등으로 계정을 정리하실 때는
+`<!-- BEGIN GENERATED: bot:command -->/cluster<!-- END GENERATED: bot:command -->` 봇의 계정 정리 신청을 이용해 주세요 ([도움 받기](../help.md#봇으로-하는-신청)).
 
 ## 컨테이너
 

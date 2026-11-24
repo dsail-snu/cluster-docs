@@ -57,6 +57,12 @@ class ParseTests(unittest.TestCase):
             with self.assertRaises(ValueError, msg=what):
                 notices.parse(path, text)
 
+    def test_a_link_to_another_notice_reads_as_its_page(self):
+        """A notice file is served at news/YYYY/MM/DD/slug/, not at its path."""
+        text = notices.mrkdwn("- **2026-11-25부터** [지난 공지](2026-11-19-gpu-count-rule.md)", "https://x.example/docs/",
+                              "news/posts/2026-11-25-rules-revised.md")  # fmt: skip
+        self.assertIn("<https://x.example/docs/news/2026/11/19/gpu-count-rule/|지난 공지>", text)
+
     def test_a_lead_longer_than_slack_shows_is_refused_not_cut(self):
         n = notices.parse("docs/news/posts/2026-11-19-docs-site.md", GOOD)
         n.summary = "- **2026-11-19부터** " + "가" * notices.SECTION_MAX

@@ -19,11 +19,12 @@ Generators:
   options:CMD     the options of the cluster command CMD, as a table
   policy:FIELD    one policy value (stale_days, grace_days, warn_percent)
   date:NAME       one announced date (the site's schedule)
+  day:NAME        the same with its weekday, as the notices write it: 2026-11-25(수)
   quota:MOUNT:F   a limit of the filesystem at MOUNT: block_hard, block_warn (TB),
                   inode_hard, inode_warn (a count); quota:ratio, files per TB
-  rule:idle       the idle-GPU rule as a sentence: how the owner is told from the idle
-                  hours (policy.idle_notify), and the cancel with its warning, or that no
-                  cancel is active (cancel 0)
+  rule:idle       the idle-GPU rule as a sentence: that the owner is told from the idle
+                  hours (or, with policy.idle_notify empty, only listed), and the cancel
+                  with its warning, or that no cancel is active (cancel 0)
   env:table       the users' environment variables: each with its value in a login and
                   in a job (the cluster's one list, user_environment)
   env:NAME        the login value of the variable NAME, inline
@@ -32,6 +33,13 @@ Generators:
                   that there is none
   chat:channels   the Slack channels people use, as a table: each name (the cluster's)
                   and its line (slack/<role>.md table:, scripts/channels.py)
+  rule:sessions   whether srun and salloc GPU sessions must name a team QoS, checked at
+                  submit (policy.interactive_team_qos), or only asked to
+  login:limits    the login nodes' per-person limits as a sentence (CPUs, memory,
+                  processes), or that none is set
+  bot:command     the cluster bot's slash command
+  bot:subcommands the cluster bot's slash command and subcommands as a table, with their
+                  Korean help
   slurm:FIELD     one Slurm value (kill_wait_seconds, preempt_grace_seconds,
                   sigkill_after_seconds)
 
@@ -42,6 +50,7 @@ Standard library only.
 import json
 import re
 import sys
+from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -65,20 +74,14 @@ def policy(data, field):
     return f"{p[field]}\n"
 
 
-IDLE_TOLD = {  # how an idle job's owner is told (site.json policy.idle_notify)
-    ("mention",): "매시간 사용 현황 리포트에서 Slack 멘션으로 알려 드립니다",
-    ("dm",): "매시간 Slack DM으로 알려 드립니다",
-    ("dm", "mention"): "매시간 사용 현황 리포트의 멘션과 Slack DM으로 알려 드립니다",
-    (): "매시간 사용 현황 리포트에 표시됩니다",
-}
-
-
 def idle_rule(data):
     p = data["policy"]
-    told = tuple(sorted(p["idle_notify"]))
-    if told not in IDLE_TOLD:
-        raise ValueError(f"policy.idle_notify {p['idle_notify']!r}: teach scripts/site_blocks.py IDLE_TOLD")
-    text = f"Slurm 잡으로 GPU를 할당받아 두고 **{p['idle_hours']}시간 넘게 쓰지 않으면** {IDLE_TOLD[told]}."
+    # How the owner is told (a mention in the report, a DM) is the cluster's setting
+    # (policy.idle_notify) and not stated here; with none, the report only lists the job.
+    if set(p["idle_notify"]) - {"mention", "dm"}:
+        raise ValueError(f"policy.idle_notify {p['idle_notify']!r}: teach scripts/site_blocks.py idle_rule")
+    told = "알려 드립니다" if p["idle_notify"] else "사용 현황 리포트에 표시됩니다"
+    text = f"Slurm 잡으로 GPU를 할당받아 두고 **{p['idle_hours']}시간 넘게 쓰지 않으면** {told}."
     if p["cancel_after_hours"]:
         text += (f" **{p['cancel_after_hours']}시간** 동안 GPU를 쓰지 않은 잡은 자동으로 취소되며, "
                  f"취소 **{p['cancel_warn_hours']}시간 전**에 미리 알려 드립니다.")
@@ -87,9 +90,47 @@ def idle_rule(data):
     return text + "\n"
 
 
+WEEKDAYS = "월화수목금토일"
+
+
+def day(iso):
+    """A date with its Korean weekday: 2026-11-25 -> 2026-11-25(수)."""
+    return f"{iso}({WEEKDAYS[date.fromisoformat(iso).weekday()]})"
+
+
 def count(n):
     """A file count as Korean writes it: 30000000 -> 3,000만."""
     return f"{n // 10000:,}만" if n % 10000 == 0 and n >= 10000 else f"{n:,}"
+
+
+def sessions_rule(data):
+    if data["policy"]["interactive_team_qos"]:
+        return ("`srun`, `salloc`으로 여는 GPU 세션은 팀 QoS(`--qos=<팀 QoS>`)로만 시작할 수 있습니다. "
+                "팀 QoS 없이 제출하면 `qos`로 내 QoS를 확인하라는 안내와 함께 거부됩니다.\n")
+    return "`srun`, `salloc`으로 여는 GPU 세션은 팀 QoS(`--qos=<팀 QoS>`)로 실행해 주세요.\n"
+
+
+def login_limits(data):
+    """The login nodes' per-person limits as a sentence (site.json login), or that none is set."""
+    limits = data.get("login") or {}
+    parts = [f"{label} {fmt(limits[key])}" for key, label, fmt in (
+        ("cpus", "CPU", lambda n: f"{n}개"),
+        ("memory_gib", "메모리", lambda n: f"{n} GB"),
+        ("tasks", "프로세스", lambda n: f"{count(n)}개"),
+    ) if key in limits]  # fmt: skip
+    if not parts:
+        return "로그인 노드에는 사람별 자원 한도가 따로 걸려 있지 않습니다.\n"
+    return f"로그인 노드에는 한 사람당 {', '.join(parts)}까지 쓰실 수 있도록 제한이 걸려 있습니다.\n"
+
+
+def table(header, rows):
+    return "\n".join([f"| {header[0]} | {header[1]} |", "|---|---|", *(f"| {a} | {b} |" for a, b in rows)]) + "\n"
+
+
+def bot_subcommands(data):
+    """The cluster bot's subcommands as a table, each with its Korean help (site.json bot)."""
+    bot = data["bot"]
+    return table(("명령", "하는 일"), [(f"`{bot['command']} {s['name']}`", s["help"]) for s in bot["subcommands"]])
 
 
 def quota(data, arg):
@@ -140,6 +181,8 @@ def body(data, name):
         return idle_rule(data)
     if kind == "date":
         return f"{data['dates'][arg]}\n"
+    if kind == "day":
+        return f"{day(data['dates'][arg])}\n"
     if kind == "slurm":
         return f"{data['slurm'][arg]}\n"
     if name == "env:table":
@@ -148,6 +191,14 @@ def body(data, name):
         return f"`{env(data)[arg]['login']}`\n"
     if name == "models":
         return models(data)
+    if name == "rule:sessions":
+        return sessions_rule(data)
+    if name == "login:limits":
+        return login_limits(data)
+    if name == "bot:command":
+        return f"{data['bot']['command']}\n"
+    if name == "bot:subcommands":
+        return bot_subcommands(data)
     if name == "chat:channels":
         import channels  # the guides' sources; it reads this module too
 

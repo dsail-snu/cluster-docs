@@ -168,6 +168,7 @@ trap 'touch <스크래치 경로>/$USER/ckpt.request' TERM
 | `--gres=gpu:<GPU 타입>:N` (또는 `--gpus=<GPU 타입>:N`) | 그 GPU 타입의 **풀 전체**로 제출. Slurm이 먼저 시작할 수 있는 노드를 고릅니다 |
 | GPU를 요청했는데 **타입 미지정** | 기본 타입으로 보정되고 안내 메시지가 나옵니다. 규정상 **항상 타입을 적으세요** |
 | GPU 잡이 `--partition` 을 직접 지정 | **무시**하고 그 GPU 타입의 풀로 보냅니다 |
+| `srun`, `salloc` 으로 여는 **GPU 세션** | <!-- BEGIN GENERATED: rule:sessions -->`srun`, `salloc`으로 여는 GPU 세션은 팀 QoS(`--qos=<팀 QoS>`)로만 시작할 수 있습니다. 팀 QoS 없이 제출하면 `qos`로 내 QoS를 확인하라는 안내와 함께 거부됩니다.<!-- END GENERATED: rule:sessions --> |
 | **GPU 미요청 (CPU 전용 잡)** | CPU 잡이 쓸 수 있는 노드 전체로 제출. GPU 잡 몫의 코어는 따로 보호됩니다 |
 
 - 한 GPU 타입이 여러 파티션에 나뉘어 있어도 하나의 풀처럼 동작합니다. 한쪽이 꽉 찼다고 다른 쪽이 놀지 않습니다.

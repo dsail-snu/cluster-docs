@@ -164,9 +164,14 @@ def unwrap(markdown):
     return "\n".join(result)
 
 
+# A link to another notice's file; the site serves it at the notice's own address.
+POST_LINK = re.compile(r"\]\((?:\./)?(\d{4})-(\d{2})-(\d{2})-([a-z0-9-]+)\.md(#[^)]*)?\)")
+
+
 def mrkdwn(markdown, base, page):
     """Notice Markdown to Slack mrkdwn: paragraphs unwrapped, bold, links absolute."""
-    text = absolute_links(unwrap(markdown), base, page, fmt="<{url}|{text}>")
+    text = POST_LINK.sub(lambda m: f"]({base}news/{m[1]}/{m[2]}/{m[3]}/{m[4]}/{m[5] or ''})", unwrap(markdown))
+    text = absolute_links(text, base, page, fmt="<{url}|{text}>")
     return re.sub(r"\*\*(.+?)\*\*", r"*\1*", text)
 
 

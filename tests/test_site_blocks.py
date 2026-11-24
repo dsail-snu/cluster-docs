@@ -13,7 +13,8 @@ DATA = {
         {"flags": ["-a", "--all"], "metavar": "", "help": "everything"},
         {"flags": ["-u", "--user"], "metavar": "LOGIN", "help": "one person | theirs"}]}},
     "policy": {"stale_days": 60, "grace_days": 14, "warn_fraction": 0.9, "idle_hours": 2,
-               "cancel_after_hours": 6, "cancel_warn_hours": 1, "idle_notify": ["mention"]},
+               "cancel_after_hours": 6, "cancel_warn_hours": 1, "idle_notify": ["mention"],
+               "interactive_team_qos": True},
     "slurm": {"kill_wait_seconds": 30, "preempt_grace_seconds": 30, "sigkill_after_seconds": 60},
     "quota": {"/data": {"block_hard_tib": 2.0, "block_warn_tib": 1.8, "inode_hard": 6000000, "inode_warn": 5400000}},
 }  # fmt: skip
@@ -36,18 +37,35 @@ class Blocks(unittest.TestCase):
         self.assertIn("**1시간 전**", site_blocks.idle_rule(on))
         self.assertIn("자동으로 취소하지는 않습니다", site_blocks.idle_rule(off))
 
-    def test_the_idle_rule_says_how_the_owner_is_told_as_the_cluster_does(self):
-        """Mention in the report thread, a DM, both or neither (policy.idle_notify, the
-        cluster's slurm_usage_report_notify): the page never says DM when none is sent."""
+    def test_the_idle_rule_claims_no_channel_and_follows_whether_anyone_is_told(self):
+        """How an idle job's owner is told is the cluster's setting (policy.idle_notify:
+        a mention in the hourly report, or a DM); the rule never names one, and with none
+        set it says the report only lists the job."""
         def told(how):
             return site_blocks.idle_rule(dict(DATA, policy=dict(DATA["policy"], idle_notify=how)))
-        self.assertIn("Slack 멘션으로 알려 드립니다", told(["mention"]))
-        self.assertNotIn("DM", told(["mention"]))
-        self.assertIn("Slack DM으로", told(["dm"]))
-        self.assertIn("멘션과 Slack DM으로", told(["mention", "dm"]))
+        for how in (["mention"], ["dm"], ["mention", "dm"]):
+            self.assertIn("쓰지 않으면** 알려 드립니다.", told(how))
+            self.assertNotIn("DM", told(how))
+            self.assertNotIn("멘션", told(how))
         self.assertIn("리포트에 표시됩니다", told([]))
-        with self.assertRaisesRegex(ValueError, "IDLE_TOLD"):
+        with self.assertRaisesRegex(ValueError, "idle_rule"):
             told(["email"])
+
+    def test_the_sessions_rule_says_whether_submit_checks_it(self):
+        on = dict(DATA, policy=dict(DATA["policy"], interactive_team_qos=True))
+        off = dict(DATA, policy=dict(DATA["policy"], interactive_team_qos=False))
+        self.assertIn("거부됩니다", site_blocks.sessions_rule(on))
+        self.assertNotIn("거부", site_blocks.sessions_rule(off))
+
+    def test_a_day_is_written_with_its_weekday(self):
+        self.assertEqual(site_blocks.day("2026-11-25"), "2026-11-25(수)")
+        self.assertEqual(site_blocks.day("2026-12-06"), "2026-12-06(일)")
+
+    def test_the_login_limits_as_a_sentence(self):
+        data = dict(DATA, login={"cpus": 8, "memory_gib": 64, "tasks": 4096})
+        self.assertEqual(site_blocks.login_limits(data),
+                         "로그인 노드에는 한 사람당 CPU 8개, 메모리 64 GB, 프로세스 4,096개까지 쓰실 수 있도록 제한이 걸려 있습니다.\n")
+        self.assertIn("걸려 있지 않습니다", site_blocks.login_limits(dict(DATA, login={})))
 
     def test_the_shared_model_cache_is_read_by_name_never_as_hf_hub_cache(self):
         """The shared cache is writer-owned: a page telling people their HF_HUB_CACHE

@@ -31,7 +31,7 @@ srun --jobid=<JOBID> --overlap --pty bash -i
 
 ### 로그인 노드가 느리거나 내 프로세스가 죽어요
 
-로그인 노드에는 사용자별 CPU, 메모리, 프로세스 수 한도가 있습니다. 무거운 작업이 이 한도에 걸린 것이니,
+<!-- BEGIN GENERATED: login:limits -->로그인 노드에는 한 사람당 CPU 8개, 메모리 64 GB, 프로세스 4,096개까지 쓰실 수 있도록 제한이 걸려 있습니다.<!-- END GENERATED: login:limits --> 무거운 작업이 이 한도에 걸린 것이니,
 **연산은 Slurm으로 계산 노드에 제출**하세요. -> [첫 잡 실행하기](../start/first-job.md)
 
 ## 잡이 안 돌 때 (Pending)

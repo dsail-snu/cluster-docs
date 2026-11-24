@@ -99,7 +99,7 @@ def sources(root=ROOT):
 
 
 def _table(header, rows):
-    return "\n".join([f"| {header[0]} | {header[1]} |", "|---|---|", *(f"| {a} | {b} |" for a, b in rows)])
+    return site_blocks.table(header, rows).rstrip("\n")
 
 
 def fill(text, data):
@@ -117,7 +117,7 @@ def fill(text, data):
         if name == "/cluster":
             return bot["command"]
         if name == "bot.subcommands":
-            return _table(("명령", "하는 일"), [(f"`{bot['command']} {s['name']}`", s["help"]) for s in bot["subcommands"]])
+            return site_blocks.bot_subcommands(data).rstrip("\n")
         if name == "commands":
             return _table(("명령", "보여 주는 것"), [(f"`{c}`", d["summary_ko"]) for c, d in data["commands"].items()])
         if name == "rule:idle":

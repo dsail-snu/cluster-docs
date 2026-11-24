@@ -6,16 +6,21 @@ categories: [policy]
 
 # 사용 규정이 바뀝니다
 
-- **<!-- BEGIN GENERATED: date:notice_day -->2026-11-25<!-- END GENERATED: date:notice_day -->부터**
-  - `<스크래치 경로>/<아이디>` 개인 작업 공간은 빠른 NVMe 공간이라, 지금 실험에서 많이 읽고 쓰는 파일을 두시면 좋습니다.
+- **<!-- BEGIN GENERATED: day:notice_day -->2026-11-25(수)<!-- END GENERATED: day:notice_day -->부터**
+  - `/scratch/<아이디>` 개인 작업 공간은 빠른 NVMe 공간이라, 읽기와 쓰기(I/O)가 많은 실험의 파일을 두시면 좋습니다.
     <!-- BEGIN GENERATED: policy:stale_days -->60<!-- END GENERATED: policy:stale_days -->일 동안 쓰지 않은 파일은 DM으로 먼저 알려 드린 뒤 <!-- BEGIN GENERATED: policy:grace_days -->14<!-- END GENERATED: policy:grace_days -->일 후 정리합니다. 정리될 파일은 `scratch-space`로 확인하실 수 있습니다.
-  - <!-- BEGIN GENERATED: rule:idle -->Slurm 잡으로 GPU를 할당받아 두고 **2시간 넘게 쓰지 않으면** 매시간 사용 현황 리포트에서 Slack 멘션으로 알려 드립니다. **6시간** 동안 GPU를 쓰지 않은 잡은 자동으로 취소되며, 취소 **1시간 전**에 미리 알려 드립니다.<!-- END GENERATED: rule:idle -->
+  - <!-- BEGIN GENERATED: rule:idle -->Slurm 잡으로 GPU를 할당받아 두고 **2시간 넘게 쓰지 않으면** 알려 드립니다. **6시간** 동안 GPU를 쓰지 않은 잡은 자동으로 취소되며, 취소 **1시간 전**에 미리 알려 드립니다.<!-- END GENERATED: rule:idle -->
   - 디버깅을 위해 GPU를 잡아 두는 세션(셸, 노트북, 서버)은 **팀 QoS**로 실행해 주시고, 다 쓰시면 바로 반납해 주세요.
+  - <!-- BEGIN GENERATED: login:limits -->로그인 노드에는 한 사람당 CPU 8개, 메모리 64 GB, 프로세스 4,096개까지 쓰실 수 있도록 제한이 걸려 있습니다.<!-- END GENERATED: login:limits --> 무거운 작업은 Slurm 잡으로 실행해 주세요.
+  - 공유 스토리지를 많이 읽고 쓰는 잡이 있으면 DM으로 알려 드립니다. I/O를 줄이는 방법은
+    [스토리지 안내](../../guide/storage.md#공유-스토리지를-느리게-만들지-않는-법)에 정리해 두었습니다.
+  - 공용 모델 캐시(`$SHARED_HF_HUB_CACHE`)를 쓰실 수 있습니다. 사용법은 [스토리지 안내](../../guide/storage.md#공용-모델)를 참고해 주세요.
   - 컨테이너는 Enroot, Pyxis, Podman을 이용해 주세요.
-  - AI 에이전트를 쓰신다면 SSH와 전송 시도가 모두 합쳐 최대 3번, 30초 이상 간격이 되도록 설정해 주세요.
-- **<!-- BEGIN GENERATED: date:limits_from -->2026-12-09<!-- END GENERATED: date:limits_from -->부터**
-  - 한 사람이 `/home` <!-- BEGIN GENERATED: quota:/home:block_hard -->10 TB<!-- END GENERATED: quota:/home:block_hard -->(파일 <!-- BEGIN GENERATED: quota:/home:inode_hard -->3,000만<!-- END GENERATED: quota:/home:inode_hard --> 개), `<스크래치 경로>` <!-- BEGIN GENERATED: quota:/scratch:block_hard -->5 TB<!-- END GENERATED: quota:/scratch:block_hard -->(파일 <!-- BEGIN GENERATED: quota:/scratch:inode_hard -->1,500만<!-- END GENERATED: quota:/scratch:inode_hard --> 개)까지 쓰실 수 있고, <!-- BEGIN GENERATED: policy:warn_percent -->90%<!-- END GENERATED: policy:warn_percent -->에 이르면 미리 알려 드립니다.
-  - 한도를 넘으면 새 잡 제출이 보류되니, 그 전에 정리해 주시면 감사하겠습니다.
+  - [AI 에이전트 규칙](../../policy/ai-agents.md)을 새로 정리했습니다. 사용하시는 모든 에이전트에 규칙 파일(사이트의 `agents/AGENTS.md`)을
+    메모리나 지침 파일로 넣어 적용해 주세요.
+- **<!-- BEGIN GENERATED: day:limits_from -->2026-12-09(수)<!-- END GENERATED: day:limits_from -->부터**
+  - 한 사람이 `/home` <!-- BEGIN GENERATED: quota:/home:block_hard -->10 TB<!-- END GENERATED: quota:/home:block_hard -->(파일 <!-- BEGIN GENERATED: quota:/home:inode_hard -->3,000만<!-- END GENERATED: quota:/home:inode_hard --> 개), `/scratch` <!-- BEGIN GENERATED: quota:/scratch:block_hard -->5 TB<!-- END GENERATED: quota:/scratch:block_hard -->(파일 <!-- BEGIN GENERATED: quota:/scratch:inode_hard -->1,500만<!-- END GENERATED: quota:/scratch:inode_hard --> 개)까지 쓰실 수 있고, <!-- BEGIN GENERATED: policy:warn_percent -->90%<!-- END GENERATED: policy:warn_percent -->에 이르면 미리 알려 드립니다.
+  - 한도에 이르면 새 잡 제출이 보류되니, 그 전에 정리해 주시면 감사하겠습니다.
   - `/home/data`의 내용은 각 폴더 주인의 홈으로 옮겨 드릴 예정입니다. 필요한 파일은 미리 백업해 두시기 바랍니다.
 
 <!-- more -->
@@ -35,4 +40,4 @@ categories: [policy]
   큰 트리의 `du`, `find`, 로그인 노드에서의 큰 `rsync`, `tar`는 피해 주시고, 사용량은 제공되는 보기로 확인해 주세요.
 - 패키지 캐시와 공용 모델 캐시는 클러스터가 환경 변수로 정해 두었습니다
   ([환경 변수](../../guide/storage.md#환경-변수), [공용 모델](../../guide/storage.md#공용-모델)).
-- Python 환경은 [uv](../../guide/modules.md#python-환경-uv), 컨테이너는 [Enroot, Pyxis, Podman](../../guide/containers.md)을 권해 드립니다.
+- Python 환경은 [uv](../../guide/modules.md#python-환경-uv)를 권해 드립니다.

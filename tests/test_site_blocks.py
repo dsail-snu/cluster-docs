@@ -12,7 +12,8 @@ DATA = {
     "commands": {"tool": {"summary": "s", "usage": "tool", "options": [
         {"flags": ["-a", "--all"], "metavar": "", "help": "everything"},
         {"flags": ["-u", "--user"], "metavar": "LOGIN", "help": "one person | theirs"}]}},
-    "policy": {"stale_days": 60, "grace_days": 14, "warn_fraction": 0.9},
+    "policy": {"stale_days": 60, "grace_days": 14, "warn_fraction": 0.9, "idle_hours": 2,
+               "cancel_after_hours": 6, "cancel_warn_hours": 1, "idle_notify": ["mention"]},
     "slurm": {"kill_wait_seconds": 30, "preempt_grace_seconds": 30, "sigkill_after_seconds": 60},
     "quota": {"/data": {"block_hard_tib": 2.0, "block_warn_tib": 1.8, "inode_hard": 6000000, "inode_warn": 5400000}},
 }  # fmt: skip
@@ -28,11 +29,25 @@ class Blocks(unittest.TestCase):
         self.assertNotIn("old", out)
 
     def test_the_idle_rule_says_whether_a_cancel_is_active(self):
-        on = dict(DATA, policy=dict(DATA["policy"], idle_hours=2, cancel_after_hours=6, cancel_warn_hours=1))
+        on = dict(DATA, policy=dict(DATA["policy"], idle_hours=2, cancel_after_hours=6, cancel_warn_hours=1,
+                                    idle_notify=["mention"]))  # fmt: skip
         off = dict(DATA, policy=dict(on["policy"], cancel_after_hours=0))
-        self.assertIn("**6시간** 동안 쓰지 않은 잡은 자동으로 취소", site_blocks.idle_rule(on))
+        self.assertIn("**6시간** 동안 GPU를 쓰지 않은 잡은 자동으로 취소", site_blocks.idle_rule(on))
         self.assertIn("**1시간 전**", site_blocks.idle_rule(on))
-        self.assertIn("켜져 있지 않습니다", site_blocks.idle_rule(off))
+        self.assertIn("자동으로 취소하지는 않습니다", site_blocks.idle_rule(off))
+
+    def test_the_idle_rule_says_how_the_owner_is_told_as_the_cluster_does(self):
+        """Mention in the report thread, a DM, both or neither (policy.idle_notify, the
+        cluster's slurm_usage_report_notify): the page never says DM when none is sent."""
+        def told(how):
+            return site_blocks.idle_rule(dict(DATA, policy=dict(DATA["policy"], idle_notify=how)))
+        self.assertIn("Slack 멘션으로 알려 드립니다", told(["mention"]))
+        self.assertNotIn("DM", told(["mention"]))
+        self.assertIn("Slack DM으로", told(["dm"]))
+        self.assertIn("멘션과 Slack DM으로", told(["mention", "dm"]))
+        self.assertIn("리포트에 표시됩니다", told([]))
+        with self.assertRaisesRegex(ValueError, "IDLE_TOLD"):
+            told(["email"])
 
     def test_the_shared_model_cache_is_read_by_name_never_as_hf_hub_cache(self):
         """The shared cache is writer-owned: a page telling people their HF_HUB_CACHE

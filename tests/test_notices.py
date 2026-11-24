@@ -44,6 +44,8 @@ class ParseTests(unittest.TestCase):
         path = "docs/news/posts/2026-11-19-docs-site.md"
         two = GOOD.replace("<!-- more -->", "  이어지는 줄.\n- **2026-12-09부터** 둘째.\n\n<!-- more -->")
         self.assertIn("둘째", notices.parse(path, two).summary)
+        grouped = GOOD.replace("- **2026-11-19부터** 요약", "- **2026-11-19부터**\n  - 요약")
+        self.assertIn("  - 요약", notices.parse(path, grouped).summary)
         refused = {
             "framing": GOOD.replace("- **2026-11-19부터**", "바뀐 것을 알려 드립니다.\n\n- **2026-11-19부터**"),
             "undated": GOOD.replace("- **2026-11-19부터** ", "- "),
@@ -59,7 +61,7 @@ class ParseTests(unittest.TestCase):
         n = notices.parse("docs/news/posts/2026-11-19-docs-site.md", GOOD)
         n.summary = "- **2026-11-19부터** " + "가" * notices.SECTION_MAX
         with self.assertRaisesRegex(ValueError, "longer than Slack shows"):
-            notices.blocks(n, "https://x.example/docs/")
+            notices.blocks(n, "https://x.example/docs/", "#help")
 
     def test_errors(self):
         cases = {
@@ -86,14 +88,15 @@ class ParseTests(unittest.TestCase):
 
     def test_slack_blocks(self):
         n = notices.parse("docs/news/posts/2026-11-19-docs-site.md", GOOD)
-        b = notices.blocks(n, "https://x.example/docs/")
+        b = notices.blocks(n, "https://x.example/docs/", "#help")
         self.assertEqual(b[0]["text"]["text"], ":mega: 제목")
         self.assertEqual(b[1]["text"]["text"],
                          "- *2026-11-19부터* 요약 *강조*와 <https://x.example/docs/policy/#디버깅|규정>, "
-                         "<https://x.example/docs/start/connect/|연결>.")
+                         "<https://x.example/docs/start/connect/|연결>.\n\n"
+                         "궁금한 점은 #help 채널에 편하게 남겨 주세요.")
         wrapped = GOOD.replace("요약 **강조**와", "요약\n  **강조**와")
-        b = notices.blocks(notices.parse("docs/news/posts/2026-11-19-docs-site.md", wrapped), "https://x.example/docs/")
-        self.assertNotIn("\n", b[1]["text"]["text"])
+        b = notices.blocks(notices.parse("docs/news/posts/2026-11-19-docs-site.md", wrapped), "https://x.example/docs/", "#help")
+        self.assertNotIn("\n", b[1]["text"]["text"].split("\n\n")[0])
         self.assertEqual(b[2]["elements"][0]["url"], "https://x.example/docs/news/2026/11/19/docs-site/")
         self.assertIn("공지, 규정", b[3]["elements"][0]["text"])
 
@@ -110,6 +113,8 @@ class GitTests(unittest.TestCase):
         (self.root / "docs/policy").mkdir(parents=True)
         (self.root / "docs/news/posts").mkdir(parents=True)
         (self.root / "docs/policy/index.md").write_text("# 규정\n")
+        (self.root / "data").mkdir()
+        (self.root / "data/site.json").write_text('{"chat": {"channels": {"help": "#help"}}}')
         self.commit("base")
         self.base = self.git("rev-parse", "HEAD").strip()
         notices.ROOT = self.root
@@ -156,6 +161,7 @@ class GitTests(unittest.TestCase):
         self.assertEqual(n["date"], "2026-11-19")
         self.assertTrue(n["text"])
         self.assertEqual(n["blocks"][0]["type"], "header")
+        self.assertTrue(n["blocks"][1]["text"]["text"].endswith("#help 채널에 편하게 남겨 주세요."))
 
     def test_export_refuses_a_broken_notice(self):
         (self.root / "docs/news/posts/broken.md").write_text("no front matter\n")

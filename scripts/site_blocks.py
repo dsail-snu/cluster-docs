@@ -21,8 +21,9 @@ Generators:
   date:NAME       one announced date (the site's schedule)
   quota:MOUNT:F   a limit of the filesystem at MOUNT: block_hard, block_warn (TB),
                   inode_hard, inode_warn (a count); quota:ratio, files per TB
-  rule:idle       the idle-GPU rule as a sentence: notices from the idle hours, and the
-                  cancel with its warning, or that no cancel is active (cancel 0)
+  rule:idle       the idle-GPU rule as a sentence: how the owner is told from the idle
+                  hours (policy.idle_notify), and the cancel with its warning, or that no
+                  cancel is active (cancel 0)
   env:table       the users' environment variables: each with its value in a login and
                   in a job (the cluster's one list, user_environment)
   env:NAME        the login value of the variable NAME, inline
@@ -64,15 +65,25 @@ def policy(data, field):
     return f"{p[field]}\n"
 
 
+IDLE_TOLD = {  # how an idle job's owner is told (site.json policy.idle_notify)
+    ("mention",): "매시간 사용 현황 리포트에서 Slack 멘션으로 알려 드립니다",
+    ("dm",): "매시간 Slack DM으로 알려 드립니다",
+    ("dm", "mention"): "매시간 사용 현황 리포트의 멘션과 Slack DM으로 알려 드립니다",
+    (): "매시간 사용 현황 리포트에 표시됩니다",
+}
+
+
 def idle_rule(data):
     p = data["policy"]
-    text = (f"GPU를 할당받은 채 **{p['idle_hours']}시간 넘게 쓰지 않으면** 매시간 사용 현황 리포트마다 "
-            "Slack으로 알림이 갑니다.")
+    told = tuple(sorted(p["idle_notify"]))
+    if told not in IDLE_TOLD:
+        raise ValueError(f"policy.idle_notify {p['idle_notify']!r}: teach scripts/site_blocks.py IDLE_TOLD")
+    text = f"Slurm 잡으로 GPU를 할당받아 두고 **{p['idle_hours']}시간 넘게 쓰지 않으면** {IDLE_TOLD[told]}."
     if p["cancel_after_hours"]:
-        text += (f" **{p['cancel_after_hours']}시간** 동안 쓰지 않은 잡은 자동으로 취소되고, "
-                 f"취소 **{p['cancel_warn_hours']}시간 전**에 미리 알려 줍니다.")
+        text += (f" **{p['cancel_after_hours']}시간** 동안 GPU를 쓰지 않은 잡은 자동으로 취소되며, "
+                 f"취소 **{p['cancel_warn_hours']}시간 전**에 미리 알려 드립니다.")
     else:
-        text += " 쓰지 않는 잡의 자동 취소는 켜져 있지 않습니다."
+        text += " 쓰지 않는 잡을 자동으로 취소하지는 않습니다."
     return text + "\n"
 
 

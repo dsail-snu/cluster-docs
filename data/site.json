@@ -517,6 +517,9 @@
     "cancel_warn_hours": 1,
     "grace_days": 14,
     "idle_hours": 2,
+    "idle_notify": [
+      "mention"
+    ],
     "stale_days": 60,
     "warn_fraction": 0.9
   },

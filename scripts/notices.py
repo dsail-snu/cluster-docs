@@ -170,11 +170,16 @@ def mrkdwn(markdown, base, page):
     return re.sub(r"\*\*(.+?)\*\*", r"*\1*", text)
 
 
-def blocks(notice, base):
+# Every notice in Slack ends with this offer; the channel is the cluster's (data/site.json).
+INVITE = "궁금한 점은 {help} 채널에 편하게 남겨 주세요."
+
+
+def blocks(notice, base, help_channel):
     icon = CATEGORIES[notice.categories[0]][0]
     labels = ", ".join(CATEGORIES[c][1] for c in notice.categories)
     page = notice.path.removeprefix("docs/")
-    header, section = f"{icon} {notice.title}", mrkdwn(notice.summary, base, page)
+    header = f"{icon} {notice.title}"
+    section = mrkdwn(notice.summary, base, page) + "\n\n" + INVITE.format(help=help_channel)
     if len(header) > HEADER_MAX or len(section) > SECTION_MAX:
         raise ValueError(f"{notice.path}: the title or summary is longer than Slack shows ({HEADER_MAX}, {SECTION_MAX})")
     return [
@@ -193,8 +198,10 @@ def export(out):
     if errors:
         return 1
     site = site_url(ROOT)
+    help_channel = json.loads((ROOT / "data/site.json").read_text())["chat"]["channels"]["help"]
     try:
-        doc = {"notices": [{"id": n.url(site), "date": f"{n.date:%Y-%m-%d}", "text": n.title, "blocks": blocks(n, site)}
+        doc = {"notices": [{"id": n.url(site), "date": f"{n.date:%Y-%m-%d}", "text": n.title,
+                            "blocks": blocks(n, site, help_channel)}
                            for n in sorted(notices, key=lambda n: (n.date, n.slug))]}
     except ValueError as err:
         print(err, file=sys.stderr)

@@ -5,7 +5,7 @@
 | 공간 | 성격 | 두는 것 |
 |---|---|---|
 | `/home` | 크고 오래 보관하는 공간. HDD RAID라 큰 파일을 순서대로 읽고 쓰는 데는 빠르지만(대략 읽기 1.2 GB/s, 쓰기 0.85 GB/s), 작은 파일을 여기저기 읽는 데는 매우 약합니다(대략 초당 1,600번 읽기, 500번 쓰기) | 코드, 결과, **묶음 파일로 보관하는** 데이터셋 |
-| `/scratch` | 지금 실험이 많이 읽고 쓰는 작업본을 두는 NVMe RAID. 작은 파일, 무작위 접근, 체크포인트에 강합니다. 한 사람에 <!-- BEGIN GENERATED: quota:/scratch:block_hard -->5 TB<!-- END GENERATED: quota:/scratch:block_hard -->, <!-- BEGIN GENERATED: policy:stale_days -->60<!-- END GENERATED: policy:stale_days -->일 동안 쓰지 않은 파일은 정리되고 백업이 없습니다 | 진행 중인 실험의 작업본 (임시) |
+| `/scratch` | 지금 실험이 많이 읽고 쓰는 작업본을 두는 NVMe RAID. 작은 파일, 무작위 접근, 체크포인트에 강합니다. <!-- BEGIN GENERATED: quota:each:/scratch --><!-- END GENERATED: quota:each:/scratch --><!-- BEGIN GENERATED: policy:stale_days -->60<!-- END GENERATED: policy:stale_days -->일 동안 쓰지 않은 파일은 정리됩니다 | 진행 중인 실험의 작업본 (임시) |
 | 잡의 `/tmp` | 노드 로컬, 잡마다 따로 있고 잡이 끝나면 지워집니다 | 풀어 놓은 실행 환경, 압축을 푼 데이터셋, 한 잡의 임시 파일 |
 
 **2. I/O 줄이기 (사람과 AI 에이전트 모두)**

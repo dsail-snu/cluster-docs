@@ -48,7 +48,7 @@ srun --jobid=<JOBID> --overlap --pty bash -i
 보안을 위해 **모든 노드의 방화벽이 켜져 있고**, 외부에서 접속하는 로그인 노드에는 **무차별 대입 방어**가 상시 동작합니다.
 
 - 일정 기간 안에 **비밀번호를 여러 번 틀리면 접속 IP가 차단**됩니다. 차단 기준은 공개하지 않습니다.
-- 차단 해제는 **관리자에게 요청**하세요. -> [도움 요청](../help.md)
+- 차단되었다면 <!-- BEGIN GENERATED: bot:unban -->`/cluster unban`으로 해제를 신청해 주세요.<!-- END GENERATED: bot:unban --> -> [도움 받기](../help.md)
 - **반드시 SSH 키를 등록**해 비밀번호 없이 접속하세요. -> [SSH 키 등록 방법](../start/connect.md)
 - 접속 주소와 포트는 계정을 발급할 때 관리자가 알려 줍니다 (`<로그인 주소>`, `<SSH 포트>`).
 
@@ -63,8 +63,8 @@ srun --jobid=<JOBID> --overlap --pty bash -i
 ## 계정 기간
 
 계정에 끝나는 날이 정해져 있으면, 그다음 날부터 새 잡을 제출하실 수 없습니다(이미 실행 중인 잡은 계속됩니다).
-파일을 옮기실 수 있도록 로그인은 <!-- BEGIN GENERATED: policy:leave_grace_days -->60<!-- END GENERATED: policy:leave_grace_days -->일 더 유지됩니다. 졸업 등으로 계정을 정리하실 때는
-`<!-- BEGIN GENERATED: bot:command -->/cluster<!-- END GENERATED: bot:command -->` 봇의 계정 정리 신청을 이용해 주세요 ([도움 받기](../help.md#봇으로-하는-신청)).
+파일을 옮기실 수 있도록 로그인은 <!-- BEGIN GENERATED: policy:leave_grace_days -->60<!-- END GENERATED: policy:leave_grace_days -->일 더 유지됩니다.
+<!-- BEGIN GENERATED: bot:leave -->졸업 등으로 계정을 정리하실 때는 `/cluster leave`로 신청해 주세요.<!-- END GENERATED: bot:leave -->
 
 ## 컨테이너
 
@@ -92,7 +92,7 @@ AI 코딩 도구(Claude Code, Codex CLI 등)는 **사용할 수 있습니다.** 
 | 규칙을 지키지 않은 GPU 점유 잡 | 관리자 판단으로 강제 종료, 누적 시 제재 |
 | 오래 연달아 점유해 자원 순환 방해 | 위와 같음 |
 | 시스템 감시 우회, 비정상 자원 점유 | 무관용 원칙, 엄중 조치 |
-| 비밀번호 반복 오류 | 접속 IP 차단 (관리자에게 해제 요청) |
+| 비밀번호 반복 오류 | 접속 IP 차단 |
 | AI 에이전트 규칙 위반 (재시도 루프, 무분별한 제출 등) | 해당 잡 종료, 클러스터 이용 제한 가능 |
 
 ## 제출 전 체크리스트

@@ -69,6 +69,31 @@ class Blocks(unittest.TestCase):
         self.assertIn("거부됩니다", site_blocks.sessions_rule(on))
         self.assertNotIn("거부", site_blocks.sessions_rule(off))
 
+    def test_the_limits_appear_when_the_cluster_sets_them(self):
+        none = dict(DATA, quota={})
+        self.assertIn("상한은 없습니다", site_blocks.quota_section(none))
+        self.assertEqual(site_blocks.quota_each(none, "/scratch"), "\n")
+        q = {"/home": {"block_hard_tib": 10.0, "block_warn_tib": 9.0, "inode_hard": 30000000, "inode_warn": 27000000}}
+        on = dict(DATA, quota=q, policy=dict(DATA["policy"], submit_holds_disk=True))
+        text = site_blocks.quota_section(on)
+        self.assertIn("| `/home` | 10 TB | 3,000만개 |", text)
+        self.assertIn("새 잡 제출도 보류", text)
+        self.assertNotIn("보류", site_blocks.quota_section(dict(on, policy=dict(on["policy"], submit_holds_disk=False))))
+        self.assertEqual(site_blocks.quota_each(on, "/home"), "한 사람에 10 TB까지 쓰실 수 있고, \n")
+
+    def test_the_bot_as_the_cluster_runs_it(self):
+        bot = {"command": "/c", "subcommands": [{"name": n, "help": n} for n in ("unban", "leave", "data", "help")]}
+        on = dict(DATA, bot=bot, services={"bot": True})
+        off = dict(DATA, bot=bot, services={"bot": False})
+        self.assertIn("`/c unban`", site_blocks.bot(on, "unban"))
+        self.assertIn("관리자에게", site_blocks.bot(off, "unban"))
+        self.assertIn("## 봇으로 하는 신청", site_blocks.bot(on, "section"))
+        self.assertEqual(site_blocks.bot(off, "section"), "\n")
+        for name in ("unban", "leave", "data"):
+            self.assertNotIn("/c", site_blocks.bot(off, name))
+        with self.assertRaises(SystemExit):
+            site_blocks.bot(dict(on, bot={"command": "/c", "subcommands": []}), "unban")
+
     def test_a_date_block_outside_the_notices_is_refused(self):
         """A guide states the rule as it is; when it changes is a notice's (owner 2026-11-25)."""
         import tempfile

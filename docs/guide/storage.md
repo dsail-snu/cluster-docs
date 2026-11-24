@@ -17,7 +17,7 @@
 한 잡 동안만 쓰는 파일을 둡니다.
 
 여러 사람이 함께 쓰는 데이터셋, 모델, 컨테이너 이미지는 <!-- BEGIN GENERATED: paths:shared_data -->`/home/shared/datasets`, `/home/shared/models`, `/home/shared/containers`<!-- END GENERATED: paths:shared_data -->에 있습니다(읽기 전용).
-필요한 것을 받아 두는 신청은 [도움 받기](../help.md#봇으로-하는-신청)를 참고해 주세요.
+<!-- BEGIN GENERATED: bot:data -->필요한 데이터를 받아 두는 신청은 `/cluster data`로 하실 수 있습니다.<!-- END GENERATED: bot:data -->
 
 ```bash
 df -h /home /scratch          # 공간 전체의 용량과 마운트 확인
@@ -108,16 +108,10 @@ scp -P <SSH 포트> file.tar.gz <아이디>@<로그인 주소>:/scratch/<아이�
 
 ## 용량 한도와 정리
 
-사람마다 `/home`과 `/scratch`에 아래 용량과 파일 수 상한이 있습니다. 상한에 이르면 그 공간에 더 쓸 수 없고 새 잡 제출도
-보류되니, 그 전에 정리해 주시면 감사하겠습니다. 상한의 <!-- BEGIN GENERATED: policy:warn_percent -->90%<!-- END GENERATED: policy:warn_percent -->에 이르면 Slack으로 미리 알려 드립니다.
+<!-- BEGIN GENERATED: quota:section -->
+사람마다 정해진 용량과 파일 수 상한은 없습니다. 사용량은 매일 세어 Slack 디스크 리포트로 알려 드립니다.
+<!-- END GENERATED: quota:section -->
 
-| 공간 | 용량 상한 | 파일 수 상한 |
-|---|---|---|
-| `/home` | <!-- BEGIN GENERATED: quota:/home:block_hard -->10 TB<!-- END GENERATED: quota:/home:block_hard --> | <!-- BEGIN GENERATED: quota:/home:inode_hard -->3,000만<!-- END GENERATED: quota:/home:inode_hard -->개 |
-| `/scratch` | <!-- BEGIN GENERATED: quota:/scratch:block_hard -->5 TB<!-- END GENERATED: quota:/scratch:block_hard --> | <!-- BEGIN GENERATED: quota:/scratch:inode_hard -->1,500만<!-- END GENERATED: quota:/scratch:inode_hard -->개 |
-
-- 파일 수 한도는 용량에 비례합니다(1 TB당 <!-- BEGIN GENERATED: quota:ratio -->300만<!-- END GENERATED: quota:ratio -->개). 작은 파일 수천만 개는 파일 서버의 모든 사용자를 느리게 하니
-  묶음 포맷(tar, WebDataset, HDF5, Arrow 등)을 쓰세요.
 - 내 사용량은 `du` 대신 제공되는 보기로 확인하세요: 매일 아침 Slack 디스크 리포트(상위 사용자, 정리하면 좋을 폴더),
   `/scratch`는 `scratch-space`.
 

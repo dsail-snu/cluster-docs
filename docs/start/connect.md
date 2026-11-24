@@ -67,7 +67,7 @@ ssh cluster
 ```
 
 !!! tip "IP가 차단되었다면"
-    관리자에게 요청하면 풀어 드립니다. 풀린 뒤에는 반드시 SSH 키를 등록하세요. -> [도움 받기](../help.md)
+    <!-- BEGIN GENERATED: bot:unban -->`/cluster unban`으로 해제를 신청해 주세요.<!-- END GENERATED: bot:unban --> 풀린 뒤에는 꼭 SSH 키를 등록해 주세요. -> [도움 받기](../help.md)
 
 ## VSCode로 접속하기
 

@@ -483,13 +483,9 @@
     }
   },
   "dates": {
-    "docker_admin_only_from": "2026-11-25",
-    "home_data_move": "2026-12-09",
     "home_downtime": "2026-12-05",
     "limits_from": "2026-12-09",
-    "notice_day": "2026-11-25",
-    "scratch_cleanup_from": "2026-11-25",
-    "submit_holds_from": "2026-12-09"
+    "notice_day": "2026-11-25"
   },
   "environment": [
     {
@@ -539,28 +535,17 @@
     "interactive_team_qos": true,
     "leave_grace_days": 60,
     "stale_days": 60,
+    "submit_holds_disk": true,
     "warn_fraction": 0.9
   },
-  "quota": {
-    "/home": {
-      "block_hard_tib": 10.0,
-      "block_warn_tib": 9.0,
-      "inode_hard": 30000000,
-      "inode_warn": 27000000
-    },
-    "/scratch": {
-      "block_hard_tib": 5.0,
-      "block_warn_tib": 4.5,
-      "inode_hard": 15000000,
-      "inode_warn": 13500000
-    }
-  },
+  "quota": {},
   "reports": {
     "disk": "*-*-* 09:00:00",
     "usage": "hourly",
     "weekly": "Mon *-*-* 09:00:00"
   },
   "services": {
+    "bot": true,
     "dashboard": true,
     "menu": [
       "Grafana"

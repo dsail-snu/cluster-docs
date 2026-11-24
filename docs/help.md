@@ -12,12 +12,12 @@
 
 먼저 [자주 묻는 질문과 문제 해결](guide/troubleshooting.md)에 같은 증상이 있는지 확인하세요.
 
+<!-- BEGIN GENERATED: bot:section -->
 ## 봇으로 하는 신청
 
 계정, 차단 해제, 공동작업 폴더, 공유 데이터는 Slack에서 클러스터 봇에게 신청하실 수 있습니다.
 아무 채널에서나 아래 명령을 입력해 주세요.
 
-<!-- BEGIN GENERATED: bot:subcommands -->
 | 명령 | 하는 일 |
 |---|---|
 | `/cluster join` | 클러스터 계정 신청 |
@@ -26,9 +26,9 @@
 | `/cluster project` | 공동작업 폴더 만들기 (홈 탭에서 관리) |
 | `/cluster data` | 공유 데이터(데이터셋, 모델, 컨테이너 이미지) 받아 두기 신청 |
 | `/cluster help` | 이 안내 |
-<!-- END GENERATED: bot:subcommands -->
 
 관리자가 승인하면 봇이 DM으로 알려 드립니다. 봇의 홈 탭에서 내 신청과 공동작업 폴더를 보실 수 있습니다.
+<!-- END GENERATED: bot:section -->
 
 ## 문의할 때 함께 적을 것
 

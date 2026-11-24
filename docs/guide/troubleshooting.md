@@ -8,7 +8,7 @@
 
 비밀번호를 여러 번 틀리면 접속한 IP가 자동으로 차단됩니다.
 
-- **해결**: 관리자에게 차단 해제를 요청하세요. -> [도움 받기](../help.md)
+- **해결**: <!-- BEGIN GENERATED: bot:unban -->`/cluster unban`으로 해제를 신청해 주세요.<!-- END GENERATED: bot:unban --> -> [도움 받기](../help.md)
 - **예방**: SSH 키를 등록해서 비밀번호 없이 접속하세요. -> [접속하기](../start/connect.md), [접속 보안](../policy/index.md#접속-보안)
 
 ### 밖에서 접속이 안 돼요

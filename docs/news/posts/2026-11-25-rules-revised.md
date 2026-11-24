@@ -19,7 +19,7 @@ categories: [policy]
   - [AI 에이전트 규칙](../../policy/ai-agents.md)을 새로 정리했습니다. 사용하시는 모든 에이전트에 규칙 파일(사이트의 `agents/AGENTS.md`)을
     메모리나 지침 파일로 넣어 적용해 주세요.
 - **<!-- BEGIN GENERATED: day:limits_from -->2026-12-09(수)<!-- END GENERATED: day:limits_from -->부터**
-  - 한 사람이 `/home` <!-- BEGIN GENERATED: quota:/home:block_hard -->10 TB<!-- END GENERATED: quota:/home:block_hard -->(파일 <!-- BEGIN GENERATED: quota:/home:inode_hard -->3,000만<!-- END GENERATED: quota:/home:inode_hard --> 개), `/scratch` <!-- BEGIN GENERATED: quota:/scratch:block_hard -->5 TB<!-- END GENERATED: quota:/scratch:block_hard -->(파일 <!-- BEGIN GENERATED: quota:/scratch:inode_hard -->1,500만<!-- END GENERATED: quota:/scratch:inode_hard --> 개)까지 쓰실 수 있고, <!-- BEGIN GENERATED: policy:warn_percent -->90%<!-- END GENERATED: policy:warn_percent -->에 이르면 미리 알려 드립니다.
+  - 한 사람이 `/home` 10 TB(파일 3,000만 개), `/scratch` 5 TB(파일 1,500만 개)까지 쓰실 수 있고, <!-- BEGIN GENERATED: policy:warn_percent -->90%<!-- END GENERATED: policy:warn_percent -->에 이르면 미리 알려 드립니다.
   - 한도에 이르면 새 잡 제출이 보류되니, 그 전에 정리해 주시면 감사하겠습니다.
   - `/home/data`의 내용은 각 폴더 주인의 홈으로 옮겨 드릴 예정입니다. 필요한 파일은 미리 백업해 두시기 바랍니다.
 

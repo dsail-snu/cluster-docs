@@ -49,6 +49,8 @@ class TypedValues(unittest.TestCase):
         pages = sorted((ROOT / "docs").rglob("*.md")) + sorted((ROOT / "snippets").rglob("*.md"))
         found = []
         for page in pages:
+            if "/news/posts/" in page.as_posix():
+                continue  # a notice states what was announced on its date, a limit before it is set too
             text = re.sub(r"(?s)^---\n.*?\n---\n", "", page.read_text())  # front matter (a post's date)
             for form in forms:
                 if re.search(rf"(?<![\d.]){re.escape(form)}", outside_blocks(text)):

@@ -40,6 +40,12 @@ Generators:
   chat:ROLE       the Slack channel of ROLE (announce, help, status, admin), as code
   rule:sessions   whether srun and salloc GPU sessions must name a team QoS, checked at
                   submit (policy.interactive_team_qos), or only asked to
+  quota:section   the per-person disk limits (what happens at one, the warning, a table),
+                  or that there are none: it appears when the cluster sets limits
+  quota:each:M    "한 사람에 5 TB까지 쓰실 수 있고, " for mount M, or nothing
+  bot:section, bot:unban, bot:leave, bot:data
+                  the /cluster command's requests, or whom to ask while the cluster runs
+                  no bot (site.json services.bot)
   login:limits    the login nodes' per-person limits as a sentence (CPUs, memory,
                   processes), or that none is set
   bot:command     the cluster bot's slash command
@@ -166,6 +172,65 @@ def bot_subcommands(data):
     return table(("명령", "하는 일"), [(f"`{bot['command']} {s['name']}`", s["help"]) for s in bot["subcommands"]])
 
 
+def _tb(tib):
+    return f"{tib:g} TB"
+
+
+def quota_section(data):
+    """The per-person disk limits as the cluster sets them (site.json quota): what happens
+    at a limit, the warning, a table, the files per TB; or that there are none yet."""
+    q, p = data["quota"], data["policy"]
+    if not q:
+        return "사람마다 정해진 용량과 파일 수 상한은 없습니다. 사용량은 매일 세어 Slack 디스크 리포트로 알려 드립니다.\n"
+    spaces = "과 ".join(f"`{m}`" for m in q) if len(q) == 2 else ", ".join(f"`{m}`" for m in q)
+    held = " 새 잡 제출도 보류되니" if p.get("submit_holds_disk") else "니"
+    rows = [(f"`{m}`", f"{_tb(v['block_hard_tib'])} | {count(v['inode_hard'])}개") for m, v in q.items()]
+    first = next(iter(q.values()))
+    return (
+        f"사람마다 {spaces}에 아래 용량과 파일 수 상한이 있습니다. 상한에 이르면 그 공간에 더 쓸 수 없고{held}, "
+        f"그 전에 정리해 주시면 감사하겠습니다. 상한의 {round(p['warn_fraction'] * 100)}%에 이르면 Slack으로 미리 알려 드립니다.\n\n"
+        + "| 공간 | 용량 상한 | 파일 수 상한 |\n|---|---|---|\n"
+        + "".join(f"| {a} | {b} |\n" for a, b in rows)
+        + f"\n- 파일 수 한도는 용량에 비례합니다(1 TB당 {count(round(first['inode_hard'] / first['block_hard_tib']))}개). "
+        "작은 파일 수천만 개는 파일 서버의 모든 사용자를 느리게 하니 묶음 포맷(tar, WebDataset, HDF5, Arrow 등)을 써 주세요.\n"
+    )
+
+
+def quota_each(data, mount):
+    """One filesystem's per-person limit as the start of a sentence, or nothing."""
+    q = data["quota"].get(mount)
+    return f"한 사람에 {_tb(q['block_hard_tib'])}까지 쓰실 수 있고, \n" if q else "\n"
+
+
+def bot(data, name):
+    """The /cluster command as the cluster runs it (site.json services.bot): its
+    requests, or whom to ask while there is no bot."""
+    b = data["bot"]
+    on = data["services"]["bot"]
+    subs = {s["name"] for s in b["subcommands"]}
+
+    def cmd(sub):
+        if sub not in subs:
+            raise SystemExit(f"bot:{name}: the bot has no {sub} (site.json bot.subcommands)")
+        return f"`{b['command']} {sub}`"
+
+    if name == "section":
+        if not on:
+            return "\n"
+        return ("## 봇으로 하는 신청\n\n계정, 차단 해제, 공동작업 폴더, 공유 데이터는 Slack에서 클러스터 봇에게 신청하실 수 있습니다.\n"
+                "아무 채널에서나 아래 명령을 입력해 주세요.\n\n" + bot_subcommands(data)
+                + "\n관리자가 승인하면 봇이 DM으로 알려 드립니다. 봇의 홈 탭에서 내 신청과 공동작업 폴더를 보실 수 있습니다.\n")  # fmt: skip
+    if name == "unban":
+        return f"{cmd('unban')}으로 해제를 신청해 주세요.\n" if on else "관리자에게 해제를 요청해 주세요.\n"
+    if name == "leave":
+        return (f"졸업 등으로 계정을 정리하실 때는 {cmd('leave')}로 신청해 주세요.\n" if on
+                else "졸업 등으로 계정을 정리하실 때는 관리자에게 알려 주세요.\n")  # fmt: skip
+    if name == "data":
+        return (f"필요한 데이터를 받아 두는 신청은 {cmd('data')}로 하실 수 있습니다.\n" if on
+                else "필요한 데이터는 관리자에게 요청해 주세요.\n")  # fmt: skip
+    raise SystemExit(f"unknown generated block: bot:{name}")
+
+
 def quota(data, arg):
     if arg == "ratio":
         q = next(iter(data["quota"].values()))
@@ -204,6 +269,10 @@ def models(data):
 
 def body(data, name):
     kind, _, arg = name.partition(":")
+    if name == "quota:section":
+        return quota_section(data)
+    if name.startswith("quota:each:"):
+        return quota_each(data, name.removeprefix("quota:each:"))
     if kind == "options":
         return options(data, arg)
     if kind == "policy":
@@ -234,6 +303,8 @@ def body(data, name):
         return sessions_rule(data)
     if name == "login:limits":
         return login_limits(data)
+    if kind == "bot" and arg in ("section", "unban", "leave", "data"):
+        return bot(data, arg)
     if name == "bot:command":
         return f"{data['bot']['command']}\n"
     if name == "bot:subcommands":

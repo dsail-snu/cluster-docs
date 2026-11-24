@@ -82,6 +82,12 @@ class SiteState(unittest.TestCase):
         self.assertEqual(found, [], "say what people use (Enroot, Pyxis, Podman), not what administrators have")
         self.assertTrue(PRIVILEGE.search("`docker` 그룹은 관리자 전용이 되어, 일반 사용자는 Docker를 쓸 수 없습니다."))
 
+    def test_every_announced_date_is_read_by_a_page(self):
+        """config schedule.yml holds the dates the pages announce, and only those (nothing
+        else reads it): a date no notice uses is left over; drop it from the schedule."""
+        used = {m for p in pages() for m in re.findall(r"GENERATED: (?:date|day):(\S+) -->", p.read_text())}
+        self.assertEqual(sorted(set(DATA["dates"]) - used), [], "drop these from config schedule.yml")
+
     def test_the_shared_paths_written_out_are_the_clusters(self):
         for written, key in PATHS.items():
             used = [p for p in pages() if re.search(rf"(?<![\w/.]){re.escape(written)}(?![\w-])", prose(p.read_text()))]

@@ -32,11 +32,18 @@ def typed_forms(data):
 
 
 def outside_blocks(text):
+    """TEXT without its generated blocks and its link targets: a link names a page (an
+    earlier notice's file carries its date), it states no value."""
     text = site_blocks.BLOCK.sub("", text)
-    return site_blocks.INLINE.sub("", text)
+    text = site_blocks.INLINE.sub("", text)
+    return re.sub(r"\]\([^)\s]*\)", "]()", text)
 
 
 class TypedValues(unittest.TestCase):
+    def test_a_link_target_states_no_value(self):
+        self.assertNotIn("2026-11-25", outside_blocks("[지난 공지](2026-11-25-rules-revised.md)"))
+        self.assertIn("2026-11-25", outside_blocks("2026-11-25부터 [지난 공지](x.md)"))
+
     def test_no_owned_value_is_typed_outside_a_generated_block(self):
         forms = typed_forms(DATA)
         pages = sorted((ROOT / "docs").rglob("*.md")) + sorted((ROOT / "snippets").rglob("*.md"))

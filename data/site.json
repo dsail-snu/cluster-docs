@@ -485,6 +485,7 @@
   "dates": {
     "docker_admin_only_from": "2026-11-25",
     "home_data_move": "2026-12-09",
+    "home_downtime": "2026-12-05",
     "limits_from": "2026-12-09",
     "notice_day": "2026-11-25",
     "scratch_cleanup_from": "2026-11-25",

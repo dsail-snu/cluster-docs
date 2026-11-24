@@ -49,8 +49,6 @@ class TypedValues(unittest.TestCase):
         pages = sorted((ROOT / "docs").rglob("*.md")) + sorted((ROOT / "snippets").rglob("*.md"))
         found = []
         for page in pages:
-            if "/news/posts/" in page.as_posix() and page.name < "2026-11-25":
-                continue  # an earlier notice is dated history
             text = re.sub(r"(?s)^---\n.*?\n---\n", "", page.read_text())  # front matter (a post's date)
             for form in forms:
                 if re.search(rf"(?<![\d.]){re.escape(form)}", outside_blocks(text)):

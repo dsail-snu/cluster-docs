@@ -59,9 +59,9 @@ class ParseTests(unittest.TestCase):
 
     def test_a_link_to_another_notice_reads_as_its_page(self):
         """A notice file is served at news/YYYY/MM/DD/slug/, not at its path."""
-        text = notices.mrkdwn("- **2026-11-25부터** [지난 공지](2026-11-19-gpu-count-rule.md)", "https://x.example/docs/",
-                              "news/posts/2026-11-25-rules-revised.md")  # fmt: skip
-        self.assertIn("<https://x.example/docs/news/2026/11/19/gpu-count-rule/|지난 공지>", text)
+        text = notices.absolute("- **2026-11-25부터** [지난 공지](2026-11-19-gpu-count-rule.md)", "https://x.example/docs/",
+                                "news/posts/2026-11-25-rules-revised.md")  # fmt: skip
+        self.assertIn("[지난 공지](https://x.example/docs/news/2026/11/19/gpu-count-rule/)", text)
 
     def test_a_lead_longer_than_slack_shows_is_refused_not_cut(self):
         n = notices.parse("docs/news/posts/2026-11-19-docs-site.md", GOOD)
@@ -96,15 +96,43 @@ class ParseTests(unittest.TestCase):
         n = notices.parse("docs/news/posts/2026-11-19-docs-site.md", GOOD)
         b = notices.blocks(n, "https://x.example/docs/", "#help")
         self.assertEqual(b[0]["text"]["text"], ":mega: 제목")
-        self.assertEqual(b[1]["text"]["text"],
-                         "- *2026-11-19부터* 요약 *강조*와 <https://x.example/docs/policy/#디버깅|규정>, "
-                         "<https://x.example/docs/start/connect/|연결>.\n\n"
-                         "궁금한 점은 #help 채널에 편하게 남겨 주세요.")
+        [items, invite] = b[1]["elements"]
+        self.assertEqual((b[1]["type"], items["type"], items["style"], items["indent"]),
+                         ("rich_text", "rich_text_list", "bullet", 0))
+        self.assertEqual(items["elements"][0]["elements"], [
+            {"type": "text", "text": "2026-11-19부터", "style": {"bold": True}},
+            {"type": "text", "text": " 요약 "},
+            {"type": "text", "text": "강조", "style": {"bold": True}},
+            {"type": "text", "text": "와 "},
+            {"type": "link", "url": "https://x.example/docs/policy/#디버깅", "text": "규정"},
+            {"type": "text", "text": ", "},
+            {"type": "link", "url": "https://x.example/docs/start/connect/", "text": "연결"},
+            {"type": "text", "text": "."},
+        ])
+        self.assertEqual(invite, {"type": "rich_text_section", "elements": [
+            {"type": "text", "text": "\n"}, {"type": "text", "text": "궁금한 점은 #help 채널에 편하게 남겨 주세요."}]})
         wrapped = GOOD.replace("요약 **강조**와", "요약\n  **강조**와")
         b = notices.blocks(notices.parse("docs/news/posts/2026-11-19-docs-site.md", wrapped), "https://x.example/docs/", "#help")
-        self.assertNotIn("\n", b[1]["text"]["text"].split("\n\n")[0])
+        self.assertEqual(len(b[1]["elements"][0]["elements"]), 1, "a wrapped item stays one item")
         self.assertEqual(b[2]["elements"][0]["url"], "https://x.example/docs/news/2026/11/19/docs-site/")
         self.assertIn("공지, 규정", b[3]["elements"][0]["text"])
+
+    def test_the_lead_is_rich_text_with_no_markdown_left(self):
+        """Slack's mrkdwn has no lists, and its *bold* closes only before a space or
+        punctuation: "**팀 QoS**로" showed its stars. The lead is rich text, nested items
+        a list one indent deeper, styles as styles."""
+        lead = "- **2026-11-25(수)부터**\n  - **팀 QoS**로 실행해 주세요. `scratch-space`로 확인\n  - 둘째\n- **2026-12-09(수)부터** 셋째"
+        block = notices.rich_text(lead)
+        self.assertEqual([(e["type"], e.get("indent")) for e in block["elements"]],
+                         [("rich_text_list", 0), ("rich_text_list", 1), ("rich_text_list", 0)])
+        self.assertEqual(len(block["elements"][1]["elements"]), 2)
+        first = block["elements"][1]["elements"][0]["elements"]
+        self.assertEqual(first[0], {"type": "text", "text": "팀 QoS", "style": {"bold": True}})
+        self.assertEqual(first[1]["text"], "로 실행해 주세요. ")
+        self.assertEqual(first[2], {"type": "text", "text": "scratch-space", "style": {"code": True}})
+        texts = [e.get("text", "") for el in block["elements"] for sec in el["elements"] for e in sec["elements"]]
+        for t in texts:
+            self.assertNotRegex(t, r"^\s*- |\*|`", t)
 
 
 class GitTests(unittest.TestCase):
@@ -167,7 +195,9 @@ class GitTests(unittest.TestCase):
         self.assertEqual(n["date"], "2026-11-19")
         self.assertTrue(n["text"])
         self.assertEqual(n["blocks"][0]["type"], "header")
-        self.assertTrue(n["blocks"][1]["text"]["text"].endswith("#help 채널에 편하게 남겨 주세요."))
+        self.assertEqual(n["blocks"][1]["type"], "rich_text")
+        self.assertIn("#help 채널에 편하게 남겨 주세요.", json.dumps(n["blocks"][1], ensure_ascii=False))
+        self.assertNotIn('"mrkdwn"', json.dumps(n["blocks"][:2]))
 
     def test_export_refuses_a_broken_notice(self):
         (self.root / "docs/news/posts/broken.md").write_text("no front matter\n")

@@ -39,7 +39,7 @@ SLUG = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 # bullet each, starting with the day it takes effect. A bullet's further lines are indented.
 TITLE_MAX = 40
 LEAD_ITEM = re.compile(r"- \*\*\d{4}-\d{2}-\d{2}\D")
-# Slack's limits on a header's text and a section's text: a longer one is refused, not cut.
+# Slack's limits on a header's text and a section's text (the lead is held to the same):\n# a longer one is refused, not cut.
 HEADER_MAX, SECTION_MAX = 150, 3000
 
 
@@ -168,11 +168,58 @@ def unwrap(markdown):
 POST_LINK = re.compile(r"\]\((?:\./)?(\d{4})-(\d{2})-(\d{2})-([a-z0-9-]+)\.md(#[^)]*)?\)")
 
 
-def mrkdwn(markdown, base, page):
-    """Notice Markdown to Slack mrkdwn: paragraphs unwrapped, bold, links absolute."""
+def absolute(markdown, base, page):
+    """Notice Markdown with its paragraphs unwrapped and every link absolute."""
     text = POST_LINK.sub(lambda m: f"]({base}news/{m[1]}/{m[2]}/{m[3]}/{m[4]}/{m[5] or ''})", unwrap(markdown))
-    text = absolute_links(text, base, page, fmt="<{url}|{text}>")
-    return re.sub(r"\*\*(.+?)\*\*", r"*\1*", text)
+    return absolute_links(text, base, page)
+
+
+# Inline Markdown as Slack's rich text styles it: Slack's mrkdwn has no list and its
+# *bold* closes only before a space or punctuation, so "**팀 QoS**로" would show its stars.
+INLINE = re.compile(r"\*\*(?P<bold>.+?)\*\*|`(?P<code>[^`]+)`|\[(?P<text>[^\]]+)\]\((?P<url>[^)\s]+)\)")
+ITEM = re.compile(r"^( *)- (.*)$")
+
+
+def inline(text):
+    """Rich text elements of one line: text, bold, code and links."""
+    out, at = [], 0
+    for m in INLINE.finditer(text):
+        if m.start() > at:
+            out.append({"type": "text", "text": text[at:m.start()]})
+        if m["bold"] is not None:
+            out += [dict(e, style={**e.get("style", {}), "bold": True}) for e in inline(m["bold"])]
+        elif m["code"] is not None:
+            out.append({"type": "text", "text": m["code"], "style": {"code": True}})
+        else:
+            out.append({"type": "link", "url": m["url"], "text": m["text"]})
+        at = m.end()
+    if at < len(text):
+        out.append({"type": "text", "text": text[at:]})
+    return out
+
+
+def rich_text(markdown):
+    """A rich_text block of unwrapped Markdown: list items (two spaces a level) as bullet
+    lists by their indent, other lines as sections."""
+    elements = []
+    for line in markdown.split("\n"):
+        if not line.strip():
+            continue
+        item = ITEM.match(line)
+        if item:
+            indent = len(item[1]) // 2
+            section = {"type": "rich_text_section", "elements": inline(item[2])}
+            last = elements[-1] if elements else {}
+            if last.get("type") == "rich_text_list" and last["indent"] == indent:
+                last["elements"].append(section)
+            else:
+                elements.append({"type": "rich_text_list", "style": "bullet", "indent": indent, "elements": [section]})
+        else:
+            section = inline(line.strip())
+            if elements and elements[-1]["type"] == "rich_text_list":  # a paragraph after a list
+                section.insert(0, {"type": "text", "text": "\n"})
+            elements.append({"type": "rich_text_section", "elements": section})
+    return {"type": "rich_text", "elements": elements}
 
 
 # Every notice in Slack ends with this offer; the channel is the cluster's (data/site.json).
@@ -184,12 +231,12 @@ def blocks(notice, base, help_channel):
     labels = ", ".join(CATEGORIES[c][1] for c in notice.categories)
     page = notice.path.removeprefix("docs/")
     header = f"{icon} {notice.title}"
-    section = mrkdwn(notice.summary, base, page) + "\n\n" + INVITE.format(help=help_channel)
-    if len(header) > HEADER_MAX or len(section) > SECTION_MAX:
+    lead = absolute(notice.summary, base, page) + "\n" + INVITE.format(help=help_channel)
+    if len(header) > HEADER_MAX or len(lead) > SECTION_MAX:
         raise ValueError(f"{notice.path}: the title or summary is longer than Slack shows ({HEADER_MAX}, {SECTION_MAX})")
     return [
         {"type": "header", "text": {"type": "plain_text", "text": header, "emoji": True}},
-        {"type": "section", "text": {"type": "mrkdwn", "text": section}},
+        rich_text(lead),
         {"type": "actions", "elements": [{"type": "button", "text": {"type": "plain_text", "text": "자세히 보기"},
                                           "url": notice.url(base)}]},
         {"type": "context", "elements": [{"type": "mrkdwn", "text": f"{labels}  |  {notice.date:%Y-%m-%d}"}]},

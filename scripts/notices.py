@@ -35,6 +35,12 @@ CATEGORIES = {
     "notice": (":mega:", "공지"),
 }
 SLUG = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
+# The lead is what Slack shows: a short title, then only what people must newly know, one
+# bullet each, starting with the day it takes effect. A bullet's further lines are indented.
+TITLE_MAX = 40
+LEAD_ITEM = re.compile(r"- \*\*\d{4}-\d{2}-\d{2}\D")
+# Slack's limits on a header's text and a section's text: a longer one is refused, not cut.
+HEADER_MAX, SECTION_MAX = 150, 3000
 
 
 @dataclass
@@ -81,6 +87,11 @@ def parse(path, text):
     summary = re.sub(r"<!-- (BEGIN|END) GENERATED: \S+ -->", "", body[title.end():body.index("<!-- more -->")]).strip()
     if not summary:
         raise ValueError("a summary is required before '<!-- more -->'")
+    if len(title.group(1).strip()) > TITLE_MAX:
+        raise ValueError(f"the title is longer than {TITLE_MAX} characters")
+    for line in summary.splitlines():
+        if line.strip() and not line.startswith("  ") and not LEAD_ITEM.match(line):
+            raise ValueError(f"the summary is dated bullets only ('- **YYYY-MM-DD부터** ...'), not {line[:40]!r}")
     expected = f"{day:%Y-%m-%d}-{slug}.md"
     if Path(path).name != expected:
         raise ValueError(f"file name must be {expected}")
@@ -163,9 +174,12 @@ def blocks(notice, base):
     icon = CATEGORIES[notice.categories[0]][0]
     labels = ", ".join(CATEGORIES[c][1] for c in notice.categories)
     page = notice.path.removeprefix("docs/")
+    header, section = f"{icon} {notice.title}", mrkdwn(notice.summary, base, page)
+    if len(header) > HEADER_MAX or len(section) > SECTION_MAX:
+        raise ValueError(f"{notice.path}: the title or summary is longer than Slack shows ({HEADER_MAX}, {SECTION_MAX})")
     return [
-        {"type": "header", "text": {"type": "plain_text", "text": f"{icon} {notice.title}"[:150], "emoji": True}},
-        {"type": "section", "text": {"type": "mrkdwn", "text": mrkdwn(notice.summary, base, page)[:2900]}},
+        {"type": "header", "text": {"type": "plain_text", "text": header, "emoji": True}},
+        {"type": "section", "text": {"type": "mrkdwn", "text": section}},
         {"type": "actions", "elements": [{"type": "button", "text": {"type": "plain_text", "text": "자세히 보기"},
                                           "url": notice.url(base)}]},
         {"type": "context", "elements": [{"type": "mrkdwn", "text": f"{labels}  |  {notice.date:%Y-%m-%d}"}]},
@@ -179,8 +193,12 @@ def export(out):
     if errors:
         return 1
     site = site_url(ROOT)
-    doc = {"notices": [{"id": n.url(site), "date": f"{n.date:%Y-%m-%d}", "text": n.title, "blocks": blocks(n, site)}
-                       for n in sorted(notices, key=lambda n: (n.date, n.slug))]}
+    try:
+        doc = {"notices": [{"id": n.url(site), "date": f"{n.date:%Y-%m-%d}", "text": n.title, "blocks": blocks(n, site)}
+                           for n in sorted(notices, key=lambda n: (n.date, n.slug))]}
+    except ValueError as err:
+        print(err, file=sys.stderr)
+        return 1
     Path(out).parent.mkdir(parents=True, exist_ok=True)
     Path(out).write_text(json.dumps(doc, ensure_ascii=False, indent=1) + "\n")
     return 0

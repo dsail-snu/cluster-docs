@@ -18,7 +18,7 @@ categories: [notice, policy]
 
 # 제목
 
-요약 **강조**와 [규정](../../policy/index.md#디버깅), [연결](../../start/connect.md).
+- **2026-11-19부터** 요약 **강조**와 [규정](../../policy/index.md#디버깅), [연결](../../start/connect.md).
 
 <!-- more -->
 
@@ -33,10 +33,33 @@ class ParseTests(unittest.TestCase):
         self.assertEqual(n.url("https://x.example/docs/"), "https://x.example/docs/news/2026/11/19/docs-site/")
 
     def test_a_generated_value_reads_as_the_value(self):
-        text = GOOD.replace("요약", "요약 <!-- BEGIN GENERATED: date:x -->2030-01-02<!-- END GENERATED: date:x -->부터", 1)
+        text = GOOD.replace("**2026-11-19부터**", "**<!-- BEGIN GENERATED: date:x -->2030-01-02<!-- END GENERATED: date:x -->부터**", 1)
         summary = notices.parse("docs/news/posts/2026-11-19-docs-site.md", text).summary
         self.assertNotIn("GENERATED", summary)
-        self.assertIn("2030-01-02부터", summary)
+        self.assertIn("**2030-01-02부터**", summary)
+
+    def test_the_lead_is_a_short_title_and_dated_bullets_only(self):
+        """What Slack shows is what people must newly know: no framing sentence, no
+        undated item; a bullet's further lines are indented."""
+        path = "docs/news/posts/2026-11-19-docs-site.md"
+        two = GOOD.replace("<!-- more -->", "  이어지는 줄.\n- **2026-12-09부터** 둘째.\n\n<!-- more -->")
+        self.assertIn("둘째", notices.parse(path, two).summary)
+        refused = {
+            "framing": GOOD.replace("- **2026-11-19부터**", "바뀐 것을 알려 드립니다.\n\n- **2026-11-19부터**"),
+            "undated": GOOD.replace("- **2026-11-19부터** ", "- "),
+            "paragraph": GOOD.replace("- **2026-11-19부터** ", ""),
+            "unbolded date": GOOD.replace("**2026-11-19부터**", "2026-11-19부터"),
+            "long title": GOOD.replace("# 제목", "# " + "가" * (notices.TITLE_MAX + 1)),
+        }
+        for what, text in refused.items():
+            with self.assertRaises(ValueError, msg=what):
+                notices.parse(path, text)
+
+    def test_a_lead_longer_than_slack_shows_is_refused_not_cut(self):
+        n = notices.parse("docs/news/posts/2026-11-19-docs-site.md", GOOD)
+        n.summary = "- **2026-11-19부터** " + "가" * notices.SECTION_MAX
+        with self.assertRaisesRegex(ValueError, "longer than Slack shows"):
+            notices.blocks(n, "https://x.example/docs/")
 
     def test_errors(self):
         cases = {
@@ -46,7 +69,7 @@ class ParseTests(unittest.TestCase):
             "categories": GOOD.replace("[notice, policy]", "[news]"),
             "title": GOOD.replace("# 제목", "제목"),
             "more": GOOD.replace("<!-- more -->", ""),
-            "summary": GOOD.replace("요약 **강조**와 [규정](../../policy/index.md#디버깅), [연결](../../start/connect.md).", ""),
+            "summary": GOOD.replace("- **2026-11-19부터** 요약 **강조**와 [규정](../../policy/index.md#디버깅), [연결](../../start/connect.md).", ""),
             "file name": GOOD,
         }
         for what, text in cases.items():
@@ -66,9 +89,9 @@ class ParseTests(unittest.TestCase):
         b = notices.blocks(n, "https://x.example/docs/")
         self.assertEqual(b[0]["text"]["text"], ":mega: 제목")
         self.assertEqual(b[1]["text"]["text"],
-                         "요약 *강조*와 <https://x.example/docs/policy/#디버깅|규정>, "
+                         "- *2026-11-19부터* 요약 *강조*와 <https://x.example/docs/policy/#디버깅|규정>, "
                          "<https://x.example/docs/start/connect/|연결>.")
-        wrapped = GOOD.replace("요약 **강조**와", "요약\n**강조**와")
+        wrapped = GOOD.replace("요약 **강조**와", "요약\n  **강조**와")
         b = notices.blocks(notices.parse("docs/news/posts/2026-11-19-docs-site.md", wrapped), "https://x.example/docs/")
         self.assertNotIn("\n", b[1]["text"]["text"])
         self.assertEqual(b[2]["elements"][0]["url"], "https://x.example/docs/news/2026/11/19/docs-site/")

@@ -6,9 +6,8 @@ categories: [policy]
 
 # AI 코딩 도구 사용을 허용합니다
 
-이제 Claude Code, Codex CLI 같은 AI 코딩 도구로 클러스터 작업을 할 수 있습니다. 단, 에이전트에게
-[AI 에이전트 규칙](../../policy/ai-agents.md)을 반드시 숙지시켜야 하고, 에이전트가 한 일의
-책임은 사용자에게 있습니다.
+- **2026-11-19부터** Claude Code, Codex CLI 같은 AI 코딩 도구로 클러스터 작업을 할 수 있습니다.
+  에이전트에게 [AI 에이전트 규칙](../../policy/ai-agents.md)을 숙지시키고, 에이전트가 한 일의 책임은 사용자에게 있습니다.
 
 <!-- more -->
 

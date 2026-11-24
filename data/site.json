@@ -1,4 +1,42 @@
 {
+  "bot": {
+    "command": "/cluster",
+    "subcommands": [
+      {
+        "help": "클러스터 계정 신청",
+        "name": "join"
+      },
+      {
+        "help": "계정 정리 신청 (졸업 등)",
+        "name": "leave"
+      },
+      {
+        "help": "로그인 실패로 차단된 IP 주소의 해제 신청",
+        "name": "unban"
+      },
+      {
+        "help": "공동작업 폴더 만들기 (홈 탭에서 관리)",
+        "name": "project"
+      },
+      {
+        "help": "공유 데이터(데이터셋, 모델, 컨테이너 이미지) 받아 두기 신청",
+        "name": "data"
+      },
+      {
+        "help": "이 안내",
+        "name": "help"
+      }
+    ]
+  },
+  "chat": {
+    "admin_group": "@sysadmin",
+    "channels": {
+      "admin": "#infra-alerts",
+      "announce": "#infra-announce",
+      "help": "#infra-help",
+      "status": "#infra-status"
+    }
+  },
   "commands": {
     "gpu-usage": {
       "options": [
@@ -62,6 +100,7 @@
         }
       ],
       "summary": "what a job's GPUs did: utilisation, SM activity, memory and power, running or finished",
+      "summary_ko": "잡의 GPU가 실제로 한 일: 사용률, SM 활동, 메모리, 전력 (실행 중이거나 끝난 잡)",
       "usage": "gpu-usage [OPTIONS] JOB"
     },
     "qos": {
@@ -150,6 +189,7 @@
         }
       ],
       "summary": "the QoS levels you can submit against",
+      "summary_ko": "내가 잡을 낼 수 있는 QoS",
       "usage": "qos [OPTIONS]"
     },
     "scratch-space": {
@@ -207,6 +247,7 @@
         }
       ],
       "summary": "which of your files on the scratch space are due to be cleaned up, and when",
+      "summary_ko": "스크래치 공간에서 정리될 예정인 내 파일과 그 시점",
       "usage": "scratch-space [OPTIONS]"
     },
     "sq": {
@@ -437,6 +478,7 @@
         }
       ],
       "summary": "the Slurm queue, who holds what, and what each partition pool has left",
+      "summary_ko": "큐, 누가 무엇을 쓰는지, 파티션별 남은 자원",
       "usage": "sq [OPTIONS]"
     }
   },
@@ -491,6 +533,11 @@
       "inode_hard": 15000000,
       "inode_warn": 13500000
     }
+  },
+  "reports": {
+    "disk": "*-*-* 09:00:00",
+    "usage": "hourly",
+    "weekly": "Mon *-*-* 09:00:00"
   },
   "slurm": {
     "kill_wait_seconds": 120,

@@ -79,3 +79,10 @@ uv run zensical build      # 공개 전 빌드 검사
 uv run pre-commit install
 git config deepops.sensitivePatterns <비공개 패턴 파일 경로>
 ```
+
+## Slack 채널 안내
+
+각 Slack 채널의 목적, 주제, 캔버스(채널의 안내 탭), 북마크는 `slack/<역할>.md`(announce, help, status, admin)에
+씁니다. 빌드가 사이트의 `channels.json`으로 내보내고, 클러스터 봇이 각 채널을 그대로 맞춥니다(캔버스를 직접 고쳐도
+하루 안에 되돌아갑니다). 채널 이름, 명령, 일정 같은 값은 `[[...]]` 자리 표시로 쓰고 `data/site.json`에서 채웁니다.
+형식은 `scripts/channels.py` 맨 위에 있습니다.

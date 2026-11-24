@@ -29,6 +29,8 @@ Generators:
   models          the shared model cache as a sentence: where it is (SHARED_HF_HUB_CACHE,
                   read by naming it; each person's own HF_HUB_CACHE stays theirs), or
                   that there is none
+  chat:channels   the Slack channels people use, as a table: each name (the cluster's)
+                  and its line (slack/<role>.md table:, scripts/channels.py)
   slurm:FIELD     one Slurm value (kill_wait_seconds, preempt_grace_seconds,
                   sigkill_after_seconds)
 
@@ -135,6 +137,10 @@ def body(data, name):
         return f"`{env(data)[arg]['login']}`\n"
     if name == "models":
         return models(data)
+    if name == "chat:channels":
+        import channels  # the guides' sources; it reads this module too
+
+        return channels.help_table(data)
     raise SystemExit(f"unknown generated block: {name}")
 
 

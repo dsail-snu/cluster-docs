@@ -275,7 +275,7 @@ sbatch --dependency=afterok:$TRAIN eval.sbatch
 #SBATCH --output=logs/%x-%j.out
 
 set -euo pipefail
-CKPT_DIR=<스크래치 경로>/$USER/checkpoints/$SLURM_JOB_NAME
+CKPT_DIR=/scratch/$USER/checkpoints/$SLURM_JOB_NAME
 mkdir -p "$CKPT_DIR"
 
 # 시간 만료 직전: 학습 프로세스에 저장 신호를 보내고 스스로 다시 큐에 넣음
@@ -303,8 +303,8 @@ wait "$PID"
 
 - 일정 스텝마다 `$CKPT_DIR`에 저장합니다. 임시 파일에 쓴 뒤 이름을 바꾸면 저장 도중
   끊겨도 마지막 체크포인트가 깨지지 않습니다.
-- 학습 중의 체크포인트는 빠른 `<스크래치 경로>`에 두고, **계속 보관할 체크포인트(최종 모델 등)는 `/home`으로
-  옮기세요.** `<스크래치 경로>`에서 <!-- BEGIN GENERATED: policy:stale_days -->60<!-- END GENERATED: policy:stale_days -->일 동안 쓰지 않은 파일은 자동으로 정리됩니다([스토리지](storage.md#용량-한도와-정리)).
+- 학습 중의 체크포인트는 빠른 `/scratch`에 두고, **계속 보관할 체크포인트(최종 모델 등)는 `/home`으로
+  옮기세요.** `/scratch`에서 <!-- BEGIN GENERATED: policy:stale_days -->60<!-- END GENERATED: policy:stale_days -->일 동안 쓰지 않은 파일은 자동으로 정리됩니다([스토리지](storage.md#용량-한도와-정리)).
 - 시작할 때 `$CKPT_DIR`에 체크포인트가 있으면 불러와서 이어갑니다.
 - `SIGUSR1`이나 `SIGTERM`을 받으면 즉시 체크포인트를 저장하고 종료합니다. 선점 유예 시간
   (<!-- BEGIN GENERATED: slurm:preempt_grace_seconds -->120<!-- END GENERATED: slurm:preempt_grace_seconds -->초) 안에 저장이 끝나야 합니다.
@@ -338,7 +338,7 @@ srun --qos=<팀 QoS> --time=04:00:00 \
 #SBATCH --output=logs/%x-%j.out
 
 srun --container-image=nvcr.io#nvidia/pytorch:<태그> \
-     --container-mounts=$HOME:$HOME,<스크래치 경로>:<스크래치 경로> \
+     --container-mounts=$HOME:$HOME,/scratch:/scratch \
      --container-workdir=$PWD \
      python train.py
 ```

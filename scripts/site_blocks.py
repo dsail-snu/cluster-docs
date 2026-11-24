@@ -18,7 +18,7 @@ with --check, so a page whose block no longer matches the data fails the build.
 Generators:
   options:CMD     the options of the cluster command CMD, as a table
   policy:FIELD    one policy value (stale_days, grace_days, warn_percent)
-  date:NAME       one announced date (the site's schedule)
+  date:NAME       one announced date (the site's schedule); in notices only (docs/news/)
   day:NAME        the same with its weekday, as the notices write it: 2026-11-25(수)
   quota:MOUNT:F   a limit of the filesystem at MOUNT: block_hard, block_warn (TB),
                   inode_hard, inode_warn (a count); quota:ratio, files per TB
@@ -33,6 +33,11 @@ Generators:
                   that there is none
   chat:channels   the Slack channels people use, as a table: each name (the cluster's)
                   and its line (slack/<role>.md table:, scripts/channels.py)
+  service:overview, service:dashboard
+                  where the portal's overview page and the monitoring dashboard are, as the
+                  cluster runs them (site.json services), or that they are not; no address
+  paths:shared_data the shared data folders, as paths
+  chat:ROLE       the Slack channel of ROLE (announce, help, status, admin), as code
   rule:sessions   whether srun and salloc GPU sessions must name a team QoS, checked at
                   submit (policy.interactive_team_qos), or only asked to
   login:limits    the login nodes' per-person limits as a sentence (CPUs, memory,
@@ -101,6 +106,34 @@ def day(iso):
 def count(n):
     """A file count as Korean writes it: 30000000 -> 3,000만."""
     return f"{n // 10000:,}만" if n % 10000 == 0 and n >= 10000 else f"{n:,}"
+
+
+PORTAL_ADDRESS = "포털 주소는 계정을 받을 때 함께 알려 드립니다."
+
+
+def service(data, name):
+    """A sentence on a service as the cluster runs it (site.json services): the portal's
+    overview page, or the monitoring dashboard. Never an address: that is private."""
+    svc = data["services"]
+    if name == "overview":
+        if svc["portal"] and svc["overview"]:
+            return (f"한눈에 보는 개요는 **웹 포털에 로그인한 뒤** 상단 메뉴의 **{svc['overview']}** 페이지에서 "
+                    f"보실 수 있습니다. {PORTAL_ADDRESS}\n")
+        return "한눈에 보는 개요는 `sq`의 첫 줄에 있습니다.\n"
+    if name == "dashboard":
+        if svc["dashboard"] and svc["portal"] and svc["menu"]:
+            return (f"대시보드는 웹 포털에 클러스터 계정으로 로그인한 뒤 상단 메뉴의 **{svc['menu'][0]}**에서 "
+                    f"여실 수 있습니다. {PORTAL_ADDRESS}\n")
+        if svc["dashboard"]:
+            return "대시보드 주소는 관리자에게 문의해 주세요.\n"
+        return "웹 대시보드는 운영하지 않습니다. `sq`와 `gpu-usage`로 확인해 주세요.\n"
+    raise SystemExit(f"unknown generated block: service:{name}")
+
+
+def shared_data(data):
+    """The shared data folders, each as a path (site.json paths)."""
+    root = data["paths"]["shared"]
+    return ", ".join(f"`{root}/{d}`" for d in data["paths"]["shared_data"]) + "\n"
 
 
 def sessions_rule(data):
@@ -191,6 +224,12 @@ def body(data, name):
         return f"`{env(data)[arg]['login']}`\n"
     if name == "models":
         return models(data)
+    if kind == "service":
+        return service(data, arg)
+    if name == "paths:shared_data":
+        return shared_data(data)
+    if kind == "chat" and arg in data["chat"]["channels"]:
+        return f"`{data['chat']['channels'][arg]}`\n"
     if name == "rule:sessions":
         return sessions_rule(data)
     if name == "login:limits":
@@ -219,10 +258,28 @@ def fill(text, data):
     return INLINE.sub(lambda m: m.group(1) + body(data, m.group(2)).strip() + m.group(4), text)
 
 
+# A date says when a change takes effect: that belongs to a notice. A guide, the policy
+# or a reference states the rule as it is, so a date block anywhere else is refused.
+DATED = re.compile(r"<!-- BEGIN GENERATED: (?:date|day):\S+ -->")
+NEWS = "docs/news/"
+
+
+def dated_outside_news(root=ROOT):
+    """The pages outside the notices that carry a date block."""
+    pages = sorted((root / "docs").rglob("*.md")) + sorted((root / "snippets").rglob("*.md"))
+    return [p.relative_to(root) for p in pages
+            if not p.relative_to(root).as_posix().startswith(NEWS) and DATED.search(p.read_text())]  # fmt: skip
+
+
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
     check = argv == ["--check"]
     data = json.loads(DATA.read_text())
+    dated = dated_outside_news()
+    for page in dated:
+        print(f"{page}: a date block outside {NEWS}: a date belongs in a notice; state the rule as it is", file=sys.stderr)
+    if dated:
+        return 1
     stale = []
     for page in sorted((ROOT / "docs").rglob("*.md")) + sorted((ROOT / "snippets").rglob("*.md")):
         text = page.read_text()

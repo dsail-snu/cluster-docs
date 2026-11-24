@@ -518,6 +518,16 @@
     "memory_gib": 64,
     "tasks": 4096
   },
+  "paths": {
+    "scratch": "/scratch",
+    "shared": "/home/shared",
+    "shared_data": [
+      "datasets",
+      "models",
+      "containers"
+    ],
+    "software": "/sw"
+  },
   "policy": {
     "cancel_after_hours": 6,
     "cancel_warn_hours": 1,
@@ -549,6 +559,14 @@
     "disk": "*-*-* 09:00:00",
     "usage": "hourly",
     "weekly": "Mon *-*-* 09:00:00"
+  },
+  "services": {
+    "dashboard": true,
+    "menu": [
+      "Grafana"
+    ],
+    "overview": "클러스터",
+    "portal": true
   },
   "slurm": {
     "kill_wait_seconds": 120,

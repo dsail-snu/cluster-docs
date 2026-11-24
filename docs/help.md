@@ -6,7 +6,7 @@
 | Slack 채널 | 용도 |
 |---|---|
 | `#infra-help` | 질문, 문제 신고, 요청을 편하게 남겨 주세요 |
-| `#infra-announce` | 공지 (읽기 전용) |
+| `#infra-announce` | 공지: 규정 변경, 점검, 소프트웨어 업데이트 |
 | `#infra-status` | 클러스터 상태: GPU 사용 현황, 오래 쉬는 잡 알림, 디스크 사용량 |
 <!-- END GENERATED: chat:channels -->
 
@@ -44,7 +44,7 @@ sacct -j <JOBID>               # 끝난 잡
 
 ## 급한 장애
 
-클러스터 전체가 멈추는 등 급한 장애는 `#infra-help`에 글을 올리고 관리자를 멘션하세요.
+클러스터 전체가 멈추는 등 급한 장애는 <!-- BEGIN GENERATED: chat:help -->`#infra-help`<!-- END GENERATED: chat:help -->에 글을 올리고 관리자를 멘션해 주세요.
 
 - 아무에게나 개인 메시지(DM)를 보내지 마세요. 모두가 볼 수 있는 채널에 올려야 같은 문제를 겪는 사람도 도움을 받습니다.
 - 처리 순서는 관리자가 정합니다.

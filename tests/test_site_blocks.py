@@ -51,11 +51,39 @@ class Blocks(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "idle_rule"):
             told(["email"])
 
+    def test_the_services_as_the_cluster_runs_them_and_never_an_address(self):
+        def with_(**svc):
+            base = {"portal": True, "overview": "클러스터", "menu": ["Grafana"], "dashboard": True}
+            return dict(DATA, services={**base, **svc})
+        self.assertIn("상단 메뉴의 **Grafana**", site_blocks.service(with_(), "dashboard"))
+        self.assertIn("**클러스터** 페이지", site_blocks.service(with_(), "overview"))
+        self.assertIn("관리자에게 문의", site_blocks.service(with_(portal=False), "dashboard"))
+        self.assertIn("운영하지 않습니다", site_blocks.service(with_(dashboard=False), "dashboard"))
+        self.assertIn("`sq`", site_blocks.service(with_(portal=False, overview=""), "overview"))
+        for text in (site_blocks.service(with_(), "dashboard"), site_blocks.service(with_(), "overview")):
+            self.assertNotRegex(text, r"<|https?://|도입")
+
     def test_the_sessions_rule_says_whether_submit_checks_it(self):
         on = dict(DATA, policy=dict(DATA["policy"], interactive_team_qos=True))
         off = dict(DATA, policy=dict(DATA["policy"], interactive_team_qos=False))
         self.assertIn("거부됩니다", site_blocks.sessions_rule(on))
         self.assertNotIn("거부", site_blocks.sessions_rule(off))
+
+    def test_a_date_block_outside_the_notices_is_refused(self):
+        """A guide states the rule as it is; when it changes is a notice's (owner 2026-11-25)."""
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "docs/news/posts").mkdir(parents=True)
+            (root / "docs/guide").mkdir()
+            (root / "snippets").mkdir()
+            block = "<!-- BEGIN GENERATED: day:x --><!-- END GENERATED: day:x -->부터"
+            (root / "docs/news/posts/2030-01-01-a.md").write_text(block)
+            (root / "docs/guide/a.md").write_text("상한이 있습니다.")
+            self.assertEqual(site_blocks.dated_outside_news(root), [])
+            (root / "docs/guide/a.md").write_text(block.replace("day:", "date:"))
+            self.assertEqual(site_blocks.dated_outside_news(root), [Path("docs/guide/a.md")])
+        self.assertEqual(site_blocks.dated_outside_news(), [], "this site's pages")
 
     def test_a_day_is_written_with_its_weekday(self):
         self.assertEqual(site_blocks.day("2026-11-25"), "2026-11-25(수)")

@@ -8,8 +8,7 @@ Docker/NGC 이미지를 **Slurm 잡 안에서** 실행하는 방법입니다.
 | Pyxis | Enroot를 `srun`/`sbatch`에 붙여 주는 Slurm 플러그인 |
 | Podman | root 권한 없이 이미지를 만들고 실행하는 도구 (잡 안에서 이미지를 빌드할 때) |
 
-일반 사용자는 Slurm 잡에서 컨테이너를 돌릴 때 **Enroot와 Pyxis**, 이미지를 직접 만들 때 **Podman**을 씁니다.
-**<!-- BEGIN GENERATED: date:docker_admin_only_from -->2026-11-25<!-- END GENERATED: date:docker_admin_only_from -->부터** `docker` 그룹은 관리자 전용이 되어, 일반 사용자는 Docker를 쓸 수 없습니다.
+Slurm 잡에서 컨테이너를 돌릴 때는 **Enroot와 Pyxis**를, 이미지를 직접 만들 때는 **Podman**을 이용해 주세요.
 
 !!! question "왜 Docker가 아닌가요?"
     여러 사람이 함께 쓰는 클러스터에서는 root 권한 없이 안전하게 컨테이너를 돌려야 합니다.
@@ -37,7 +36,7 @@ srun --help | grep container      # Pyxis 옵션이 보이면 사용 가능
 srun --qos=<팀 QoS> --time=04:00:00 \
      --gres=gpu:<GPU 타입>:1 \
      --container-image=nvcr.io#nvidia/pytorch:<태그> \
-     --container-mounts=$HOME:$HOME,<스크래치 경로>:<스크래치 경로> \
+     --container-mounts=$HOME:$HOME,/scratch:/scratch \
      --container-workdir=$HOME \
      --pty bash
 ```
@@ -56,7 +55,7 @@ srun --qos=<팀 QoS> --time=04:00:00 \
 #SBATCH --output=logs/%x-%j.out
 
 srun --container-image=nvcr.io#nvidia/pytorch:<태그> \
-     --container-mounts=$HOME:$HOME,<스크래치 경로>:<스크래치 경로> \
+     --container-mounts=$HOME:$HOME,/scratch:/scratch \
      --container-workdir=$PWD \
      python train.py
 ```
@@ -86,7 +85,7 @@ Enroot 표기는 `<레지스트리>#<이미지>:<태그>` 입니다. 레지스�
 | `--container-writable` / `--container-readonly` | 컨테이너 파일시스템 쓰기 가능 여부 |
 
 !!! note "기본 동작은 클러스터마다 다릅니다"
-    홈 자동 마운트, ENTRYPOINT 실행 여부 같은 기본값은 관리자 설정에 따라 다릅니다.
+    홈 자동 마운트, ENTRYPOINT 실행 여부 같은 기본값은 클러스터 설정에 따라 다릅니다.
     원하는 동작이 있으면 위 옵션으로 명시하는 편이 안전합니다.
 
 ---
@@ -97,7 +96,7 @@ Enroot 표기는 `<레지스트리>#<이미지>:<태그>` 입니다. 레지스�
 
 ```bash
 --container-mounts=$HOME:$HOME                                  # 홈
---container-mounts=<스크래치 경로>:<스크래치 경로>              # 스크래치
+--container-mounts=/scratch:/scratch              # 스크래치
 --container-mounts=$HOME/data:/data:ro                          # 읽기 전용, 다른 경로로
 --container-mounts=$HOME:$HOME,$HOME/data:/data:ro              # 여러 개는 쉼표로
 ```
@@ -152,7 +151,7 @@ Enroot가 이미지를 풀어 놓는 런타임, 캐시 경로는 보통 NFS가 �
 있습니다. 이미지 언팩은 작은 파일 I/O가 많아서 공유 스토리지에 두면 모두가 느려지기 때문입니다.
 
 - 노드 로컬 데이터는 잡이 끝나면 지워지거나, 노드마다 따로 있어서 보관용이 아닙니다.
-- 보관하고 싶은 이미지는 **`.sqsh` 파일로 만들어 `/home`이나 `<스크래치 경로>`에** 두세요.
+- 보관하고 싶은 이미지는 **`.sqsh` 파일로 만들어 `/home`이나 `/scratch`에** 두세요.
 - 같은 이미지를 여러 잡에서 쓴다면 `--container-image=<.sqsh 경로>` 가 가장 효율적입니다.
 
 ---
@@ -197,7 +196,7 @@ machine <레지스트리 주소> login <사용자명> password <토큰>
 |---|---|
 | 컨테이너 안에서 GPU가 안 보임 | `--gres=gpu:<GPU 타입>:N`으로 GPU를 요청했는지 확인. 배정된 GPU만 보입니다 |
 | 홈이 안 보임 | `--container-mounts=$HOME:$HOME` 또는 `--container-mount-home` 추가 |
-| 스크래치 데이터가 안 보임 | `--container-mounts=<스크래치 경로>:<스크래치 경로>` 추가 |
+| 스크래치 데이터가 안 보임 | `--container-mounts=/scratch:/scratch` 추가 |
 | 이미지 받기가 느림 | 한 번 `.sqsh`로 저장한 뒤 재사용 |
 | 내 명령 대신 다른 것이 실행됨 | 이미지 ENTRYPOINT 때문일 수 있습니다. `--no-container-entrypoint` 추가 |
 | 인증 오류(401, unauthorized) | `~/.credentials` 가 아니라 `~/.config/enroot/.credentials` 인지, `machine` 주소와 권한(`600`)이 맞는지 확인 |

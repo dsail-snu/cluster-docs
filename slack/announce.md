@@ -1,8 +1,8 @@
 ---
-purpose: 클러스터 공지를 알려 드리는 채널입니다: 규정 변경, 점검, 소프트웨어 업데이트. 글은 관리자가 올립니다.
+purpose: 클러스터 공지를 알려 드리는 채널입니다: 규정 변경, 점검, 소프트웨어 업데이트.
 topic: 가장 최근 공지는 고정 메시지에서 보실 수 있습니다. 궁금한 점은 [[#help]]에 편하게 남겨 주세요.
 title: 공지 채널 안내
-table: 공지 (읽기 전용)
+table: 공지: 규정 변경, 점검, 소프트웨어 업데이트
 bookmark: :newspaper: | 공지 목록 | news/index.md
 bookmark: :scroll: | 사용 규정 | policy/index.md
 bookmark: :robot_face: | AI 에이전트 규칙 | policy/ai-agents.md

@@ -139,7 +139,7 @@ Slurm은 "이 QoS가 무엇을 선점하는지"만 기록하고 반대 방향은
 ### 유예 시간을 쓰려면 SIGTERM을 잡으세요
 
 ```bash
-trap 'touch <스크래치 경로>/$USER/ckpt.request' TERM
+trap 'touch /scratch/$USER/ckpt.request' TERM
 ```
 
 !!! warning "`--signal` 은 선점에는 오지 않습니다"

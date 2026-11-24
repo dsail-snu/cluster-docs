@@ -10,17 +10,17 @@
 | 공간 | 용도 | 권장 사용 |
 |------|------|-----------|
 | `/home` | 개인 홈, 크고 오래 보관하는 공간 | 코드, 결과, **묶음 파일로 보관하는** 데이터셋. 큰 파일을 순서대로 읽는 데 강하고 작은 파일 무작위 접근에 약합니다 |
-| `<공용 소프트웨어 경로>` | 공용 소프트웨어 (모듈, CUDA 등) | 읽기 전용. 설치는 관리자가 합니다 |
-| `<스크래치 경로>` | 빠른 NVMe 작업 공간 (임시) | **지금 실험이 많이 읽고 쓰는 작업본** (작은 파일, 무작위 접근, 체크포인트) |
+| `/sw` | 공용 소프트웨어 (모듈, CUDA 등) | 읽기 전용. 필요한 소프트웨어는 [요청](../help.md)해 주세요 |
+| `/scratch` | 빠른 NVMe 작업 공간 (임시) | **지금 실험이 많이 읽고 쓰는 작업본** (작은 파일, 무작위 접근, 체크포인트) |
 
 잡마다 노드 로컬 `/tmp`도 따로 있습니다. 잡이 끝나면 지워지므로, 풀어 놓은 실행 환경이나 압축을 푼 데이터셋처럼
 한 잡 동안만 쓰는 파일을 둡니다.
 
-여러 사람이 함께 쓰는 데이터셋을 모아 두는 `<공유 데이터 경로>`가 따로 있을 수 있습니다.
-이것도 로그인 배너에서 확인하세요.
+여러 사람이 함께 쓰는 데이터셋, 모델, 컨테이너 이미지는 <!-- BEGIN GENERATED: paths:shared_data -->`/home/shared/datasets`, `/home/shared/models`, `/home/shared/containers`<!-- END GENERATED: paths:shared_data -->에 있습니다(읽기 전용).
+필요한 것을 받아 두는 신청은 [도움 받기](../help.md#봇으로-하는-신청)를 참고해 주세요.
 
 ```bash
-df -h /home <스크래치 경로>          # 공간 전체의 용량과 마운트 확인
+df -h /home /scratch          # 공간 전체의 용량과 마운트 확인
 ```
 
 ## 환경 변수
@@ -51,14 +51,14 @@ df -h /home <스크래치 경로>          # 공간 전체의 용량과 마운�
 |------|--------|
 | 코드, 스크립트, `~/.bashrc` (작은 파일, 자주 편집) | `/home` |
 | 보관하는 데이터셋 (묶음 파일), 남길 결과와 최종 체크포인트 | `/home` |
-| 진행 중인 실험의 작업본, 학습 중 체크포인트 | `<스크래치 경로>` |
+| 진행 중인 실험의 작업본, 학습 중 체크포인트 | `/scratch` |
 | 풀어 놓은 실행 환경, 압축을 푼 데이터셋, 임시 파일 | 잡의 `/tmp` |
-| 공용 라이브러리, CUDA 모듈 | `<공용 소프트웨어 경로>` (읽기만) |
+| 공용 라이브러리, CUDA 모듈 | `/sw` (읽기만) |
 | 컨테이너 작업본 캐시 | 노드 로컬 (잡이 끝나면 정리될 수 있음) |
-| 보관할 컨테이너 이미지(`.sqsh`) | `/home` 또는 `<스크래치 경로>` |
+| 보관할 컨테이너 이미지(`.sqsh`) | `/home` 또는 `/scratch` |
 
 - `/home`에서 작은 파일 수백만 개를 직접 읽거나 거기에 큰 데이터를 풀면 홈 서버가 느려져 **모든 사용자가 영향**을
-  받습니다. 묶음 파일로 두고, 풀 때는 잡의 `/tmp`나 `<스크래치 경로>`에 푸세요.
+  받습니다. 묶음 파일로 두고, 풀 때는 잡의 `/tmp`나 `/scratch`에 푸세요.
 - 컨테이너 캐시는 노드 로컬이라 잡이 끝나면 사라질 수 있습니다. 보관하려면 `.sqsh` 파일을
   공유 공간으로 옮기세요. -> [컨테이너](containers.md)
 
@@ -71,13 +71,13 @@ df -h /home <스크래치 경로>          # 공간 전체의 용량과 마운�
 기본 QoS로 제출한 잡은 우선순위가 높은 잡에 **선점**되어 다시 큐로 돌아갈 수 있습니다.
 다시 시작된 잡은 **처음부터** 돌기 때문에:
 
-- **주기적으로 체크포인트를 저장**하고 (예: epoch마다 `<스크래치 경로>/$USER/` 아래에),
+- **주기적으로 체크포인트를 저장**하고 (예: epoch마다 `/scratch/$USER/` 아래에),
 - 시작할 때 **체크포인트가 있으면 이어서 학습**하도록 코드를 작성하세요.
 
 선점이 결정되면 잡에 `SIGTERM`이 가고, 짧은 유예 시간 뒤 종료됩니다. 그 시간을 쓰려면 `SIGTERM`을 잡으세요.
 
 ```bash
-trap 'touch <스크래치 경로>/$USER/ckpt.request' TERM
+trap 'touch /scratch/$USER/ckpt.request' TERM
 ```
 
 `--signal=B:USR1@<초>`는 **시간 제한**에만 걸리고 선점에는 오지 않습니다. 둘 다 대비하려면
@@ -93,46 +93,43 @@ trap 'touch <스크래치 경로>/$USER/ckpt.request' TERM
 
 ```bash
 # 업로드 (rsync 권장: 끊겨도 이어받고, 바뀐 것만 보냄)
-rsync -avP -e "ssh -p <SSH 포트>" ./dataset/ <아이디>@<로그인 주소>:<스크래치 경로>/<아이디>/dataset/
+rsync -avP -e "ssh -p <SSH 포트>" ./dataset/ <아이디>@<로그인 주소>:/scratch/<아이디>/dataset/
 
 # 다운로드
-rsync -avP -e "ssh -p <SSH 포트>" <아이디>@<로그인 주소>:<스크래치 경로>/<아이디>/results/ ./results/
+rsync -avP -e "ssh -p <SSH 포트>" <아이디>@<로그인 주소>:/scratch/<아이디>/results/ ./results/
 
 # scp 한 번 전송
-scp -P <SSH 포트> file.tar.gz <아이디>@<로그인 주소>:<스크래치 경로>/<아이디>/
+scp -P <SSH 포트> file.tar.gz <아이디>@<로그인 주소>:/scratch/<아이디>/
 ```
 
 - 대용량은 `rsync -avP`가 안전합니다 (이어받기, 검증, 진행률).
 - 외부에서 데이터셋을 받을 때는 가능하면 **계산 노드의 인터랙티브 잡 안에서** 받아
-  `<스크래치 경로>`에 두세요. 로그인 노드와 홈 서버 부담이 줄어듭니다.
+  `/scratch`에 두세요. 로그인 노드와 홈 서버 부담이 줄어듭니다.
 
 ## 용량 한도와 정리
 
-사람마다 `/home`과 `<스크래치 경로>`에 용량과 파일 수 한도가 있습니다. 지금은 사용량을 집계만 하고,
-**<!-- BEGIN GENERATED: date:limits_from -->2026-12-09<!-- END GENERATED: date:limits_from -->부터** 아래 상한이 적용됩니다. 상한을 넘으면 쓰기가 막히고, 같은 날부터 새 잡도
-제출할 수 없습니다(<!-- BEGIN GENERATED: date:submit_holds_from -->2026-12-09<!-- END GENERATED: date:submit_holds_from -->).
-경고는 상한의 <!-- BEGIN GENERATED: policy:warn_percent -->90%<!-- END GENERATED: policy:warn_percent -->에서 Slack으로 알려 줍니다.
+사람마다 `/home`과 `/scratch`에 아래 용량과 파일 수 상한이 있습니다. 상한에 이르면 그 공간에 더 쓸 수 없고 새 잡 제출도
+보류되니, 그 전에 정리해 주시면 감사하겠습니다. 상한의 <!-- BEGIN GENERATED: policy:warn_percent -->90%<!-- END GENERATED: policy:warn_percent -->에 이르면 Slack으로 미리 알려 드립니다.
 
 | 공간 | 용량 상한 | 파일 수 상한 |
 |---|---|---|
 | `/home` | <!-- BEGIN GENERATED: quota:/home:block_hard -->10 TB<!-- END GENERATED: quota:/home:block_hard --> | <!-- BEGIN GENERATED: quota:/home:inode_hard -->3,000만<!-- END GENERATED: quota:/home:inode_hard -->개 |
-| `<스크래치 경로>` | <!-- BEGIN GENERATED: quota:/scratch:block_hard -->5 TB<!-- END GENERATED: quota:/scratch:block_hard --> | <!-- BEGIN GENERATED: quota:/scratch:inode_hard -->1,500만<!-- END GENERATED: quota:/scratch:inode_hard -->개 |
+| `/scratch` | <!-- BEGIN GENERATED: quota:/scratch:block_hard -->5 TB<!-- END GENERATED: quota:/scratch:block_hard --> | <!-- BEGIN GENERATED: quota:/scratch:inode_hard -->1,500만<!-- END GENERATED: quota:/scratch:inode_hard -->개 |
 
 - 파일 수 한도는 용량에 비례합니다(1 TB당 <!-- BEGIN GENERATED: quota:ratio -->300만<!-- END GENERATED: quota:ratio -->개). 작은 파일 수천만 개는 파일 서버의 모든 사용자를 느리게 하니
   묶음 포맷(tar, WebDataset, HDF5, Arrow 등)을 쓰세요.
 - 내 사용량은 `du` 대신 제공되는 보기로 확인하세요: 매일 아침 Slack 디스크 리포트(상위 사용자, 정리하면 좋을 폴더),
-  `<스크래치 경로>`는 `scratch-space`.
-- 공용 데이터 폴더(`/home/data`)의 내용은 **<!-- BEGIN GENERATED: date:home_data_move -->2026-12-09<!-- END GENERATED: date:home_data_move -->에** 각 폴더 주인의 홈으로 옮겨집니다. 그 전에 필요한 것을 챙기세요.
+  `/scratch`는 `scratch-space`.
 
-### `<스크래치 경로>`: 빠른 작업 공간
+### `/scratch`: 빠른 작업 공간
 
-- **<!-- BEGIN GENERATED: date:scratch_cleanup_from -->2026-11-25<!-- END GENERATED: date:scratch_cleanup_from -->부터** 사람마다 `<스크래치 경로>/<아이디>`가 있습니다. 높은 대역폭이 필요한 실험 데이터를 두는 **빠른 NVMe** 공간입니다.
-  작업 중인 파일은 `<스크래치 경로>`, 오래 둘 파일은 `/home`에 두세요. `<스크래치 경로>` 바로 아래에는 새 폴더를 만들 수 없으니
-  `<스크래치 경로>/<아이디>` 안을 이용해 주세요.
+- 사람마다 `/scratch/<아이디>`가 있습니다. 높은 대역폭이 필요한 실험 데이터를 두는 **빠른 NVMe** 공간입니다.
+  작업 중인 파일은 `/scratch`, 오래 둘 파일은 `/home`에 두세요. `/scratch` 바로 아래에는 새 폴더를 만들 수 없으니
+  `/scratch/<아이디>` 안을 이용해 주세요.
 - **<!-- BEGIN GENERATED: policy:stale_days -->60<!-- END GENERATED: policy:stale_days -->일 동안 읽거나 쓰지 않은 파일은 자동으로 정리됩니다.** 정리 대상이 되면 Slack DM으로 알려 주고,
   **<!-- BEGIN GENERATED: policy:grace_days -->14<!-- END GENERATED: policy:grace_days -->일 뒤** 그때까지도 쓰지 않은 파일을 지웁니다. 그 사이에 쓴 파일은 남습니다.
 - 지워질 파일과 날짜는 `scratch-space` 명령으로 언제든 확인할 수 있습니다. 같은 목록이
-  `<스크래치 경로>/<아이디>/.purge-list`에도 매일 갱신됩니다.
+  `/scratch/<아이디>/.purge-list`에도 매일 갱신됩니다.
 - 정리를 피할 목적으로 접근 시각만 일괄 갱신하는 것(예: 전체 `touch`)은 금지합니다.
 - **다 쓴 중간 산출물과 오래된 체크포인트는 정리**해 주세요. 모두의 공용 작업 공간입니다.
 

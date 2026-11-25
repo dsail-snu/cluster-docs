@@ -21,7 +21,7 @@ repos:
       - id: check-yaml
 
   - repo: https://github.com/12kimih/deepops
-    rev: 1dcffcec28ee19b0edd7fff4631f46775971e4c6
+    rev: ba84dc2f5ac137708a44f8806905cdefa64c8028
     hooks:
       - id: sensitive-guard
       - id: sensitive-guard-message

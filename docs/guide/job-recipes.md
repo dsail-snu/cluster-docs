@@ -95,7 +95,7 @@ torchrun --standalone --nproc_per_node="$SLURM_GPUS_ON_NODE" train_ddp.py
 set -euo pipefail
 export PYTHONUNBUFFERED=1
 MASTER_ADDR=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n1)
-MASTER_PORT=$(( 20000 + SLURM_JOB_ID % 20000 ))   # 잡마다 달라 포트가 겹치지 않음
+MASTER_PORT=$(( 20000 + SLURM_JOB_ID % 20000 ))   # 잡 ID에 따라 달라져 다른 잡과 겹칠 일이 드묾
 export MASTER_ADDR MASTER_PORT
 export OMP_NUM_THREADS=$(( SLURM_CPUS_ON_NODE / SLURM_GPUS_ON_NODE ))
 
@@ -412,7 +412,7 @@ python train.py
   -> [환경 변수](storage.md#환경-변수)
 
 - 의존성을 바꿨으면 다시 `uv sync --frozen` 하고 묶습니다.
-- 가상환경의 Python은 uv가 내 홈에 설치한 인터프리터를 가리킵니다. 홈은 모든 노드에서 같으므로 그대로 동작합니다.
+- 가상환경의 Python은 만들 때 쓴 인터프리터를 가리킵니다. `uv python install`로 홈에 받은 Python이면, 홈은 모든 노드에서 같으므로 그대로 동작합니다.
 - 컨테이너 이미지(`.sqsh`, 파일 하나)도 같은 효과입니다. -> [컨테이너 잡](#컨테이너-잡)
 
 ---

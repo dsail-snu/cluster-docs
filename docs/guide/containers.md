@@ -69,7 +69,7 @@ Enroot 표기는 `<레지스트리>#<이미지>:<태그>` 입니다. 레지스�
 |---|---|
 | NGC | `nvcr.io#nvidia/pytorch:<태그>` |
 | Docker Hub | `pytorch/pytorch:<태그>` 또는 `docker.io#pytorch/pytorch:<태그>` |
-| 저장해 둔 파일 | `~/images/pytorch.sqsh` (절대 경로) |
+| 저장해 둔 파일 | `$HOME/images/pytorch.sqsh` (절대 경로. `--container-image=~/...`의 `~`는 셸이 풀지 않습니다) |
 
 ### 자주 쓰는 Pyxis 옵션
 

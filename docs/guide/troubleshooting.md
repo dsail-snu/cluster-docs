@@ -107,7 +107,7 @@ GPU 타입 문자열을 확인하세요. 유효한 값은 `sinfo -o "%G"` 또는
 우선순위가 더 높은 잡에 **선점**됐습니다. 기본 QoS로 제출한 잡은 `<팀 QoS>` 잡에 밀릴 수 있습니다.
 
 ```bash
-sacct -j <JOBID> --format=JobID,State,Reason,Elapsed   # PREEMPTED 이면 선점
+sacct -D -j <JOBID> --format=JobID,State,Reason,Elapsed   # PREEMPTED 이면 선점 (-D: 다시 큐에 들어가기 전 기록까지)
 qos                                                     # 무엇이 내 QoS를 선점하는지
 ```
 

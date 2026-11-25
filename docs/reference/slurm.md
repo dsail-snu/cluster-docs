@@ -217,7 +217,8 @@ trap 'touch /scratch/$USER/ckpt.request' TERM
 
 !!! tip "갑자기 `PD` 로 돌아간 잡"
     실행 중이던 잡이 갑자기 `PD`(pending)로 돌아갔다면 선점됐을 수 있습니다.
-    `sacct -j <JOBID> --format=JobID,State,Reason,Elapsed` 로 확인하면 `PREEMPTED` 뒤에 같은 JobID로 새 시도가 붙어 있습니다.
+    `sacct -D -j <JOBID> --format=JobID,State,Reason,Elapsed` 로 확인하면 `PREEMPTED` 뒤에 같은 JobID로 새 시도가 붙어 있습니다.
+    `-D`(`--duplicates`)가 없으면 `sacct`는 가장 최근 시도만 보여 줍니다.
 
 ## 자동 할당과 라우팅
 

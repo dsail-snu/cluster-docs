@@ -36,9 +36,11 @@
 
 아래 순서대로 읽으면 됩니다.
 
-1. [접속하기](start/connect.md): SSH 키 등록, 접속 설정, 로그인 노드 규칙
-2. [첫 GPU 잡 돌리기](start/first-job.md): 5분 만에 배치 잡과 인터랙티브 잡 실행
-3. [Slurm 기초](start/slurm-basics.md): 개념, 용어, 자주 쓰는 명령
+<!-- BEGIN GENERATED: section:start -->
+- [접속하기](start/connect.md): 클러스터 계정을 처음 받았을 때 해야 할 것들입니다.
+- [첫 GPU 잡 돌리기](start/first-job.md): 5분 만에 첫 GPU 잡을 실행해 봅니다.
+- [Slurm 기초](start/slurm-basics.md): Slurm을 한 번도 써 보지 않은 사람을 위한 문서입니다.
+<!-- END GENERATED: section:start -->
 
 더 깊이 들어가려면 [잡 레시피](guide/job-recipes.md)와 [Slurm 레퍼런스](reference/slurm.md)로 넘어가세요.
 

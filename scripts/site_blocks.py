@@ -403,14 +403,41 @@ def body(data, name):
 INLINE = re.compile(r"(<!-- BEGIN GENERATED: (\S+) -->)([^\n]*?)(<!-- END GENERATED: \2 -->)")
 
 
-def fill(text, data):
+def section(dirname, page):
+    """The pages of the navigation section whose pages live in DIRNAME, each its title
+    (the page's first heading) and first sentence (llms.summary: one reading of a page
+    for the site map and here), linked relative to PAGE, the section's own index left out."""
+    import posixpath
+
+    import llms  # the site map's reader of the navigation; it reads this module too
+
+    pages, _ = llms.nav(ROOT)
+    found = [p for _, p in pages if posixpath.dirname(p) == dirname and posixpath.basename(p) != "index.md"]
+    if not found:
+        raise SystemExit(f"section:{dirname}: the navigation has no pages in {dirname}/")
+    here = posixpath.dirname(page)
+    lines = []
+    for target in found:
+        title, first = llms.summary((ROOT / llms.project_docs(ROOT) / target).read_text())
+        link = posixpath.relpath(target, here or ".")
+        lines.append(f"- [{title}]({link}): {first}".rstrip(": "))
+    return "\n".join(lines) + "\n"
+
+
+def fill(text, data, page=""):
+    """TEXT with its generated blocks filled from DATA; PAGE (relative to docs/) places the
+    links a section block writes."""
+
+    def render(name):
+        return section(name.split(":", 1)[1], page) if name.startswith("section:") else body(data, name)
+
     def one(m):
         indent = m.group(1)
-        lines = body(data, m.group(3)).splitlines(keepends=True)
+        lines = render(m.group(3)).splitlines(keepends=True)
         return indent + m.group(2) + "".join(indent + line if line.strip() else line for line in lines) + m.group(5)
 
     text = BLOCK.sub(one, text)
-    return INLINE.sub(lambda m: m.group(1) + body(data, m.group(2)).strip() + m.group(4), text)
+    return INLINE.sub(lambda m: m.group(1) + render(m.group(2)).strip() + m.group(4), text)
 
 
 # A date says when a change takes effect: that belongs to a notice. A guide, the policy
@@ -438,7 +465,8 @@ def main(argv=None):
     stale = []
     for page in sorted((ROOT / "docs").rglob("*.md")) + sorted((ROOT / "snippets").rglob("*.md")):
         text = page.read_text()
-        new = fill(text, data)
+        docs = ROOT / "docs"
+        new = fill(text, data, page.relative_to(docs).as_posix() if docs in page.parents else "")
         if new != text:
             stale.append(page.relative_to(ROOT))
             if not check:

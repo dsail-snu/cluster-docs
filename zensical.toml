@@ -8,6 +8,7 @@ site_dir = "site"
 nav = [
   { "홈" = "index.md" },
   { "시작하기" = [
+    "start/index.md",
     "start/connect.md",
     "start/first-job.md",
     "start/slurm-basics.md",
@@ -17,6 +18,7 @@ nav = [
     "policy/ai-agents.md",
   ] },
   { "가이드" = [
+    "guide/index.md",
     "guide/job-recipes.md",
     "guide/containers.md",
     "guide/modules.md",
@@ -24,7 +26,10 @@ nav = [
     "guide/monitoring.md",
     "guide/troubleshooting.md",
   ] },
-  { "레퍼런스" = ["reference/slurm.md"] },
+  { "레퍼런스" = [
+    "reference/index.md",
+    "reference/slurm.md",
+  ] },
   { "공지" = "news/index.md" },
   { "도움 받기" = "help.md" },
 ]

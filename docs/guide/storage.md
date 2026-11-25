@@ -24,8 +24,8 @@ df -h /home /scratch          # 공간 전체의 용량과 마운트 확인
 
 ## 환경 변수
 
-클러스터는 모든 로그인과 잡에 아래 환경 변수를 정해 둡니다. 직접 설정한 값이 있으면 그 값이 이깁니다.
-잡 안에서 값이 다른 것은 작은 파일이 많은 캐시를 잡의 `/tmp`(노드 로컬, 잡이 끝나면 지워짐)에 두기 위해서입니다.
+클러스터는 모든 로그인과 잡에 아래 환경 변수를 정해 둡니다. 직접 설정한 값이 있으면 그 값을 씁니다.
+잡 안에서 몇몇 값이 다른 이유는, 작은 파일이 많은 캐시를 잡의 `/tmp`(노드 로컬, 잡이 끝나면 지워짐)에 두기 위해서입니다.
 
 <!-- BEGIN GENERATED: env:table -->
 | 변수 | 로그인 | 잡 안 |
@@ -73,15 +73,15 @@ df -h /home /scratch          # 공간 전체의 용량과 마운트 확인
 - **주기적으로 체크포인트를 저장**하고 (예: epoch마다 `/scratch/$USER/` 아래에),
 - 시작할 때 **체크포인트가 있으면 이어서 학습**하도록 코드를 작성하세요.
 
-선점이 결정되면 잡에 `SIGTERM`이 가고, 짧은 유예 시간 뒤 종료됩니다. 그 시간을 쓰려면 `SIGTERM`을 잡으세요.
+선점이 결정되면 잡에 `SIGTERM`이 가고, 짧은 유예 시간 뒤 종료됩니다. 그 유예 시간에 체크포인트를 남기려면 `trap`으로 `SIGTERM`을 받아 처리하세요.
 
 ```bash
 trap 'touch /scratch/$USER/ckpt.request' TERM
 ```
 
-`--signal=B:USR1@<초>`는 **시간 제한**에만 걸리고 선점에는 오지 않습니다. 둘 다 대비하려면
-`trap '...' USR1 TERM` 처럼 두 신호를 모두 잡으세요. 막 시작한 잡도 선점될 수 있으니 첫 체크포인트를
-너무 늦게 잡지 마세요. -> [선점](../reference/slurm.md#선점)
+`--signal=B:USR1@<초>`로 정한 신호는 **시간 제한**이 다가올 때만 오고, 선점될 때는 오지 않습니다. 둘 다 대비하려면
+`trap '...' USR1 TERM` 처럼 두 신호를 모두 받으세요. 막 시작한 잡도 선점될 수 있으니 첫 체크포인트는
+일찍 저장하세요. -> [선점](../reference/slurm.md#선점)
 
 ## 데이터 옮기기
 
@@ -112,19 +112,19 @@ scp -P <SSH 포트> file.tar.gz <아이디>@<로그인 주소>:/scratch/<아이�
 사람마다 정해진 용량과 파일 수 상한은 없습니다. 사용량은 Slack 디스크 리포트(매일 09:00)로 알려 드립니다.
 <!-- END GENERATED: quota:section -->
 
-- 내 사용량은 `du` 대신 제공되는 보기로 확인하세요: Slack 디스크 리포트(<!-- BEGIN GENERATED: reports:disk -->매일 09:00<!-- END GENERATED: reports:disk -->, 상위 사용자, 정리하면 좋을 폴더),
-  `/scratch`는 `scratch-space`.
+- 내 사용량은 `du`로 직접 세지 말고 클러스터가 제공하는 보기로 확인하세요. 전체는 Slack 디스크 리포트(<!-- BEGIN GENERATED: reports:disk -->매일 09:00<!-- END GENERATED: reports:disk -->, 상위 사용자, 정리하면 좋을 폴더)로,
+  `/scratch`는 `scratch-space` 명령으로 봅니다.
 
 ### `/scratch`: 빠른 작업 공간
 
 - 사람마다 `/scratch/<아이디>`가 있습니다. 높은 대역폭이 필요한 실험 데이터를 두는 **빠른 NVMe** 공간입니다.
   작업 중인 파일은 `/scratch`, 오래 둘 파일은 `/home`에 두세요. `/scratch` 바로 아래에는 새 폴더를 만들 수 없으니
   `/scratch/<아이디>` 안을 이용해 주세요.
-- **<!-- BEGIN GENERATED: policy:stale_days -->60<!-- END GENERATED: policy:stale_days -->일 동안 읽거나 쓰지 않은 파일은 자동으로 정리됩니다.** 정리 대상이 되면 Slack DM으로 알려 주고,
-  **<!-- BEGIN GENERATED: policy:grace_days -->14<!-- END GENERATED: policy:grace_days -->일 뒤** 그때까지도 쓰지 않은 파일을 지웁니다. 그 사이에 쓴 파일은 남습니다.
+- **<!-- BEGIN GENERATED: policy:stale_days -->60<!-- END GENERATED: policy:stale_days -->일 동안 읽거나 쓰지 않은 파일은 자동으로 정리됩니다.** 정리 대상이 되면 먼저 Slack DM으로 알려 드립니다.
+  그로부터 **<!-- BEGIN GENERATED: policy:grace_days -->14<!-- END GENERATED: policy:grace_days -->일 뒤**에도 여전히 쓰지 않은 파일만 지우고, 그 사이에 쓴 파일은 남겨 둡니다.
 - 지워질 파일과 날짜는 `scratch-space` 명령으로 언제든 확인할 수 있습니다. 같은 목록이
   `/scratch/<아이디>/.purge-list`에도 매일 갱신됩니다.
-- 정리를 피할 목적으로 접근 시각만 일괄 갱신하는 것(예: 전체 `touch`)은 금지합니다.
+- 정리를 피하려고 파일의 접근 시각만 한꺼번에 바꾸는 일(예: 모든 파일에 `touch`)은 금지합니다.
 - **다 쓴 중간 산출물과 오래된 체크포인트는 정리**해 주세요. 모두의 공용 작업 공간입니다.
 
 ## 더 읽기

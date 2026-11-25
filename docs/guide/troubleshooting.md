@@ -40,7 +40,7 @@ srun --jobid=<JOBID> --overlap --pty bash -i
 
 | 사유 | 뜻 | 대처 |
 |------|-----|------|
-| `Resources` | 요청한 자원이 지금 비어 있지 않음 | 기다리기. GPU 수나 `--time`을 줄이면 빈틈(backfill)에 먼저 들어갈 수 있음 |
+| `Resources` | 요청한 만큼의 자원이 아직 비지 않음 | 기다리기. GPU 수나 `--time`을 줄이면 빈틈(backfill)에 먼저 들어갈 수 있음 |
 | `Priority` | 우선순위가 더 높은 잡이 앞에 있음 | 기다리기. `<팀 QoS>` 사용 검토 |
 | `QOSGrpGRES`, `QOSMaxGRESPerUser`, `AssocGrp*` 등 | QoS나 계정 한도(동시 GPU 수, 잡 수 등)에 도달 | 내 잡이나 팀 잡이 끝나면 시작됨. `qos`로 한도와 사용량 확인 |
 | `QOSMax*PerJob` 등 | 잡 하나의 요청이 한도를 넘음 | 요청을 고치기 전에는 시작되지 않음. 잡을 취소하고 요청을 줄여 다시 제출 |
@@ -67,7 +67,7 @@ QoS와 우선순위의 배경은 [Slurm 레퍼런스](../reference/slurm.md#qos)
 
 ### `Requested node configuration is not available`
 
-한 노드에 없는 양을 요청했습니다. 예: 노드 하나의 GPU 수보다 많은 GPU를 한 노드에 요청.
+노드 하나가 가진 것보다 많은 자원을 요청했습니다. 예: 노드 하나에 달린 GPU보다 많은 GPU를 한 노드에 요청.
 노드별 GPU 수는 `sq` 또는 `sinfo -N -o "%N %G"`로 확인하세요.
 
 ### `Invalid qos specification`, `Invalid account`
@@ -94,12 +94,12 @@ GPU 타입 문자열을 확인하세요. 유효한 값은 `sinfo -o "%G"` 또는
 
 ### 잡이 메모리 부족으로 죽어요 (OOM, `oom-kill`)
 
-잡의 메모리는 잡이 받은 만큼으로 제한됩니다.
+잡은 할당받은 메모리까지만 쓸 수 있습니다.
 
 - 배치 크기나 데이터로더 워커 수를 줄이세요.
 - 실제 사용량 확인: 끝난 잡은 `sacct -j <JOBID> --format=JobID,MaxRSS,State`,
   실행 중인 잡은 `sstat -j <JOBID> --format=MaxRSS`.
-- GPU 잡은 `--mem`을 적으면 제출이 거부되고, 메모리는 GPU 수에 따라 자동으로 정해집니다. 그래도 모자라면 관리자에게 문의하세요.
+- GPU 잡의 메모리는 GPU 수에 따라 자동으로 정해지고, `--mem`을 적으면 제출이 거부됩니다. 그래도 모자라면 관리자에게 문의하세요.
   -> [자동 할당](../reference/slurm.md#자동-할당과-라우팅)
 
 ### 잡이 갑자기 다시 큐로 돌아갔어요 (REQUEUE)
@@ -112,7 +112,7 @@ qos                                                     # 무엇이 내 QoS를 �
 ```
 
 - 선점되면 `SIGTERM`이 가고 짧은 유예 시간 뒤 종료됩니다. `trap '...' TERM`으로 그 사이에 체크포인트를 남기세요.
-  `--signal`은 시간 제한에만 걸리고 선점에는 오지 않습니다. -> [선점](../reference/slurm.md#선점), [체크포인트](storage.md#체크포인트-선점-대비)
+  `--signal`로 정한 신호는 시간 제한이 다가올 때만 오고, 선점될 때는 오지 않습니다. -> [선점](../reference/slurm.md#선점), [체크포인트](storage.md#체크포인트-선점-대비)
 - 인터랙티브 잡(`srun --pty`)은 다시 큐로 돌아가지 않고 **그냥 취소**됩니다.
 
 ### `module: command not found`, 또는 원하는 CUDA 버전이 없어요
@@ -122,8 +122,8 @@ qos                                                     # 무엇이 내 QoS를 �
 
 ### Ray가 `/tmp/ray` 권한 오류로 시작하지 않아요
 
-Ray는 기본으로 노드의 `/tmp/ray`에 소켓과 로그를 둡니다. 같은 노드에서 다른 사람의 Ray가 먼저 이 디렉터리를
-만들었으면 `Permission denied`로 시작하지 못하고, 내 Ray 둘이 한 노드에서 돌면 서로의 세션이 섞입니다.
+Ray는 기본으로 노드의 `/tmp/ray`에 소켓과 로그를 둡니다. 같은 노드에서 다른 사람의 Ray가 이 디렉터리를 먼저
+만들었으면, 내 Ray는 `Permission denied`로 시작하지 못합니다. 내 Ray 둘이 한 노드에서 돌면 서로의 세션이 섞입니다.
 잡마다 따로 쓰도록 스크립트 안에서 경로를 지정하세요.
 
 ```bash
@@ -131,14 +131,14 @@ export RAY_TMPDIR=/tmp/ray-$SLURM_JOB_ID      # ray.init(), ray start 가 이 �
 # 또는: ray start --head --temp-dir=/tmp/ray-$SLURM_JOB_ID
 ```
 
-- `/tmp` 아래의 짧은 경로를 쓰세요. Ray의 소켓 경로는 길이 제한(107바이트)이 있어 `/home` 아래 긴 경로는 실패할 수 있고,
-  공유 스토리지에 두면 느립니다.
+- `/tmp` 아래의 짧은 경로를 쓰세요. Ray의 소켓 경로에는 길이 제한(107바이트)이 있어 `/home` 아래의 긴 경로는 실패할 수 있습니다.
+  공유 스토리지에 두면 느리기도 합니다.
 - 잡이 끝나면 내 `/tmp` 파일은 정리됩니다. 로그를 남기려면 잡 안에서 필요한 것만 홈으로 복사하세요.
   -> [자원 격리](../reference/slurm.md#자원-격리)
 
 ### `/home` 파일 접근이 느려요
 
-누군가 공유 스토리지에 큰 부하를 주고 있을 수 있습니다. 본인도 대용량, 작은 파일이 많은 I/O는
+누군가 공유 스토리지에 큰 부하를 주고 있을 수 있습니다. 본인도 데이터가 크거나 작은 파일이 많은 I/O(읽기와 쓰기)는
 `/scratch`에서 하세요. -> [스토리지](storage.md#공유-스토리지를-느리게-만들지-않는-법)
 
 ## 자원
@@ -152,8 +152,8 @@ GPU 수에 맞춰 배정됩니다. GPU 잡에 메모리를 적으면 제출이 �
 ### 어떤 GPU 타입을 써야 하나요?
 
 `sq`로 클러스터에 있는 GPU 타입과 남은 양을 보고 고르세요. 큰 모델처럼 GPU 메모리가 많이 필요하면
-메모리가 큰 타입을, 그렇지 않으면 여유 있는 타입을 쓰는 것이 좋습니다. 타입마다 공정 분배(fairshare)에
-반영되는 가중치가 다를 수 있습니다. -> [Fairshare와 과금](../reference/slurm.md#fairshare와-과금)
+메모리가 큰 타입을, 그렇지 않으면 여유 있는 타입을 쓰는 것이 좋습니다. GPU 타입마다 공정 분배(fairshare) 점수에
+세는 가중치가 다를 수 있습니다. -> [Fairshare와 과금](../reference/slurm.md#fairshare와-과금)
 
 ### 내가 자원을 얼마나 썼는지 보고 싶어요
 
@@ -166,7 +166,7 @@ sreport cluster AccountUtilizationByUser start=<시작 날짜> -t hours   # 기�
 
 ### Jupyter, 인터랙티브 셸, 띄워 둔 추론 서버도 규제 대상인가요?
 
-네. 사용자가 GPU를 쓰는 시점을 직접 정하는 **모든 GPU 점유**가 GPU 점유 세션 규칙의 대상입니다.
+네. GPU를 언제 쓸지 사용자가 직접 정한다면 모두 **GPU 점유 세션**이고, 그 규칙을 따릅니다.
 `<팀 QoS>`로 제출하고, 다 쓰면 바로 종료하세요. -> [GPU 점유 규정](../policy/rules.md#디버깅)
 
 ### AI 에이전트로 잡 제출이나 SSH를 해도 되나요?

@@ -146,7 +146,7 @@ exit          # 끝나면 반드시 빠져나와 GPU를 반납합니다
 
 ### 짧은 실행을 반복할 때: 한 번 잡고 그 안에서 반복
 
-반복 실행이 필요하면 GPU를 **한 번만** 잡고 그 안에서 반복하세요. 디버깅하며 짧은 잡을 `sbatch`로 계속 새로 내면,
+반복 실행이 필요하면 GPU를 **한 번만** 잡고 그 안에서 반복하세요. 디버깅하며 짧은 잡을 `<팀 QoS>`로 계속 새로 내면,
 낼 때마다 다른 사람의 기본 QoS 잡을 선점할 수 있습니다. 선점된 잡은 처음부터 다시 돕니다.
 
 ```bash
@@ -304,7 +304,7 @@ wait "$PID"
 - 일정 스텝마다 `$CKPT_DIR`에 저장합니다. 임시 파일에 쓴 뒤 이름을 바꾸면 저장 도중
   끊겨도 마지막 체크포인트가 깨지지 않습니다.
 - 학습 중의 체크포인트는 빠른 `/scratch`에 두고, **계속 보관할 체크포인트(최종 모델 등)는 `/home`으로
-  옮기세요.** `/scratch`에서 <!-- BEGIN GENERATED: policy:stale_days -->60<!-- END GENERATED: policy:stale_days -->일 동안 쓰지 않은 파일은 자동으로 정리됩니다([스토리지](storage.md#용량-한도와-정리)).
+  옮기세요.** `/scratch`에서 <!-- BEGIN GENERATED: policy:stale_days -->60<!-- END GENERATED: policy:stale_days -->일 동안 아무도 읽거나 쓰지 않은 파일은 자동으로 정리됩니다([스토리지](storage.md#용량-한도와-정리)).
 - 시작할 때 `$CKPT_DIR`에 체크포인트가 있으면 불러와서 이어갑니다.
 - `SIGUSR1`이나 `SIGTERM`을 받으면 즉시 체크포인트를 저장하고 종료합니다. 선점 유예 시간
   (<!-- BEGIN GENERATED: slurm:preempt_grace_seconds -->120<!-- END GENERATED: slurm:preempt_grace_seconds -->초) 안에 저장이 끝나야 합니다.

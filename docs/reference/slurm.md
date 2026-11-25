@@ -255,7 +255,7 @@ scontrol show job <JOBID> | grep -i tres
 |---|---|
 | `--cpus-per-task`(`-c`), `--cpus-per-gpu`, `--mincpus`, `--exclusive` | **무시**하고 기본값 적용 + 안내 메시지 |
 | `--mem`, `--mem-per-cpu`, `--mem-per-gpu` | **거부**. 해당 줄을 지우고 다시 제출 |
-| `-n`/`--ntasks`, `--ntasks-per-node` | **GPU 수 이하**만 허용 (GPU당 태스크 1개). 넘으면 거부. 여러 노드면 `-N` 으로 노드 수를 적습니다 |
+| `-n`/`--ntasks`, `--ntasks-per-node` | `-n`은 잡 전체의 GPU 수 이하, `--ntasks-per-node`는 노드당 GPU 수 이하만 허용 (GPU당 태스크 1개). 넘으면 거부. 여러 노드면 `-N` 으로 노드 수를 적습니다 |
 | `--ntasks-per-gpu` | 1만 허용 |
 | 노드당 GPU 수 (`--gres`, `--gpus`, `-N`과 함께) | **1, 2, 4, 8**만 허용. 다른 수는 거부되고, 메시지에 허용되는 수가 나옵니다 |
 

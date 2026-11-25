@@ -120,8 +120,8 @@ scp -P <SSH 포트> file.tar.gz <아이디>@<로그인 주소>:/scratch/<아이�
 - 사람마다 `/scratch/<아이디>`가 있습니다. 높은 대역폭이 필요한 실험 데이터를 두는 **빠른 NVMe** 공간입니다.
   작업 중인 파일은 `/scratch`, 오래 둘 파일은 `/home`에 두세요. `/scratch` 바로 아래에는 새 폴더를 만들 수 없으니
   `/scratch/<아이디>` 안을 이용해 주세요.
-- **<!-- BEGIN GENERATED: policy:stale_days -->60<!-- END GENERATED: policy:stale_days -->일 동안 읽거나 쓰지 않은 파일은 자동으로 정리됩니다.** 정리 대상이 되면 먼저 Slack DM으로 알려 드립니다.
-  그로부터 **<!-- BEGIN GENERATED: policy:grace_days -->14<!-- END GENERATED: policy:grace_days -->일 뒤**에도 여전히 쓰지 않은 파일만 지우고, 그 사이에 쓴 파일은 남겨 둡니다.
+- **<!-- BEGIN GENERATED: policy:stale_days -->60<!-- END GENERATED: policy:stale_days -->일 동안 아무도 읽거나 쓰지 않은 파일은 자동으로 정리됩니다.** 정리 대상이 되면 먼저 Slack DM으로 알려 드립니다.
+  그로부터 **<!-- BEGIN GENERATED: policy:grace_days -->14<!-- END GENERATED: policy:grace_days -->일 뒤**까지도 아무도 읽거나 쓰지 않은 파일만 지우고, 그 사이에 누군가 읽거나 쓴 파일은 남겨 둡니다.
 - 지워질 파일과 날짜는 `scratch-space` 명령으로 언제든 확인할 수 있습니다. 같은 목록이
   `/scratch/<아이디>/.purge-list`에도 매일 갱신됩니다.
 - 정리를 피하려고 파일의 접근 시각만 한꺼번에 바꾸는 일(예: 모든 파일에 `touch`)은 금지합니다.

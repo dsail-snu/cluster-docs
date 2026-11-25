@@ -32,7 +32,7 @@ srun --help | grep container      # Pyxis 옵션이 보이면 사용 가능
 ### 인터랙티브
 
 ```bash
-# 대화형이므로 디버그 잡 규칙이 적용됩니다
+# GPU를 점유하는 세션이므로 팀 QoS로 실행합니다
 srun --qos=<팀 QoS> --time=04:00:00 \
      --gres=gpu:<GPU 타입>:1 \
      --container-image=nvcr.io#nvidia/pytorch:<태그> \
@@ -43,7 +43,7 @@ srun --qos=<팀 QoS> --time=04:00:00 \
 
 - `<태그>`는 [NGC 카탈로그](https://catalog.ngc.nvidia.com/)에서 확인하세요.
 - 셸 안에서 `nvidia-smi`, `python -c "import torch; print(torch.__version__)"` 로 확인합니다.
-- 디버그 잡 규칙은 [디버깅 규정](../policy/index.md#디버깅)을 보세요.
+- GPU를 점유하는 세션의 규칙은 [디버깅 규정](../policy/index.md#디버깅)을 보세요.
 
 ### 배치
 
@@ -96,7 +96,7 @@ Enroot 표기는 `<레지스트리>#<이미지>:<태그>` 입니다. 레지스�
 
 ```bash
 --container-mounts=$HOME:$HOME                                  # 홈
---container-mounts=/scratch:/scratch              # 스크래치
+--container-mounts=/scratch:/scratch                            # 스크래치
 --container-mounts=$HOME/data:/data:ro                          # 읽기 전용, 다른 경로로
 --container-mounts=$HOME:$HOME,$HOME/data:/data:ro              # 여러 개는 쉼표로
 ```
@@ -112,11 +112,11 @@ Enroot 표기는 `<레지스트리>#<이미지>:<태그>` 입니다. 레지스�
 
 ### 방법 1: Enroot CLI로 import
 
-**계산 노드 위에서**(인터랙티브 잡 안에서) 수행합니다.
+**계산 노드 위에서**(인터랙티브 잡 안에서) 수행합니다. 이미지를 받는 데는 GPU가 필요 없으니 CPU 전용 잡으로 받으세요.
 
 ```bash
-# 1) 디버그 인터랙티브 셸 확보
-srun --qos=<팀 QoS> --time=01:00:00 --gres=gpu:<GPU 타입>:1 --pty bash -i
+# 1) CPU 전용 인터랙티브 셸 확보 (GPU를 잡지 않습니다)
+srun --cpus-per-task=4 --time=01:00:00 --pty bash -i
 
 # 2) 이미지 import -> .sqsh 파일 생성
 mkdir -p ~/images && cd ~/images
@@ -135,10 +135,10 @@ srun --gres=gpu:<GPU 타입>:1 --container-image=$HOME/images/pytorch.sqsh pytho
 
 ### 방법 2: 패키지를 설치한 뒤 `--container-save`
 
-베이스 이미지에 패키지를 더 깐 상태를 저장할 때 씁니다.
+베이스 이미지에 패키지를 더 깐 상태를 저장할 때 씁니다. 패키지 설치에는 GPU가 필요 없으니 CPU 전용 잡으로 합니다.
 
 ```bash
-srun --qos=<팀 QoS> --time=01:00:00 --gres=gpu:<GPU 타입>:1 \
+srun --cpus-per-task=4 --time=01:00:00 \
      --container-image=nvcr.io#nvidia/pytorch:<태그> \
      --container-save=$HOME/images/my-pytorch.sqsh \
      --pty bash

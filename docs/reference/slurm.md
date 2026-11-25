@@ -21,12 +21,16 @@
 | `sacctmgr` | 계정, 사용자, QoS, association 조회 |
 | `sreport` | 기간별 사용량 리포트 (GPU 시간 등) |
 
-클러스터 공통으로 추가 배포되는 명령도 있습니다.
+클러스터가 따로 배포하는 명령도 있습니다.
 
-| 명령 | 용도 |
+<!-- BEGIN GENERATED: commands:table -->
+| 명령 | 보여 주는 것 |
 |---|---|
-| `sq` | 큐와 자원 현황 |
-| `qos` | 내 QoS, 선점 관계, 팀 몫 사용량 |
+| `gpu-usage` | 잡의 GPU가 실제로 한 일: 사용률, SM 활동, 메모리, 전력 (실행 중이거나 끝난 잡) |
+| `qos` | 내가 잡을 낼 수 있는 QoS |
+| `scratch-space` | 스크래치 공간에서 정리될 예정인 내 파일과 그 시점 |
+| `sq` | 큐, 누가 무엇을 쓰는지, 파티션별 남은 자원 |
+<!-- END GENERATED: commands:table -->
 
 옵션은 각 명령의 `--help` 가 항상 최신입니다.
 
@@ -256,11 +260,13 @@ sacctmgr show qos format=Name,Priority,Flags,MaxWall,MaxTRESPU%30,GrpTRES%30
 --output=PATTERN --error=PATTERN %x 잡 이름, %j 잡 ID, %N 노드, %a 배열 인덱스
 --chdir=DIR                      작업 디렉터리
 --export=ALL|NONE|VAR=<값>         환경 변수 전달
---mail-type=END,FAIL --mail-user=<주소>   메일 알림
+--mail-type=END,FAIL             잡 알림 (Slack DM, 아래)
 
 # 컨테이너
 --container-image=  --container-mounts=  --container-workdir=
 ```
+
+잡 알림: <!-- BEGIN GENERATED: service:job_notices -->잡에 `--mail-type=END,FAIL`(또는 `BEGIN`, `ALL` 등)을 적으면 그 일이 생길 때 잡의 주인에게 Slack DM으로 알려 드립니다. 메일은 보내지 않으니 `--mail-user`는 적지 않으셔도 되고, 적어도 받는 사람은 잡의 주인입니다. 짧은 사이에 생긴 알림은 한 메시지로 모아 드립니다. 받지 않으려면 봇의 홈 탭에서 끄실 수 있습니다.<!-- END GENERATED: service:job_notices -->
 
 `--time` 이 파티션 상한보다 길면 제출은 되지만 `PartitionTimeLimit` 사유로 시작하지 못하고 계속 대기합니다. 상한은 `qos` 와 `scontrol show partition` 으로 확인하세요.
 컨테이너 옵션은 [컨테이너 가이드](../guide/containers.md)를 보세요.

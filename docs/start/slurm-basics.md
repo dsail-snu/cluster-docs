@@ -70,7 +70,7 @@ squeue --me       # 내 잡만
 
 ```bash
 # GPU 1장으로 대화형 셸. GPU 타입은 반드시 명시하고,
-# 규정상 팀 QoS와 짧은 --time 이 필요합니다.
+# GPU를 점유하는 세션이므로 팀 QoS로 실행합니다.
 srun --qos=<팀 QoS> --time=01:00:00 \
      --gres=gpu:<GPU 타입>:1 --pty bash -i
 ```

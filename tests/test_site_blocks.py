@@ -60,6 +60,9 @@ class Blocks(unittest.TestCase):
         self.assertIn("관리자에게 문의", site_blocks.service(with_(portal=False), "dashboard"))
         self.assertIn("운영하지 않습니다", site_blocks.service(with_(dashboard=False), "dashboard"))
         self.assertIn("`sq`", site_blocks.service(with_(portal=False, overview=""), "overview"))
+        self.assertIn("홈 탭", site_blocks.service(with_(job_notices=True, bot=True), "job_notices"))
+        self.assertNotIn("홈 탭", site_blocks.service(with_(job_notices=True, bot=False), "job_notices"))
+        self.assertIn("보내지 않습니다", site_blocks.service(with_(job_notices=False), "job_notices"))
         for text in (site_blocks.service(with_(), "dashboard"), site_blocks.service(with_(), "overview")):
             self.assertNotRegex(text, r"<|https?://|도입")
 
@@ -129,7 +132,7 @@ class Blocks(unittest.TestCase):
         self.assertIn("`SHARED_HF_HUB_CACHE`가 그곳을 가리킵니다", text)
         self.assertNotIn("`HF_HUB_CACHE`가 그곳을", text)
         wrong = dict(DATA, environment=[{"name": "HF_HUB_CACHE", "login": "/srv/hub", "job": ""}])
-        self.assertIn("아직 없습니다", site_blocks.models(wrong))
+        self.assertIn("캐시는 없습니다", site_blocks.models(wrong))
 
     def test_quota_limits_in_tb_and_korean_counts(self):
         page = "<!-- BEGIN GENERATED: quota:/data:block_hard --><!-- END GENERATED: quota:/data:block_hard -->, " \

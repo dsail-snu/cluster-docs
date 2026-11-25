@@ -36,6 +36,9 @@ Generators:
   service:overview, service:dashboard
                   where the portal's overview page and the monitoring dashboard are, as the
                   cluster runs them (site.json services), or that they are not; no address
+  service:job_notices
+                  what --mail-type does: a Slack DM to the job's owner (services.job_notices),
+                  muted from the bot's Home tab when the bot runs, or nothing
   paths:shared_data the shared data folders, as paths
   chat:ROLE       the Slack channel of ROLE (announce, help, status, admin), as code
   rule:sessions   whether srun and salloc GPU sessions must name a team QoS, checked at
@@ -51,6 +54,8 @@ Generators:
   bot:command     the cluster bot's slash command
   bot:subcommands the cluster bot's slash command and subcommands as a table, with their
                   Korean help
+  commands:table  the cluster's own commands (sq, qos, ...) as a table, with their Korean
+                  summaries (site.json commands)
   slurm:FIELD     one Slurm value (kill_wait_seconds, preempt_grace_seconds,
                   sigkill_after_seconds)
 
@@ -133,6 +138,13 @@ def service(data, name):
         if svc["dashboard"]:
             return "대시보드 주소는 관리자에게 문의해 주세요.\n"
         return "웹 대시보드는 운영하지 않습니다. `sq`와 `gpu-usage`로 확인해 주세요.\n"
+    if name == "job_notices":
+        if not svc["job_notices"]:
+            return "잡에 `--mail-type`을 적어도 알림은 보내지 않습니다.\n"
+        mute = " 받지 않으려면 봇의 홈 탭에서 끄실 수 있습니다." if svc["bot"] else ""
+        return ("잡에 `--mail-type=END,FAIL`(또는 `BEGIN`, `ALL` 등)을 적으면 그 일이 생길 때 잡의 주인에게 "
+                "Slack DM으로 알려 드립니다. 메일은 보내지 않으니 `--mail-user`는 적지 않으셔도 되고, 적어도 "
+                f"받는 사람은 잡의 주인입니다. 짧은 사이에 생긴 알림은 한 메시지로 모아 드립니다.{mute}\n")
     raise SystemExit(f"unknown generated block: service:{name}")
 
 
@@ -170,6 +182,11 @@ def bot_subcommands(data):
     """The cluster bot's subcommands as a table, each with its Korean help (site.json bot)."""
     bot = data["bot"]
     return table(("명령", "하는 일"), [(f"`{bot['command']} {s['name']}`", s["help"]) for s in bot["subcommands"]])
+
+
+def commands_table(data):
+    """The cluster's own commands as a table, each with its Korean summary (site.json commands)."""
+    return table(("명령", "보여 주는 것"), [(f"`{c}`", d["summary_ko"]) for c, d in data["commands"].items()])
 
 
 def _tb(tib):
@@ -258,7 +275,7 @@ def env_table(data):
 def models(data):
     hub = env(data).get("SHARED_HF_HUB_CACHE")
     if not hub:
-        return "공용 모델 캐시는 아직 없습니다. 모델은 각자 `HF_HOME` 아래에 내려받습니다.\n"
+        return "공용 모델 캐시는 없습니다. 모델은 각자 `HF_HOME` 아래에 내려받습니다.\n"
     return (f"공용 모델 캐시는 `{hub['login']}`에 있고, 모든 로그인과 잡에서 `SHARED_HF_HUB_CACHE`가 그곳을 가리킵니다. "
             "**읽기 전용**이라 여기에는 내려받을 수 없으니, 각자의 `HF_HUB_CACHE`로 바꾸지 말고 읽을 때 "
             "이 경로를 직접 주세요: `from_pretrained(<모델>, cache_dir=os.environ[\"SHARED_HF_HUB_CACHE\"], "
@@ -309,6 +326,8 @@ def body(data, name):
         return f"{data['bot']['command']}\n"
     if name == "bot:subcommands":
         return bot_subcommands(data)
+    if name == "commands:table":
+        return commands_table(data)
     if name == "chat:channels":
         import channels  # the guides' sources; it reads this module too
 

@@ -547,6 +547,7 @@
   "services": {
     "bot": true,
     "dashboard": true,
+    "job_notices": true,
     "menu": [
       "Grafana"
     ],

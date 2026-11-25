@@ -119,7 +119,7 @@ def fill(text, data):
         if name == "bot.subcommands":
             return site_blocks.bot_subcommands(data).rstrip("\n")
         if name == "commands":
-            return _table(("명령", "보여 주는 것"), [(f"`{c}`", d["summary_ko"]) for c, d in data["commands"].items()])
+            return site_blocks.commands_table(data).rstrip("\n")
         if name == "rule:idle":
             return site_blocks.idle_rule(data).strip()
         if name == "reports":

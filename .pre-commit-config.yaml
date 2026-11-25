@@ -21,12 +21,14 @@ repos:
       - id: check-yaml
 
   - repo: https://github.com/12kimih/deepops
-    rev: a22b1577af6a2278123aaa394386c99bf0751757
+    rev: 1dcffcec28ee19b0edd7fff4631f46775971e4c6
     hooks:
       - id: sensitive-guard
       - id: sensitive-guard-message
       - id: sensitive-guard-push
       - id: sensitive-guard-tree
+      - id: commit-message
+      - id: commit-message-push
 
   - repo: local
     hooks:

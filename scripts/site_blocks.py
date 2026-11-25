@@ -12,12 +12,12 @@ value sits inline, both markers on its line, so it reads inside a sentence or a 
 (a marker on a line of its own would end a list item):
 
     유예 시간은 <!-- BEGIN GENERATED: slurm:preempt_grace_seconds -->120<!-- END GENERATED: slurm:preempt_grace_seconds -->초입니다.
- CI runs it
-with --check, so a page whose block no longer matches the data fails the build.
+
+CI runs it with --check, so a page whose block no longer matches the data fails the build.
 
 Generators:
   options:CMD     the options of the cluster command CMD, as a table
-  policy:FIELD    one policy value (stale_days, grace_days, warn_percent)
+  policy:FIELD    one value of site.json policy; warn_percent is warn_fraction as a percent
   date:NAME       one announced date (the site's schedule); in notices only (docs/news/)
   day:NAME        the same with its weekday, as the notices write it: 2026-11-25(수)
   quota:MOUNT:F   a limit of the filesystem at MOUNT: block_hard, block_warn (TB),
@@ -56,8 +56,9 @@ Generators:
                   Korean help
   commands:table  the cluster's own commands (sq, qos, ...) as a table, with their Korean
                   summaries (site.json commands)
-  slurm:FIELD     one Slurm value (kill_wait_seconds, preempt_grace_seconds,
-                  sigkill_after_seconds)
+  slurm:FIELD     one value of site.json slurm
+  reports:NAME    when the status channel's report NAME runs (site.json reports), as
+                  the channels' guides say it (scripts/channels.py when): 매일 09:00
 
 Usage: site_blocks.py [--check]
 Standard library only.
@@ -205,14 +206,19 @@ def sessions_rule(data):
     return "`srun`, `salloc`으로 여는 GPU 세션은 팀 QoS(`--qos=<팀 QoS>`)로 실행해 주세요.\n"
 
 
-def login_limits(data):
-    """The login nodes' per-person limits as a sentence (site.json login), or that none is set."""
+def login_parts(data):
+    """Each login-node limit the cluster sets (site.json login) as the sentence writes it."""
     limits = data.get("login") or {}
-    parts = [f"{label} {fmt(limits[key])}" for key, label, fmt in (
+    return [f"{label} {fmt(limits[key])}" for key, label, fmt in (
         ("cpus", "CPU", lambda n: f"{n}개"),
         ("memory_gib", "메모리", lambda n: f"{n} GB"),
         ("tasks", "프로세스", lambda n: f"{count(n)}개"),
     ) if key in limits]  # fmt: skip
+
+
+def login_limits(data):
+    """The login nodes' per-person limits as a sentence (site.json login), or that none is set."""
+    parts = login_parts(data)
     if not parts:
         return "로그인 노드에는 사람별 자원 한도가 따로 걸려 있지 않습니다.\n"
     return f"로그인 노드에는 한 사람당 {', '.join(parts)}까지 쓰실 수 있도록 제한이 걸려 있습니다.\n"
@@ -233,6 +239,14 @@ def commands_table(data):
     return table(("명령", "보여 주는 것"), [(f"`{c}`", d["summary_ko"]) for c, d in data["commands"].items()])
 
 
+def report_when(data, name):
+    """When the status channel's report NAME runs (site.json reports), in the channels'
+    guides' words (scripts/channels.py when)."""
+    import channels  # it reads this module too
+
+    return channels.when(data["reports"][name])
+
+
 def _tb(tib):
     return f"{tib:g} TB"
 
@@ -242,7 +256,8 @@ def quota_section(data):
     at a limit, the warning, a table, the files per TB; or that there are none yet."""
     q, p = data["quota"], data["policy"]
     if not q:
-        return "사람마다 정해진 용량과 파일 수 상한은 없습니다. 사용량은 매일 세어 Slack 디스크 리포트로 알려 드립니다.\n"
+        return ("사람마다 정해진 용량과 파일 수 상한은 없습니다. 사용량은 Slack 디스크 리포트"
+                f"({report_when(data, 'disk')})로 알려 드립니다.\n")
     spaces = "과 ".join(f"`{m}`" for m in q) if len(q) == 2 else ", ".join(f"`{m}`" for m in q)
     held = " 새 잡 제출도 보류되니" if p.get("submit_holds_disk") else "니"
     rows = [(f"`{m}`", f"{_tb(v['block_hard_tib'])} | {count(v['inode_hard'])}개") for m, v in q.items()]
@@ -374,6 +389,8 @@ def body(data, name):
         return f"{data['bot']['command']}\n"
     if name == "bot:subcommands":
         return bot_subcommands(data)
+    if kind == "reports":
+        return report_when(data, arg) + "\n"
     if name == "commands:table":
         return commands_table(data)
     if name == "chat:channels":

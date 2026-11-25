@@ -9,19 +9,27 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
+import channels  # noqa: E402
 import site_blocks  # noqa: E402
 
 DATA = json.loads((ROOT / "data" / "site.json").read_text())
 
 
 def typed_forms(data):
-    """The ways a page would type each owned value: dates as written, periods with their unit."""
+    """The ways a page would type each owned value: dates as written, periods with their
+    unit, the login limits, the channels and the bot's command as Slack shows them, the
+    reports' schedules in the words the generators use."""
     p, s = data["policy"], data.get("slurm", {})
     forms = set(data.get("dates", {}).values())
     forms |= {f"{p['stale_days']}일", f"{p['grace_days']}일", f"{round(p['warn_fraction'] * 100)}%"}
     forms |= {f"{p['idle_hours']}시간"}
     if p.get("cancel_after_hours"):
-        forms |= {f"{p['cancel_after_hours']}시간"}
+        forms |= {f"{p['cancel_after_hours']}시간", f"{p['cancel_warn_hours']}시간"}
+    forms |= set(site_blocks.login_parts(data))
+    forms |= set(data.get("chat", {}).get("channels", {}).values())
+    if data.get("bot"):
+        forms |= {data["bot"]["command"]}
+    forms |= {channels.when(v) for v in data.get("reports", {}).values()}
     forms |= {f"{v}초" for k, v in s.items() if k.endswith("_seconds")}
     for e in data.get("environment", []):
         forms |= {v for v in (e["login"], e["job"]) if v}
@@ -43,6 +51,16 @@ class TypedValues(unittest.TestCase):
     def test_a_link_target_states_no_value(self):
         self.assertNotIn("2026-11-25", outside_blocks("[지난 공지](2026-11-25-rules-revised.md)"))
         self.assertIn("2026-11-25", outside_blocks("2026-11-25부터 [지난 공지](x.md)"))
+
+    def test_the_forms_cover_every_owned_kind(self):
+        forms = typed_forms(DATA)
+        p = DATA["policy"]
+        if p.get("cancel_after_hours"):
+            self.assertIn(f"{p['cancel_warn_hours']}시간", forms)
+        self.assertLessEqual(set(site_blocks.login_parts(DATA)), forms)
+        self.assertLessEqual(set(DATA["chat"]["channels"].values()), forms)
+        self.assertIn(DATA["bot"]["command"], forms)
+        self.assertLessEqual({channels.when(v) for v in DATA["reports"].values()}, forms)
 
     def test_no_owned_value_is_typed_outside_a_generated_block(self):
         forms = typed_forms(DATA)

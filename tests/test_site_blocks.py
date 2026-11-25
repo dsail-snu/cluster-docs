@@ -17,6 +17,7 @@ DATA = {
                "interactive_team_qos": True},
     "slurm": {"kill_wait_seconds": 30, "preempt_grace_seconds": 30, "sigkill_after_seconds": 60},
     "quota": {"/data": {"block_hard_tib": 2.0, "block_warn_tib": 1.8, "inode_hard": 6000000, "inode_warn": 5400000}},
+    "reports": {"usage": "hourly", "weekly": "Mon *-*-* 09:00:00", "disk": "*-*-* 08:30:00"},
 }  # fmt: skip
 
 
@@ -92,6 +93,7 @@ class Blocks(unittest.TestCase):
     def test_the_limits_appear_when_the_cluster_sets_them(self):
         none = dict(DATA, quota={})
         self.assertIn("상한은 없습니다", site_blocks.quota_section(none))
+        self.assertIn("디스크 리포트(매일 08:30)", site_blocks.quota_section(none))
         self.assertEqual(site_blocks.quota_each(none, "/scratch"), "\n")
         q = {"/home": {"block_hard_tib": 10.0, "block_warn_tib": 9.0, "inode_hard": 30000000, "inode_warn": 27000000}}
         on = dict(DATA, quota=q, policy=dict(DATA["policy"], submit_holds_disk=True))
@@ -129,6 +131,14 @@ class Blocks(unittest.TestCase):
             (root / "docs/guide/a.md").write_text(block.replace("day:", "date:"))
             self.assertEqual(site_blocks.dated_outside_news(root), [Path("docs/guide/a.md")])
         self.assertEqual(site_blocks.dated_outside_news(), [], "this site's pages")
+
+    def test_a_report_says_when_it_runs_in_the_channels_words(self):
+        page = "<!-- BEGIN GENERATED: reports:usage --><!-- END GENERATED: reports:usage -->, " \
+               "<!-- BEGIN GENERATED: reports:weekly --><!-- END GENERATED: reports:weekly -->"  # fmt: skip
+        self.assertIn("매시간<", site_blocks.fill(page, DATA))
+        self.assertIn("월요일 09:00<", site_blocks.fill(page, DATA))
+        with self.assertRaises(KeyError):
+            site_blocks.body(DATA, "reports:nightly")
 
     def test_a_day_is_written_with_its_weekday(self):
         self.assertEqual(site_blocks.day("2026-11-25"), "2026-11-25(수)")

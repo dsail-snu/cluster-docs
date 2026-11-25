@@ -8,12 +8,11 @@
 ## 자원 현황 한눈에 보기: `sq`
 
 `sq`는 모든 노드에 설치된 클러스터 현황 명령입니다. 큐를 상태별 색으로 보여 주고,
-사용자별 점유와 GPU 타입별, 노드별 CPU, 메모리, GPU 사용량 표를 출력합니다.
+사람별 점유, 팀별 몫, GPU 타입별, 노드별 CPU, 메모리, GPU 사용량 표를 출력합니다.
 잡이 실제로 요청할 수 있는 자원만 집계하므로 표의 숫자가 곧 지금 요청 가능한 양입니다.
 
 ```bash
-sq          # 큐 + 사용자별 점유 + 자원 표
-sq -a       # 잡 목록에 모든 사람의 잡까지 (--all). 내 잡만은 -m (--me)
+sq          # 내 잡 + 사람별 점유(USERS) + 팀별 몫(TEAMS) + 자원 표
 sq --help   # 전체 옵션 (항상 최신)
 ```
 
@@ -23,10 +22,13 @@ sq --help   # 전체 옵션 (항상 최신)
 - 대기 중인 잡은 Slurm의 사유 코드(`(Priority)`, `(Resources)` 등)를 그대로 보여 주고, 색으로 계열을 구분합니다.
   사유별 대처는 [문제 해결](troubleshooting.md#잡이-안-돌-때-pending)에 있습니다.
 
-사용자 표(USERS)는 사람마다 팀과, GPU 타입별로 `hi / lo`(높은 우선순위 QoS와 낮은 QoS로 쥔 GPU 수)와
-`PEND`(대기 중인 잡이 요청한 GPU 수)를 보여 줍니다. 그 아래 HIGH QOS QUOTAS는 팀마다 높은 우선순위 QoS의
-GPU 타입별 몫(막대, 사용/한도)과 그것을 쥔 사람을 많이 쥔 순서로 보여 줍니다. 몫은 팀 전체의 것이니,
-자리가 없으면 쥔 사람에게 GPU를 비워 달라고 하세요.
+사용자 표(USERS)는 사람마다 팀(`TEAM`), 실행 중인 잡 수(`RUN`), 대기 중인 잡 수(`PEND`, 배열 잡은 작업마다 하나),
+쥔 노드, CPU, 메모리, GPU를 보여 줍니다. GPU 타입마다 두 칸이 있어, `HIGH`는 높은 우선순위 QoS(팀 몫)로,
+`LOW`는 낮은 QoS(선점될 수 있음)로 쥔 GPU 수입니다.
+
+그 아래 팀 표(TEAMS)는 팀마다 한 줄로, 팀(`TEAM`)과 그 팀의 높은 우선순위 QoS(`QOS`), GPU 타입별로 그 몫을
+지금 얼마나 쓰는지(막대, 사용/한도)를 보여 줍니다. 몫은 팀 전체의 것이니, 자리가 없으면 사용자 표에서
+같은 팀의 `HIGH`를 쥔 분께 GPU를 비워 주실 수 있는지 여쭤 보세요.
 
 ## 내가 쓸 수 있는 몫: `qos`
 
@@ -34,14 +36,15 @@ GPU 타입별 몫(막대, 사용/한도)과 그것을 쥔 사람을 많이 쥔 �
 클러스터가 한가해 보이는데 내 잡이 `(QOSGrpGRES)` 같은 사유로 대기 중이라면 이쪽을 보세요.
 
 ```bash
-qos         # 제출할 수 있는 QoS와 우선순위, 선점 관계, 팀 몫 사용량
-qos -m      # 내 것만 (--me). 전체는 -a (--all), sq와 같은 뜻
+qos         # 사용자에게 주어진 QoS(내 것 표시)와 우선순위, 선점 관계, 팀 몫 사용량
+qos --help  # 전체 옵션 (항상 최신)
 ```
 
 QoS가 무엇인지는 [Slurm 레퍼런스](../reference/slurm.md#qos)에 있습니다.
 
 !!! tip "자세한 옵션"
-    자세한 옵션은 `sq --help`, `qos --help`를 보세요. 도움말은 명령에서 바로 만들어지므로 항상 최신입니다.
+    자세한 옵션과 표 읽는 법은 `sq --help`, `qos --help`를 보세요. 도움말은 명령에서 바로 만들어지므로 항상 최신입니다.
+    옵션 목록은 [Slurm 레퍼런스](../reference/slurm.md#클러스터-명령의-옵션)에도 있습니다.
 
 ## Slurm 기본 명령
 
@@ -122,7 +125,7 @@ htop                    # CPU, 메모리
 
 ## Slack 알림
 
-- **GPU 사용량 보고**: 매시간 클러스터 GPU 사용 현황이 Slack <!-- BEGIN GENERATED: chat:status -->`#infra-status`<!-- END GENERATED: chat:status -->에 올라옵니다.
+- **GPU 사용량 보고**: <!-- BEGIN GENERATED: reports:usage -->매시간<!-- END GENERATED: reports:usage --> 클러스터 GPU 사용 현황이 Slack <!-- BEGIN GENERATED: chat:status -->`#infra-status`<!-- END GENERATED: chat:status -->에 올라옵니다.
 - **유휴 GPU 알림**: <!-- BEGIN GENERATED: rule:idle -->Slurm 잡으로 GPU를 할당받아 두고 **2시간 넘게 쓰지 않으면** 알려 드립니다. **6시간** 동안 GPU를 쓰지 않은 잡은 자동으로 취소되며, 취소 **1시간 전**에 미리 알려 드립니다.<!-- END GENERATED: rule:idle -->
   알림을 받으셨다면 잡이 GPU를 제대로 쓰는지 확인해 주시고, 쓰지 않는다면 취소해 주세요.
   -> [디버깅 규정](../policy/index.md#디버깅)

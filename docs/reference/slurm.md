@@ -34,6 +34,64 @@
 
 옵션은 각 명령의 `--help` 가 항상 최신입니다.
 
+### 클러스터 명령의 옵션
+
+`sq`와 `qos`의 옵션입니다. 명령의 정의에서 만들어지므로 `--help`와 같습니다.
+
+#### `sq`의 옵션
+
+<!-- BEGIN GENERATED: options:sq -->
+| 옵션 | 설명 |
+|---|---|
+| `-m`, `--me` | only your jobs |
+| `-u`, `--user` `USER` | only these users (comma list; * and ? match) |
+| `-p`, `--partition` `PART` | only these partitions |
+| `-w`, `--nodelist` `NODES` | only these nodes (a hostlist like gpu[1-3,8], or globs) |
+| `-t`, `--states` `STATES`, `--state` `STATES` | only these job states (R,PD or running,pending; all includes finished) |
+| `-j`, `--jobs` `IDS` | only these job IDs |
+| `-A`, `--account` `ACCOUNTS` | only these accounts |
+| `-q`, `--qos` `QOS` | only these QoS |
+| `-n`, `--name` `NAMES` | only these job names |
+| `--queue` `WHICH` | the job list: mine (default; a job filter shows what it selects), all, or none |
+| `-a`, `--all` | everyone's jobs in the job list (--queue all) |
+| `--no-queue` | no job list (--queue none) |
+| `-U`, `--users` | who holds what (each GPU type under a high QoS and a low one), each user's share of the GPUs, and each team's high QoS quota in use |
+| `-W`, `--why` | why jobs wait: reason families, then Slurm's codes |
+| `--resources` | the CPU / memory / GPU table |
+| `-d`, `--detail` | full node states and reasons, and who is behind each pending reason |
+| `--group` | pending jobs above running ones (--no-group: job ID order) |
+| `--split` | break each pool into the partitions it is split across |
+| `-P`, `--partitions` | pool totals only |
+| `-N`, `--nodes`, `--show-nodes` | a flat node list, as in sinfo -N |
+| `--gres` `NAME` | the generic resource to count (default: the one most nodes have) |
+| `-i`, `--interval` `SEC`, `--iterate` `SEC` | redraw every SEC seconds (at least 2); while Slurm fails or does not answer, the wait doubles, up to 60s or SEC if longer |
+| `--json` | the model as JSON, for scripts (ignores $SQ_OPTIONS) |
+| `--theme` `FLAVOUR` | catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command |
+| `--themes` | list the flavours with a swatch |
+| `--color` `WHEN`, `--colour` `WHEN` | always, never or auto (default; $NO_COLOR is honoured) |
+| `--no-color`, `--no-colour` | the same as --color never |
+| `--ascii` | ASCII glyphs for terminals without UTF-8 |
+| `--wide` | every column at full width, whatever the terminal fits |
+<!-- END GENERATED: options:sq -->
+
+#### `qos`의 옵션
+
+<!-- BEGIN GENERATED: options:qos -->
+| 옵션 | 설명 |
+|---|---|
+| `-m`, `--me` | only the QoS you may submit against |
+| `-a`, `--all` | include QoS held by no user (Slurm's built-in normal) |
+| `-u`, `--user` `NAME` | answer for someone else instead of you |
+| `--usage` | the live usage figures (--no-usage skips the job list) |
+| `--json` | the model as JSON, for scripts (ignores $QOS_OPTIONS) |
+| `--theme` `FLAVOUR` | catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command |
+| `--themes` | list the flavours with a swatch |
+| `--color` `WHEN`, `--colour` `WHEN` | always, never or auto (default; $NO_COLOR is honoured) |
+| `--no-color`, `--no-colour` | the same as --color never |
+| `--ascii` | ASCII glyphs for terminals without UTF-8 |
+| `--wide` | every column at full width, whatever the terminal fits |
+<!-- END GENERATED: options:qos -->
+
 ## QoS
 
 QoS(Quality of Service)는 잡의 **우선순위, 한도, 선점 권한**을 정하는 등급입니다.
@@ -49,7 +107,7 @@ QoS(Quality of Service)는 잡의 **우선순위, 한도, 선점 권한**을 정
 
 ```bash
 qos                  # 제출 가능한 QoS 전체. 내 것 표시, 선점 관계와 팀 몫 포함
-qos --help           # 내 것만 보기 등 옵션 (항상 최신)
+qos --help           # 전체 옵션 (항상 최신)
 ```
 
 `qos` 는 소속 계정을 모두 합쳐 보여 주므로, 여러 계정에 속해 있어도 한 번에 확인됩니다. 원본 데이터를 직접 보려면:

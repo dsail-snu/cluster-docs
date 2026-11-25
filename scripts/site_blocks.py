@@ -28,6 +28,9 @@ Generators:
   env:table       the users' environment variables: each with its value in a login and
                   in a job (the cluster's one list, user_environment)
   env:NAME        the login value of the variable NAME, inline
+  threads:section the variables the cluster sets to a login's or a job's share of CPUs
+                  (site.json threads, deepops' one knob table), as a section with a
+                  table, or nothing when it sets none
   models          the shared model cache as a sentence: where it is (SHARED_HF_HUB_CACHE,
                   read by naming it; each person's own HF_HUB_CACHE stays theirs), or
                   that there is none
@@ -331,6 +334,37 @@ def env_table(data):
     return "\n".join(rows) + "\n"
 
 
+KNOB_KIND = {"threads": "계산 스레드", "build": "빌드 병렬 수"}
+
+
+def knob_value(value):
+    """'{n}' is the count the cluster works out; anything else is set as it is."""
+    if "{n}" not in value:
+        return f"`{value}`"
+    return "CPU 수" if value == "{n}" else f"`{value.replace('{n}', '')}` + CPU 수"
+
+
+def threads_section(data):
+    knobs = (data.get("threads") or {}).get("variables") or []
+    if not knobs:
+        return "\n"
+    unknown = sorted({k["kind"] for k in knobs} - set(KNOB_KIND))
+    if unknown:
+        sys.exit(f"site.json threads: kinds with no wording: {unknown}")
+    rows = ["| 변수 | 종류 | 값 |", "|---|---|---|"]
+    rows += [f"| `{k['name']}` | {KNOB_KIND[k['kind']]} | {knob_value(k['value'])} |" for k in knobs]
+    return ("## CPU 스레드 수와 빌드 병렬 수\n\n"
+            "많은 라이브러리와 빌드 도구는 노드에 달린 CPU 수만큼 스레드나 병렬 작업을 띄웁니다. "
+            "로그인 노드나 잡이 받은 CPU는 그보다 적어서, 그대로 두면 받은 CPU를 넘겨 오히려 느려집니다. "
+            "그래서 클러스터가 아래 변수를 받은 CPU에 맞게 정해 둡니다.\n\n"
+            "- **계산 스레드**: 로그인 노드에서는 쓸 수 있는 CPU 수, 잡 안에서는 작업자 하나의 몫입니다. "
+            "몫은 `--cpus-per-task`이고, 그것이 없으면 그 노드에서 받은 CPU를 태스크 수나 GPU 수로 나눈 값입니다.\n"
+            "- **빌드 병렬 수**: 로그인 노드에서는 쓸 수 있는 CPU 수, 잡 안에서는 그 노드에서 잡이 받은 CPU 수입니다.\n\n"
+            "직접 정한 값이 있으면 클러스터는 바꾸지 않습니다. 명령줄의 `make -j`도 그대로 우선합니다. "
+            "줄이고 싶을 때만 직접 정하세요(예: `export OMP_NUM_THREADS=4`). 늘리면 받은 CPU를 넘겨 느려집니다.\n\n"
+            + "\n".join(rows) + "\n")
+
+
 def models(data):
     hub = env(data).get("SHARED_HF_HUB_CACHE")
     if not hub:
@@ -363,6 +397,8 @@ def body(data, name):
         return f"{day(data['dates'][arg])}\n"
     if kind == "slurm":
         return f"{data['slurm'][arg]}\n"
+    if name == "threads:section":
+        return threads_section(data)
     if name == "env:table":
         return env_table(data)
     if kind == "env":

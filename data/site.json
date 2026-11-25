@@ -198,7 +198,7 @@
           "flags": [
             "--root"
           ],
-          "help": "the scratch space (default /scratch)",
+          "help": "the scratch space (default: the cluster's, scratch_root in cluster.json)",
           "metavar": "DIR"
         },
         {
@@ -527,6 +527,16 @@
   "policy": {
     "cancel_after_hours": 6,
     "cancel_warn_hours": 1,
+    "force_gpu_partition": true,
+    "gpu_jobs_use_defaults": true,
+    "gpu_nodes_shared": true,
+    "gpu_type_defaulted": true,
+    "gpus_per_node": [
+      1,
+      2,
+      4,
+      8
+    ],
     "grace_days": 14,
     "idle_hours": 2,
     "idle_notify": [
@@ -535,6 +545,7 @@
     "interactive_team_qos": true,
     "leave_grace_days": 60,
     "stale_days": 60,
+    "strict_gpu_type": true,
     "submit_holds_disk": true,
     "warn_fraction": 0.9
   },
@@ -543,6 +554,9 @@
     "disk": "*-*-* 09:00:00",
     "usage": "hourly",
     "weekly": "Mon *-*-* 09:00:00"
+  },
+  "schedules": {
+    "scratch_purge": "*-*-* 03:30:00"
   },
   "services": {
     "bot": true,
@@ -589,5 +603,135 @@
     "kill_wait_seconds": 120,
     "preempt_grace_seconds": 120,
     "sigkill_after_seconds": 240
+  },
+  "threads": {
+    "variables": [
+      {
+        "default": "one thread per CPU",
+        "kind": "threads",
+        "name": "OMP_NUM_THREADS",
+        "reader": "OpenMP runtimes (libgomp, libomp), PyTorch's intra-op pool, GNU nproc",
+        "value": "{n}"
+      },
+      {
+        "default": "one thread per physical core",
+        "kind": "threads",
+        "name": "MKL_NUM_THREADS",
+        "reader": "Intel oneMKL (NumPy and SciPy built on it)",
+        "value": "{n}"
+      },
+      {
+        "default": "one thread per CPU",
+        "kind": "threads",
+        "name": "OPENBLAS_NUM_THREADS",
+        "reader": "OpenBLAS (NumPy and SciPy wheels)",
+        "value": "{n}"
+      },
+      {
+        "default": "one thread (multithreaded builds read this)",
+        "kind": "threads",
+        "name": "BLIS_NUM_THREADS",
+        "reader": "BLIS and AMD AOCL-BLAS",
+        "value": "{n}"
+      },
+      {
+        "default": "the CPUs, at most 8",
+        "kind": "threads",
+        "name": "NUMEXPR_NUM_THREADS",
+        "reader": "NumExpr (pandas' eval)",
+        "value": "{n}"
+      },
+      {
+        "default": "64",
+        "kind": "threads",
+        "name": "NUMEXPR_MAX_THREADS",
+        "reader": "NumExpr's pool, started at import",
+        "value": "{n}"
+      },
+      {
+        "default": "one thread per CPU core",
+        "kind": "threads",
+        "name": "NUMBA_NUM_THREADS",
+        "reader": "Numba's parallel CPU target",
+        "value": "{n}"
+      },
+      {
+        "default": "one thread per CPU Rust sees",
+        "kind": "threads",
+        "name": "RAYON_NUM_THREADS",
+        "reader": "Rust's Rayon pool (Hugging Face tokenizers, Polars)",
+        "value": "{n}"
+      },
+      {
+        "default": "one thread per CPU",
+        "kind": "threads",
+        "name": "POLARS_MAX_THREADS",
+        "reader": "Polars",
+        "value": "{n}"
+      },
+      {
+        "default": "one thread per CPU",
+        "kind": "threads",
+        "name": "TF_NUM_INTRAOP_THREADS",
+        "reader": "TensorFlow's intra-op pool",
+        "value": "{n}"
+      },
+      {
+        "default": "the CPUs, or the process's own cgroup's limit",
+        "kind": "threads",
+        "name": "GOMAXPROCS",
+        "reader": "Go programs",
+        "value": "{n}"
+      },
+      {
+        "default": "the CPUs",
+        "kind": "threads",
+        "name": "PYTHON_CPU_COUNT",
+        "reader": "Python 3.13+ os.cpu_count() (multiprocessing and concurrent.futures pools)",
+        "value": "{n}"
+      },
+      {
+        "default": "one compiler per CPU",
+        "kind": "build",
+        "name": "MAX_JOBS",
+        "reader": "PyTorch C++/CUDA extension builds (torch.utils.cpp_extension, ninja)",
+        "value": "{n}"
+      },
+      {
+        "default": "4",
+        "kind": "build",
+        "name": "NVCC_THREADS",
+        "reader": "flash-attn's build (nvcc --threads)",
+        "value": "1"
+      },
+      {
+        "default": "the native build tool's (make one job, ninja one per CPU)",
+        "kind": "build",
+        "name": "CMAKE_BUILD_PARALLEL_LEVEL",
+        "reader": "cmake --build",
+        "value": "{n}"
+      },
+      {
+        "default": "one compiler per CPU",
+        "kind": "build",
+        "name": "CARGO_BUILD_JOBS",
+        "reader": "cargo",
+        "value": "{n}"
+      },
+      {
+        "default": "one per CPU",
+        "kind": "build",
+        "name": "UV_CONCURRENT_BUILDS",
+        "reader": "uv building source distributions",
+        "value": "{n}"
+      },
+      {
+        "default": "one job",
+        "kind": "build",
+        "name": "MAKEFLAGS",
+        "reader": "GNU make",
+        "value": "-j{n}"
+      }
+    ]
   }
 }

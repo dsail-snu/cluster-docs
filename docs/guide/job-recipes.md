@@ -65,8 +65,7 @@ mkdir -p logs && sbatch train.sbatch
 
 set -euo pipefail
 export PYTHONUNBUFFERED=1           # print 출력이 로그에 바로 찍히게
-# GPU 한 장당 CPU 스레드 수. 정하지 않으면 라이브러리마다 노드의 모든 코어를 쓰려 합니다.
-export OMP_NUM_THREADS=$(( SLURM_CPUS_ON_NODE / SLURM_GPUS_ON_NODE ))
+# OMP_NUM_THREADS 같은 스레드 수는 클러스터가 GPU 한 장당 몫으로 정해 둡니다 (아래 "CPU 스레드 수와 빌드 병렬 수")
 nvidia-smi
 
 torchrun --standalone --nproc_per_node="$SLURM_GPUS_ON_NODE" train_ddp.py
@@ -97,7 +96,6 @@ export PYTHONUNBUFFERED=1
 MASTER_ADDR=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n1)
 MASTER_PORT=$(( 20000 + SLURM_JOB_ID % 20000 ))   # 잡 ID에 따라 달라져 다른 잡과 겹칠 일이 드묾
 export MASTER_ADDR MASTER_PORT
-export OMP_NUM_THREADS=$(( SLURM_CPUS_ON_NODE / SLURM_GPUS_ON_NODE ))
 
 srun torchrun --nnodes="$SLURM_NNODES" --nproc_per_node="$SLURM_GPUS_ON_NODE" \
     --rdzv_backend=c10d --rdzv_id="$SLURM_JOB_ID" --rdzv_endpoint="$MASTER_ADDR:$MASTER_PORT" \
@@ -415,6 +413,40 @@ python train.py
 - 의존성을 바꿨으면 다시 `uv sync --frozen` 하고 묶습니다.
 - 가상환경의 Python은 만들 때 쓴 인터프리터를 가리킵니다. `uv python install`로 홈에 받은 Python이면, 홈은 모든 노드에서 같으므로 그대로 동작합니다.
 - 컨테이너 이미지(`.sqsh`, 파일 하나)도 같은 효과입니다. -> [컨테이너 잡](#컨테이너-잡)
+
+---
+
+<!-- BEGIN GENERATED: threads:section -->
+## CPU 스레드 수와 빌드 병렬 수
+
+많은 라이브러리와 빌드 도구는 노드에 달린 CPU 수만큼 스레드나 병렬 작업을 띄웁니다. 로그인 노드나 잡이 받은 CPU는 그보다 적어서, 그대로 두면 받은 CPU를 넘겨 오히려 느려집니다. 그래서 클러스터가 아래 변수를 받은 CPU에 맞게 정해 둡니다.
+
+- **계산 스레드**: 로그인 노드에서는 쓸 수 있는 CPU 수, 잡 안에서는 작업자 하나의 몫입니다. 몫은 `--cpus-per-task`이고, 그것이 없으면 그 노드에서 받은 CPU를 태스크 수나 GPU 수로 나눈 값입니다.
+- **빌드 병렬 수**: 로그인 노드에서는 쓸 수 있는 CPU 수, 잡 안에서는 그 노드에서 잡이 받은 CPU 수입니다.
+
+직접 정한 값이 있으면 클러스터는 바꾸지 않습니다. 명령줄의 `make -j`도 그대로 우선합니다. 줄이고 싶을 때만 직접 정하세요(예: `export OMP_NUM_THREADS=4`). 늘리면 받은 CPU를 넘겨 느려집니다.
+
+| 변수 | 종류 | 값 |
+|---|---|---|
+| `OMP_NUM_THREADS` | 계산 스레드 | CPU 수 |
+| `MKL_NUM_THREADS` | 계산 스레드 | CPU 수 |
+| `OPENBLAS_NUM_THREADS` | 계산 스레드 | CPU 수 |
+| `BLIS_NUM_THREADS` | 계산 스레드 | CPU 수 |
+| `NUMEXPR_NUM_THREADS` | 계산 스레드 | CPU 수 |
+| `NUMEXPR_MAX_THREADS` | 계산 스레드 | CPU 수 |
+| `NUMBA_NUM_THREADS` | 계산 스레드 | CPU 수 |
+| `RAYON_NUM_THREADS` | 계산 스레드 | CPU 수 |
+| `POLARS_MAX_THREADS` | 계산 스레드 | CPU 수 |
+| `TF_NUM_INTRAOP_THREADS` | 계산 스레드 | CPU 수 |
+| `GOMAXPROCS` | 계산 스레드 | CPU 수 |
+| `PYTHON_CPU_COUNT` | 계산 스레드 | CPU 수 |
+| `MAX_JOBS` | 빌드 병렬 수 | CPU 수 |
+| `NVCC_THREADS` | 빌드 병렬 수 | `1` |
+| `CMAKE_BUILD_PARALLEL_LEVEL` | 빌드 병렬 수 | CPU 수 |
+| `CARGO_BUILD_JOBS` | 빌드 병렬 수 | CPU 수 |
+| `UV_CONCURRENT_BUILDS` | 빌드 병렬 수 | CPU 수 |
+| `MAKEFLAGS` | 빌드 병렬 수 | `-j` + CPU 수 |
+<!-- END GENERATED: threads:section -->
 
 ---
 

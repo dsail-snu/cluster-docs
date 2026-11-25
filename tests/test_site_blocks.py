@@ -116,6 +116,19 @@ class Blocks(unittest.TestCase):
         with self.assertRaises(SystemExit):
             site_blocks.bot(dict(on, bot={"command": "/c", "subcommands": []}), "unban")
 
+    def test_the_cpu_knobs_as_the_cluster_sets_them(self):
+        knobs = [{"name": "OMP_NUM_THREADS", "kind": "threads", "value": "{n}"},
+                 {"name": "MAKEFLAGS", "kind": "build", "value": "-j{n}"},
+                 {"name": "NVCC_THREADS", "kind": "build", "value": "1"}]
+        text = site_blocks.threads_section(dict(DATA, threads={"variables": knobs}))
+        self.assertIn("## CPU 스레드 수와 빌드 병렬 수", text)
+        self.assertIn("| `OMP_NUM_THREADS` | 계산 스레드 | CPU 수 |", text)
+        self.assertIn("| `MAKEFLAGS` | 빌드 병렬 수 | `-j` + CPU 수 |", text)
+        self.assertIn("| `NVCC_THREADS` | 빌드 병렬 수 | `1` |", text)
+        self.assertEqual(site_blocks.threads_section(dict(DATA, threads={"variables": []})), "\n")
+        with self.assertRaises(SystemExit):
+            site_blocks.threads_section(dict(DATA, threads={"variables": [dict(knobs[0], kind="io")]}))
+
     def test_a_date_block_outside_the_notices_is_refused(self):
         """A guide states the rule as it is; when it changes is a notice's (owner 2026-11-25)."""
         import tempfile

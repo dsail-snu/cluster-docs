@@ -547,12 +547,43 @@
   "services": {
     "bot": true,
     "dashboard": true,
+    "dashboards": [
+      {
+        "title": "GPU / Nodes",
+        "uid": "gpu-nodes"
+      },
+      {
+        "title": "Node Exporter / Hosts",
+        "uid": "node-exporter-hosts"
+      },
+      {
+        "title": "Slurm / Scheduler",
+        "uid": "slurm-scheduler"
+      },
+      {
+        "title": "Storage / NFS and disks",
+        "uid": "storage-io"
+      },
+      {
+        "title": "Slurm / GPU allocation",
+        "uid": "slurm-gpu-allocation"
+      }
+    ],
     "job_notices": true,
     "menu": [
       "Grafana"
     ],
     "overview": "클러스터",
-    "portal": true
+    "portal": true,
+    "portal_files": [
+      "/home"
+    ],
+    "portal_groups": [
+      "apps",
+      "files",
+      "jobs",
+      "clusters"
+    ]
   },
   "slurm": {
     "kill_wait_seconds": 120,

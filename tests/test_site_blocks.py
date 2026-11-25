@@ -66,6 +66,23 @@ class Blocks(unittest.TestCase):
         for text in (site_blocks.service(with_(), "dashboard"), site_blocks.service(with_(), "overview")):
             self.assertNotRegex(text, r"<|https?://|도입")
 
+    def test_the_portal_lists_what_its_menu_gives(self):
+        svc = {"portal": True, "overview": "클러스터", "menu": ["Grafana"], "dashboard": True,
+               "portal_groups": ["apps", "files", "jobs", "clusters"], "portal_files": ["/home"]}
+        text = site_blocks.portal(dict(DATA, services=svc))
+        self.assertIn("`/home` 아래", text)
+        self.assertIn("**Grafana**", text)
+        self.assertNotIn("apps", text.lower(), "a group the role gives no app is not shown")
+        self.assertNotRegex(text, r"https?://")
+        self.assertIn("운영하지 않습니다", site_blocks.portal(dict(DATA, services={**svc, "portal": False})))
+
+    def test_every_dashboard_the_cluster_ships_has_its_line(self):
+        site = __import__("json").loads((Path(__file__).resolve().parents[1] / "data" / "site.json").read_text())
+        for board in site["services"]["dashboards"]:
+            self.assertIn(board["uid"], site_blocks.DASHBOARDS, f"say what {board['title']} shows")
+        svc = {"dashboard": False, "dashboards": site["services"]["dashboards"]}
+        self.assertIn("운영하지 않습니다", site_blocks.dashboards(dict(DATA, services=svc)))
+
     def test_the_sessions_rule_says_whether_submit_checks_it(self):
         on = dict(DATA, policy=dict(DATA["policy"], interactive_team_qos=True))
         off = dict(DATA, policy=dict(DATA["policy"], interactive_team_qos=False))

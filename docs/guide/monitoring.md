@@ -81,9 +81,16 @@ sacct -S today -X --format=JobID,JobName,State,Elapsed
 - `MaxRSS`로 실제 메모리 사용량을 보고 다음 잡의 요청량을 조정하세요.
 - `State`, `ExitCode`로 실패 원인을 추적합니다. -> [문제 해결](troubleshooting.md)
 
+## 내 잡이 도는 노드
+
+- `sq`: 내 잡의 **NODE(REASON)** 열에 잡이 도는 노드가, 기다리는 잡은 기다리는 이유가 나옵니다.
+- `scontrol show job <JOBID>`: `NodeList`에 노드가, `AllocTRES`에 받은 GPU 수가 나옵니다.
+- `gpu-usage <JOBID>`: 잡이 돈 노드와 GPU 수, 그 GPU가 실제로 한 일을 보여 줍니다.
+- [웹 대시보드](#웹-대시보드)에서는 잡이 도는 노드와 GPU를 찾아 그 노드의 상태를 볼 수 있습니다.
+
 ## 내 잡이 GPU를 잘 쓰는지
 
-잡이 도는 노드에 들어가 실시간으로 봅니다.
+노드에 들어가지 않고 보려면 `gpu-usage <JOBID>`를 씁니다. 실시간으로 보려면 잡이 도는 노드에 들어갑니다.
 
 ```bash
 srun --jobid=<JOBID> --overlap --pty bash -i
@@ -91,7 +98,6 @@ srun --jobid=<JOBID> --overlap --pty bash -i
 # 그 안에서
 nvidia-smi              # GPU 사용률, 메모리 (반복: watch -n1 nvidia-smi)
 nvidia-smi dmon         # 시간축 GPU 모니터
-nvtop                   # GPU용 htop (설치되어 있으면)
 htop                    # CPU, 메모리
 ```
 
@@ -101,10 +107,18 @@ htop                    # CPU, 메모리
 
 ## 웹 대시보드
 
-GPU 노드의 상태(GPU 사용률, 메모리, 온도, 전력, CPU, 메모리, 네트워크 등)를 브라우저에서 상시
-볼 수 있습니다. 잡을 내기 전에 지금 얼마나 바쁜지 가늠하기 좋습니다.
+클러스터와 내 잡의 상태를 브라우저에서 늘 볼 수 있습니다. 잡을 내기 전에 지금 얼마나 바쁜지 가늠하거나,
+내 잡이 도는 노드의 GPU와 CPU, 메모리를 확인할 때 쓰세요.
 
 <!-- BEGIN GENERATED: service:dashboard -->대시보드는 웹 포털에 클러스터 계정으로 로그인한 뒤 상단 메뉴의 **Grafana**에서 여실 수 있습니다. 포털 주소는 계정을 받을 때 함께 알려 드립니다.<!-- END GENERATED: service:dashboard -->
+
+<!-- BEGIN GENERATED: service:dashboards -->
+- **GPU / Nodes**: GPU 노드 한 대의 GPU(사용률, 메모리, 온도, 전력)와 CPU, 메모리, 디스크, 네트워크. 위쪽의 **hostname**에서 노드를 고릅니다.
+- **Node Exporter / Hosts**: 모든 호스트의 자세한 수치(CPU, 메모리, 디스크, 네트워크). 위쪽의 **nodename**에서 호스트를 고릅니다.
+- **Slurm / Scheduler**: 클러스터 전체의 노드 상태, 쓰고 있는 CPU와 GPU, 도는 잡과 기다리는 잡.
+- **Storage / NFS and disks**: 공유 스토리지(NFS)와 디스크를 누가 얼마나 읽고 쓰는지: 노드별, 잡별(**Top jobs by I/O**).
+- **Slurm / GPU allocation**: 지금 GPU마다 누가 어떤 잡으로 쓰는지(**Allocations now**), 잡별 GPU 사용률과 메모리, 사람별, 팀별 할당. 내 잡이 도는 노드와 GPU를 여기서 찾습니다.
+<!-- END GENERATED: service:dashboards -->
 
 ## Slack 알림
 

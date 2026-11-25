@@ -122,6 +122,50 @@ def count(n):
 PORTAL_ADDRESS = "포털 주소는 계정을 받을 때 함께 알려 드립니다."
 
 
+# What each portal menu group (OOD's names, site.json services.portal_groups) gives a
+# person; {files} is the folders its file browser opens. A group without a line here
+# (apps: the role installs no interactive app) is not shown.
+PORTAL_GROUPS = {
+    "files": "**Files**: 브라우저에서 {files} 아래의 파일을 보고, 올리고, 내려받습니다.",
+    "jobs": "**Jobs**: 내 잡을 보고(Active Jobs), 잡 스크립트를 만들어 제출합니다(Job Composer).",
+    "clusters": "**Clusters**: 브라우저에서 로그인 노드의 터미널을 엽니다.",
+}
+# What each dashboard (site.json services.dashboards, by uid) shows, for a person looking
+# at their own jobs and nodes. tests/test_site_blocks.py holds every exported uid to a line.
+DASHBOARDS = {
+    "slurm-gpu-allocation": "지금 GPU마다 누가 어떤 잡으로 쓰는지(**Allocations now**), 잡별 GPU 사용률과 메모리, "
+                            "사람별, 팀별 할당. 내 잡이 도는 노드와 GPU를 여기서 찾습니다.",
+    "gpu-nodes": "GPU 노드 한 대의 GPU(사용률, 메모리, 온도, 전력)와 CPU, 메모리, 디스크, 네트워크. "
+                 "위쪽의 **hostname**에서 노드를 고릅니다.",
+    "slurm-scheduler": "클러스터 전체의 노드 상태, 쓰고 있는 CPU와 GPU, 도는 잡과 기다리는 잡.",
+    "storage-io": "공유 스토리지(NFS)와 디스크를 누가 얼마나 읽고 쓰는지: 노드별, 잡별(**Top jobs by I/O**).",
+    "node-exporter-hosts": "모든 호스트의 자세한 수치(CPU, 메모리, 디스크, 네트워크). 위쪽의 **nodename**에서 "
+                           "호스트를 고릅니다.",
+}
+
+
+def portal(data):
+    """What the web portal offers (site.json services), as a list; never its address."""
+    svc = data["services"]
+    if not svc["portal"]:
+        return "웹 포털은 운영하지 않습니다.\n"
+    files = ", ".join(f"`{p}`" for p in svc["portal_files"])
+    lines = [PORTAL_GROUPS[g].format(files=files) for g in svc["portal_groups"] if g in PORTAL_GROUPS]
+    if svc["overview"]:
+        lines.append(f"**{svc['overview']}**: 노드와 파티션의 구성을 한눈에 봅니다.")
+    lines += [f"**{title}**: 모니터링 대시보드입니다." for title in svc["menu"]]
+    head = f"웹 포털에 클러스터 계정으로 로그인하면 상단 메뉴에서 다음을 쓰실 수 있습니다. {PORTAL_ADDRESS}\n\n"
+    return head + "".join(f"- {line}\n" for line in lines)
+
+
+def dashboards(data):
+    """The dashboards Grafana shows (site.json services.dashboards), each with what it is for."""
+    boards = data["services"]["dashboards"]
+    if not data["services"]["dashboard"] or not boards:
+        return "웹 대시보드는 운영하지 않습니다.\n"
+    return "".join(f"- **{b['title']}**: {DASHBOARDS.get(b['uid'], '')}".rstrip(": ") + "\n" for b in boards)
+
+
 def service(data, name):
     """A sentence on a service as the cluster runs it (site.json services): the portal's
     overview page, or the monitoring dashboard. Never an address: that is private."""
@@ -310,6 +354,10 @@ def body(data, name):
         return f"`{env(data)[arg]['login']}`\n"
     if name == "models":
         return models(data)
+    if name == "service:portal":
+        return portal(data)
+    if name == "service:dashboards":
+        return dashboards(data)
     if kind == "service":
         return service(data, arg)
     if name == "paths:shared_data":

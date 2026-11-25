@@ -74,6 +74,22 @@ ssh cluster
 - **VSCode Remote-SSH**는 위의 `~/.ssh/config`를 그대로 인식합니다. VSCode에서 `Remote-SSH: Connect to Host...` -> `cluster`를 선택하세요.
 - **VSCode Tunnel은 사용하지 마세요.** 로그인 노드의 CPU를 많이 잡아먹습니다. 반드시 **Remote-SSH**를 쓰세요.
 
+## 웹 포털
+
+SSH 말고도 브라우저로 클러스터를 쓰실 수 있습니다.
+
+<!-- BEGIN GENERATED: service:portal -->
+웹 포털에 클러스터 계정으로 로그인하면 상단 메뉴에서 다음을 쓰실 수 있습니다. 포털 주소는 계정을 받을 때 함께 알려 드립니다.
+
+- **Files**: 브라우저에서 `/home` 아래의 파일을 보고, 올리고, 내려받습니다.
+- **Jobs**: 내 잡을 보고(Active Jobs), 잡 스크립트를 만들어 제출합니다(Job Composer).
+- **Clusters**: 브라우저에서 로그인 노드의 터미널을 엽니다.
+- **클러스터**: 노드와 파티션의 구성을 한눈에 봅니다.
+- **Grafana**: 모니터링 대시보드입니다.
+<!-- END GENERATED: service:portal -->
+
+대시보드마다 무엇을 보여 주는지는 [모니터링](../guide/monitoring.md#웹-대시보드)에 정리해 두었습니다.
+
 ## 로그인 노드 사용 규칙 (중요)
 
 로그인 노드는 **모두가 공유하는 현관**입니다. 여기서 무거운 연산(학습, 대용량 전처리 등)을 돌리면 다른 사람의 접속과 편집까지 느려집니다.

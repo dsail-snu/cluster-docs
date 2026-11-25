@@ -450,13 +450,16 @@ def fill(text, data, page=""):
 
 # A date says when a change takes effect: that belongs to a notice. A guide, the policy
 # or a reference states the rule as it is, so a date block anywhere else is refused.
-DATED = re.compile(r"<!-- BEGIN GENERATED: (?:date|day):\S+ -->")
+DATED = re.compile(r"<!-- BEGIN GENERATED: (?:date|day):\S+ -->"
+                   r"|(?<!\d)20\d\d-[01]\d-[0-3]\d(?!\d)|\d{1,2}월 ?\d{1,2}일")  # a block, or a date typed by hand
 NEWS = "docs/news/"
 
 
 def dated_outside_news(root=ROOT):
-    """The pages outside the notices that carry a date block."""
-    pages = sorted((root / "docs").rglob("*.md")) + sorted((root / "snippets").rglob("*.md"))
+    """The pages outside the notices that carry a date, as a block or typed: the rules, the
+    guides, the snippets the agent rules include and the Slack channel guides state the rule
+    as it is; when it changes is a notice's."""
+    pages = [p for d in ("docs", "snippets", "slack") for p in sorted((root / d).rglob("*.md"))]
     return [p.relative_to(root) for p in pages
             if not p.relative_to(root).as_posix().startswith(NEWS) and DATED.search(p.read_text())]  # fmt: skip
 
@@ -467,7 +470,7 @@ def main(argv=None):
     data = json.loads(DATA.read_text())
     dated = dated_outside_news()
     for page in dated:
-        print(f"{page}: a date block outside {NEWS}: a date belongs in a notice; state the rule as it is", file=sys.stderr)
+        print(f"{page}: a date outside {NEWS}: a date belongs in a notice; state the rule as it is", file=sys.stderr)
     if dated:
         return 1
     stale = []

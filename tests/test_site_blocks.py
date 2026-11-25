@@ -130,6 +130,13 @@ class Blocks(unittest.TestCase):
             self.assertEqual(site_blocks.dated_outside_news(root), [])
             (root / "docs/guide/a.md").write_text(block.replace("day:", "date:"))
             self.assertEqual(site_blocks.dated_outside_news(root), [Path("docs/guide/a.md")])
+            # A date typed by hand is refused the same way, in a guide, a snippet or a Slack guide.
+            (root / "docs/guide/a.md").write_text("상한이 있습니다.")
+            (root / "slack").mkdir()
+            for page, text in (("snippets/b.md", "2030-01-05부터 적용"), ("slack/c.md", "12월 9일부터")):
+                (root / page).write_text(text)
+                self.assertEqual(site_blocks.dated_outside_news(root), [Path(page)])
+                (root / page).write_text("상한이 있습니다.")
         self.assertEqual(site_blocks.dated_outside_news(), [], "this site's pages")
 
     def test_a_report_says_when_it_runs_in_the_channels_words(self):

@@ -8,7 +8,7 @@ categories: [policy]
 
 - **<!-- BEGIN GENERATED: day:notice_day -->2026-11-25(수)<!-- END GENERATED: day:notice_day -->부터**
   - `/scratch/<아이디>` 개인 작업 공간은 빠른 NVMe 공간이라, 읽기와 쓰기(I/O)가 많은 실험의 파일을 두시면 좋습니다.
-    <!-- BEGIN GENERATED: policy:stale_days -->60<!-- END GENERATED: policy:stale_days -->일 동안 쓰지 않은 파일은 DM으로 먼저 알려 드린 뒤 <!-- BEGIN GENERATED: policy:grace_days -->14<!-- END GENERATED: policy:grace_days -->일 후 정리합니다. 정리될 파일은 `scratch-space`로 확인하실 수 있습니다.
+    <!-- BEGIN GENERATED: policy:stale_days -->60<!-- END GENERATED: policy:stale_days -->일 동안 아무도 읽거나 쓰지 않은 파일은 DM으로 먼저 알려 드린 뒤 <!-- BEGIN GENERATED: policy:grace_days -->14<!-- END GENERATED: policy:grace_days -->일 후 정리합니다. 정리될 파일은 `scratch-space`로 확인하실 수 있습니다.
   - <!-- BEGIN GENERATED: rule:idle -->Slurm 잡으로 GPU를 할당받아 두고 **2시간 넘게 쓰지 않으면** 알려 드립니다. **6시간** 동안 GPU를 쓰지 않은 잡은 자동으로 취소되며, 취소 **1시간 전**에 미리 알려 드립니다.<!-- END GENERATED: rule:idle -->
   - 디버깅을 위해 GPU를 잡아 두는 세션(셸, 노트북, 서버)은 **팀 QoS**로 실행해 주시고, 다 쓰시면 바로 반납해 주세요.
   - <!-- BEGIN GENERATED: login:limits -->로그인 노드에는 한 사람당 CPU 8개, 메모리 64 GB, 프로세스 4,096개까지 쓰실 수 있도록 제한이 걸려 있습니다.<!-- END GENERATED: login:limits --> 무거운 작업은 Slurm 잡으로 실행해 주세요.

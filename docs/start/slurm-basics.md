@@ -164,7 +164,7 @@ sacct --starttime=today      # 오늘 내 잡들
 
 !!! tip
     학습은 `sbatch`로 제출하고, 그 잡이 도는 노드에 들어가 보고 싶으면
-    `srun --jobid=<JOBID> --overlap --pty bash -i`로 셸을 받으세요. -> [계산 노드 접속](connect.md#계산-노드에는-직접-ssh로-접속할-수-없습니다)
+    `srun --jobid=<JOBID> --overlap --pty bash -i`로 셸을 받으세요. -> [계산 노드 접속](connect.md#계산-노드에는-내-잡이-도는-노드에만-접속할-수-있습니다)
 
 ## 특히 기억할 점
 

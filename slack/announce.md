@@ -14,7 +14,7 @@ bookmark: :books: | 사용자 문서 | index.md
 
 - **가장 최근 공지**는 이 채널에 고정해 두었습니다 :pushpin:
 - 지난 공지 전체: [공지 목록](news/index.md), RSS: [feed_rss_created.xml](feed_rss_created.xml)
-- 공지에 대한 질문은 답글 대신 [[#help]]에 남겨 주시면, 같은 궁금증을 가진 분들도 함께 보실 수 있습니다.
+- 공지를 보고 궁금한 점은 답글 대신 [[#help]]에 남겨 주세요. 같은 점이 궁금한 분들도 함께 보실 수 있습니다.
 
 ## 처음 오셨다면
 

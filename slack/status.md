@@ -20,4 +20,4 @@ bookmark: :bar_chart: | 모니터링 안내 | guide/monitoring.md
 ## 더 자세히
 
 - [모니터링](guide/monitoring.md): 대시보드와 각 수치의 뜻
-- 리포트에 대한 질문은 [[#help]]에 편하게 남겨 주세요
+- 리포트가 궁금하시면 [[#help]]에 편하게 남겨 주세요

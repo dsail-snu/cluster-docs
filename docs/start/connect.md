@@ -60,7 +60,13 @@ Host cluster
     Port <SSH 포트>
     IdentityFile ~/.ssh/id_ed25519
     ServerAliveInterval 60
+    ControlMaster auto
+    ControlPath ~/.ssh/cm-%C
+    ControlPersist 10m
 ```
+
+`ControlMaster` 세 줄은 한 번 연 접속을 10분 동안 다시 씁니다. 창을 여러 개 열거나 `scp`를 할 때도 새로 로그인하지 않으니
+빨라지고, 로그인 노드와 네트워크의 부담도 줄어듭니다.
 
 ```bash
 ssh cluster

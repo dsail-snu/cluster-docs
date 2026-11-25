@@ -25,7 +25,7 @@ categories: [policy]
 
 <!-- more -->
 
-자세한 내용은 [사용 규정](../../policy/index.md), [AI 에이전트 규칙](../../policy/ai-agents.md),
+자세한 내용은 [사용 규정](../../policy/rules.md), [AI 에이전트 규칙](../../policy/ai-agents.md),
 [스토리지와 데이터](../../guide/storage.md#용량-한도와-정리), [컨테이너](../../guide/containers.md)에서 보실 수 있습니다.
 함께 바뀐 것도 알려 드립니다.
 

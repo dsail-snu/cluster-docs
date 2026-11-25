@@ -4,7 +4,7 @@ topic: 가장 최근 공지는 고정 메시지에서 보실 수 있습니다. �
 title: 공지 채널 안내
 table: 공지: 규정 변경, 점검, 소프트웨어 업데이트
 bookmark: :newspaper: | 공지 목록 | news/index.md
-bookmark: :scroll: | 사용 규정 | policy/index.md
+bookmark: :scroll: | 사용 규정 | policy/rules.md
 bookmark: :robot_face: | AI 에이전트 규칙 | policy/ai-agents.md
 bookmark: :books: | 사용자 문서 | index.md
 ---
@@ -20,4 +20,4 @@ bookmark: :books: | 사용자 문서 | index.md
 
 1. [접속하기](start/connect.md)
 2. [첫 잡 돌리기](start/first-job.md)
-3. [사용 규정](policy/index.md)과 [AI 에이전트 규칙](policy/ai-agents.md)
+3. [사용 규정](policy/rules.md)과 [AI 에이전트 규칙](policy/ai-agents.md)

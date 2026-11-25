@@ -1,4 +1,4 @@
-# 컨테이너 (Enroot, Pyxis)
+# 컨테이너
 
 Docker/NGC 이미지를 **Slurm 잡 안에서** 실행하는 방법입니다.
 
@@ -43,7 +43,7 @@ srun --qos=<팀 QoS> --time=04:00:00 \
 
 - `<태그>`는 [NGC 카탈로그](https://catalog.ngc.nvidia.com/)에서 확인하세요.
 - 셸 안에서 `nvidia-smi`, `python -c "import torch; print(torch.__version__)"` 로 확인합니다.
-- GPU를 점유하는 세션의 규칙은 [디버깅 규정](../policy/index.md#디버깅)을 보세요.
+- GPU를 점유하는 세션의 규칙은 [디버깅 규정](../policy/rules.md#디버깅)을 보세요.
 
 ### 배치
 

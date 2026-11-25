@@ -4,7 +4,7 @@
 자리표시자만 본인 값으로 바꾸면 됩니다.
 
 !!! warning "공통 원칙"
-    - 모든 잡은 반드시 [잡 제출 규칙](../policy/index.md#잡-제출-규칙)을 따라야 합니다.
+    - 모든 잡은 반드시 [잡 제출 규칙](../policy/rules.md#잡-제출-규칙)을 따라야 합니다.
     - GPU 잡은 **GPU 타입과 개수만** 적습니다. 파티션, CPU, 메모리는 적지 않습니다.
       GPU 수에 맞춰 자동으로 할당됩니다. ([자동 할당과 라우팅](../reference/slurm.md#자동-할당과-라우팅))
     - CPU 전용 잡은 필요한 CPU 수를 직접 적습니다.
@@ -129,7 +129,7 @@ python preprocess.py --workers "$SLURM_CPUS_PER_TASK"
 ## 디버그 인터랙티브
 
 GPU를 점유하는 인터랙티브 셸은 `<팀 QoS>`로 실행하고, 다 쓰면 즉시 빠져나오세요.
-([GPU 점유 규정](../policy/index.md#디버깅))
+([GPU 점유 규정](../policy/rules.md#디버깅))
 
 ```bash
 srun --qos=<팀 QoS> --time=04:00:00 \

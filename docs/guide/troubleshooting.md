@@ -9,7 +9,7 @@
 비밀번호를 여러 번 틀리면 접속한 IP가 자동으로 차단됩니다.
 
 - **해결**: <!-- BEGIN GENERATED: bot:unban -->`/cluster unban`으로 해제를 신청해 주세요.<!-- END GENERATED: bot:unban --> -> [도움 받기](../help.md)
-- **예방**: SSH 키를 등록해서 비밀번호 없이 접속하세요. -> [접속하기](../start/connect.md), [접속 보안](../policy/index.md#접속-보안)
+- **예방**: SSH 키를 등록해서 비밀번호 없이 접속하세요. -> [접속하기](../start/connect.md), [접속 보안](../policy/rules.md#접속-보안)
 
 ### 밖에서 접속이 안 돼요
 
@@ -167,7 +167,7 @@ sreport cluster AccountUtilizationByUser start=<시작 날짜> -t hours   # 기�
 ### Jupyter, 인터랙티브 셸, 띄워 둔 추론 서버도 규제 대상인가요?
 
 네. 사용자가 GPU를 쓰는 시점을 직접 정하는 **모든 GPU 점유**가 GPU 점유 세션 규칙의 대상입니다.
-`<팀 QoS>`로 제출하고, 다 쓰면 바로 종료하세요. -> [GPU 점유 규정](../policy/index.md#디버깅)
+`<팀 QoS>`로 제출하고, 다 쓰면 바로 종료하세요. -> [GPU 점유 규정](../policy/rules.md#디버깅)
 
 ### AI 에이전트로 잡 제출이나 SSH를 해도 되나요?
 

@@ -117,8 +117,8 @@ sacctmgr show assoc user=$USER format=Account,User,QOS%50,DefaultQOS
 sacctmgr show qos format=Name,Priority,Preempt%40,GrpTRES%40,MaxWall
 ```
 
-- 팀 QoS는 **반드시 본인 소속 팀 것**을 쓰세요. -> [규정](../policy/index.md#잡-제출-규칙)
-- GPU를 점유하는 세션은 **팀 QoS**로 실행하고, 다 쓰면 즉시 반납합니다. -> [규정: 디버깅](../policy/index.md#디버깅)
+- 팀 QoS는 **반드시 본인 소속 팀 것**을 쓰세요. -> [규정](../policy/rules.md#잡-제출-규칙)
+- GPU를 점유하는 세션은 **팀 QoS**로 실행하고, 다 쓰면 즉시 반납합니다. -> [규정: 디버깅](../policy/rules.md#디버깅)
 
 ```bash
 sbatch --qos=<팀 QoS> job.sbatch    # --qos 생략 시 기본 QoS

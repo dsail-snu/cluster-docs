@@ -13,8 +13,9 @@ nav = [
     "start/first-job.md",
     "start/slurm-basics.md",
   ] },
-  { "사용 규정" = [
+  { "규정" = [
     "policy/index.md",
+    "policy/rules.md",
     "policy/ai-agents.md",
   ] },
   { "가이드" = [

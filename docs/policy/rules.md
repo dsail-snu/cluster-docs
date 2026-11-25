@@ -65,7 +65,7 @@ srun --jobid=<JOBID> --overlap --pty bash -i
 ## 계정 기간
 
 계정에 끝나는 날이 정해져 있으면, 그다음 날부터 새 잡을 제출하실 수 없습니다(이미 실행 중인 잡은 계속됩니다).
-파일을 옮기실 수 있도록 로그인은 <!-- BEGIN GENERATED: policy:leave_grace_days -->60<!-- END GENERATED: policy:leave_grace_days -->일 더 유지됩니다.
+파일을 옮기실 수 있도록 로그인은 그 뒤에도 유지되다가, 끝나는 날의 <!-- BEGIN GENERATED: policy:leave_grace_days -->60<!-- END GENERATED: policy:leave_grace_days -->일 뒤부터 막힙니다.
 <!-- BEGIN GENERATED: bot:leave -->졸업 등으로 계정을 정리하실 때는 `/cluster leave`로 신청해 주세요.<!-- END GENERATED: bot:leave -->
 
 ## 컨테이너

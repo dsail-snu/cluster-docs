@@ -39,7 +39,8 @@ SLUG = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 # bullet each, starting with the day it takes effect. A bullet's further lines are indented.
 TITLE_MAX = 40
 LEAD_ITEM = re.compile(r"- \*\*\d{4}-\d{2}-\d{2}\D")
-# Slack's limits on a header's text and a section's text (the lead is held to the same):\n# a longer one is refused, not cut.
+# Slack's limits on a header's text and a section's text (the lead is held to the same):
+# a longer one is refused, not cut.
 HEADER_MAX, SECTION_MAX = 150, 3000
 
 

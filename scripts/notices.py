@@ -22,6 +22,7 @@ from datetime import date
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import site_blocks  # noqa: E402
 from siteurls import absolute_links, site_url  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -85,7 +86,7 @@ def parse(path, text):
     if "<!-- more -->" not in body:
         raise ValueError("'<!-- more -->' must end the summary")
     # A generated value (scripts/site_blocks.py) reads as its value alone in Slack.
-    summary = re.sub(r"<!-- (BEGIN|END) GENERATED: \S+ -->", "", body[title.end():body.index("<!-- more -->")]).strip()
+    summary = site_blocks.plain(body[title.end():body.index("<!-- more -->")]).strip()
     if not summary:
         raise ValueError("a summary is required before '<!-- more -->'")
     if len(title.group(1).strip()) > TITLE_MAX:

@@ -14,6 +14,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import site_blocks  # noqa: E402
 from siteurls import ROOT, absolute_links, site_url  # noqa: E402
 
 PAGE = "policy/ai-agents.md"
@@ -56,10 +57,16 @@ def revision(root=ROOT):
                           capture_output=True, text=True).stdout.strip()
 
 
+def published(text, root, page):
+    """A page's text as an export hands it out: snippets included, generated blocks as
+    their values (site_blocks.plain), admonitions as quotes, links absolute. The one
+    reading for every export (this file and llms-full.txt)."""
+    return absolute_links(plain_admonitions(site_blocks.plain(include(text, root))), site_url(root), page)
+
+
 def export(root=ROOT, revision=""):
     base = site_url(root)
-    text = (root / "docs" / PAGE).read_text()
-    text = absolute_links(plain_admonitions(include(text, root)), base, PAGE)
+    text = published((root / "docs" / PAGE).read_text(), root, PAGE)
     source = base + PAGE.removesuffix(".md") + "/"
     stamp = f" ({revision})" if revision else ""
     return f"{MARKER}\n<!-- Generated from {source}{stamp}. Edit the page, not this file. -->\n\n{text}"

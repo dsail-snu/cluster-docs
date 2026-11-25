@@ -401,6 +401,14 @@ def body(data, name):
 
 
 INLINE = re.compile(r"(<!-- BEGIN GENERATED: (\S+) -->)([^\n]*?)(<!-- END GENERATED: \2 -->)")
+MARKERS = re.compile(r"<!-- (?:BEGIN|END) GENERATED: \S+ -->\n?")
+
+
+def plain(text):
+    """TEXT as a reader gets it: each generated block's value without its markers. Every
+    export of the pages (the agent rules, llms-full.txt, the Slack notices) reads the
+    pages through this, so the block syntax is known here alone."""
+    return MARKERS.sub("", text)
 
 
 def section(dirname, page):

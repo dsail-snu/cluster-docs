@@ -11,6 +11,7 @@
 **2. I/O 줄이기 (사람과 AI 에이전트 모두)**
 
 - 작은 파일 수만 개는 **묶음**(tar, WebDataset 샤드, LMDB, HDF5, Parquet)으로 만들어 순서대로 읽습니다.
+  압축이 필요하면 gzip 대신 zstd(`tar -I "zstd -T$(nproc)"`)를 씁니다. 압축하고 푸는 속도가 훨씬 빠릅니다.
 - Python 환경은 한 번 파일 하나로 묶어 `/home`에 두고, 잡이 시작할 때 그 잡의 `/tmp`에 풉니다.
   묶는 방법은 lockfile로 만든 uv 가상환경을 묶거나 conda-pack을 쓰는 것입니다. 컨테이너 이미지(Enroot, Podman)도 파일 하나라서 효과가 같습니다.
   ([잡 레시피](../guide/job-recipes.md#실행-환경-묶어서-쓰기))

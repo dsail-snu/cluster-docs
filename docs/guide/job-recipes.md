@@ -398,12 +398,12 @@ uv 가상환경은 만들 때의 경로를 안에 적어 둡니다. 다른 경�
 cd ~/myproject
 uv venv --relocatable .venv
 uv sync --frozen
-tar -czf ~/myproject-venv.tar.gz .venv
+tar -I "zstd -T$(nproc)" -cf ~/myproject-venv.tar.zst .venv
 ```
 
 ```bash
 # 잡 스크립트 안에서 (/tmp 는 잡마다 따로 있고 잡이 끝나면 지워집니다)
-tar -xzf ~/myproject-venv.tar.gz -C /tmp
+tar --zstd -xf ~/myproject-venv.tar.zst -C /tmp
 source /tmp/.venv/bin/activate
 python train.py
 ```
@@ -411,6 +411,7 @@ python train.py
 - 잡 안에서는 uv와 pip의 패키지 캐시(`UV_CACHE_DIR`, `PIP_CACHE_DIR`)가 이미 잡의 `/tmp`를 가리킵니다.
   -> [환경 변수](storage.md#환경-변수)
 
+- 묶을 때는 gzip 대신 zstd를 씁니다(`tar -I "zstd -T$(nproc)"`). 압축하고 푸는 속도가 훨씬 빨라서, 잡이 시작할 때 기다리는 시간이 줄어듭니다.
 - 의존성을 바꿨으면 다시 `uv sync --frozen` 하고 묶습니다.
 - 가상환경의 Python은 만들 때 쓴 인터프리터를 가리킵니다. `uv python install`로 홈에 받은 Python이면, 홈은 모든 노드에서 같으므로 그대로 동작합니다.
 - 컨테이너 이미지(`.sqsh`, 파일 하나)도 같은 효과입니다. -> [컨테이너 잡](#컨테이너-잡)

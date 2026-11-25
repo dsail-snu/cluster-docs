@@ -14,8 +14,9 @@ import tomllib
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from agent_rules import include, plain_admonitions  # noqa: E402
-from siteurls import ROOT, absolute_links, page_url, site_url  # noqa: E402
+import site_blocks  # noqa: E402
+from agent_rules import published  # noqa: E402
+from siteurls import ROOT, page_url, site_url  # noqa: E402
 
 
 def nav(root=ROOT):
@@ -32,8 +33,7 @@ def nav(root=ROOT):
 
 
 def page_text(root, page):
-    text = (root / project_docs(root) / page).read_text()
-    return absolute_links(plain_admonitions(include(text, root)), site_url(root), page)
+    return published((root / project_docs(root) / page).read_text(), root, page)
 
 
 def project_docs(root):
@@ -42,6 +42,7 @@ def project_docs(root):
 
 def summary(text):
     """The page's title (its first heading) and its first plain sentence."""
+    text = site_blocks.plain(text)
     title = next((m.group(1) for m in re.finditer(r"^# (.+)$", text, re.M)), "")
     for block in re.split(r"\n\s*\n", text):
         line = " ".join(block.split())

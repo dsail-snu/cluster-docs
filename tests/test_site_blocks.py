@@ -34,12 +34,12 @@ class Blocks(unittest.TestCase):
         on = dict(DATA, policy=dict(DATA["policy"], idle_hours=2, cancel_after_hours=6, cancel_warn_hours=1,
                                     idle_notify=["mention"]))  # fmt: skip
         off = dict(DATA, policy=dict(on["policy"], cancel_after_hours=0))
-        self.assertIn("**6시간** 동안 GPU를 쓰지 않은 잡은 자동으로 취소", site_blocks.idle_rule(on))
+        self.assertIn("할당받은 GPU를 **6시간** 동안 쓰지 않은 잡은 자동으로 취소", site_blocks.idle_rule(on))
         self.assertIn("**1시간 전**", site_blocks.idle_rule(on))
         self.assertIn("자동으로 취소하지는 않습니다", site_blocks.idle_rule(off))
 
     def test_the_idle_rule_claims_no_channel_and_follows_whether_anyone_is_told(self):
-        """How an idle job's owner is told is the cluster's setting (policy.idle_notify:
+        """How the owner of a job leaving its GPUs idle is told is the cluster's setting (policy.idle_notify:
         a mention in the hourly report, or a DM); the rule never names one, and with none
         set it says the report only lists the job."""
         def told(how):

@@ -23,9 +23,10 @@ Generators:
   day:NAME        the same with its weekday, as the notices write it: 2026-11-25(수)
   quota:MOUNT:F   a limit of the filesystem at MOUNT: block_hard, block_warn (TB),
                   inode_hard, inode_warn (a count); quota:ratio, files per TB
-  rule:idle       the idle-GPU rule as a sentence: that the owner is told from the idle
-                  hours (or, with policy.idle_notify empty, only listed), and the cancel
-                  with its warning, or that no cancel is active (cancel 0)
+  term:idle_job   the one name for a job whose allocated GPUs all sat idle (IDLE_JOB)
+  rule:idle       the rule on such jobs as a sentence: that the owner is told from the
+                  idle hours (or, with policy.idle_notify empty, only listed), and the
+                  cancel with its warning, or that no cancel is active (cancel 0)
   env:table       the users' environment variables: each with its value in a login and
                   in a job (the cluster's one list, user_environment)
   env:NAME        the login value of the variable NAME, inline
@@ -77,6 +78,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data" / "site.json"
 # A block may sit indented in a list item: its body takes the BEGIN marker's indent.
+# The one name for a job whose allocated GPUs all sat idle, as deepops' usage report
+# names it (cluster_tools.usage_report.IDLE_JOB). Without "allocated" it reads as a
+# CPU-only job (owner, 2026-11-27); pages write it through term:idle_job, and
+# tests/test_terms.py refuses the old phrasings.
+IDLE_JOB = "할당받은 GPU를 쓰지 않는 잡"
 BLOCK = re.compile(r"^([ ]*)(<!-- BEGIN GENERATED: (\S+) -->\n)(.*?)([ ]*<!-- END GENERATED: \3 -->)", re.S | re.M)
 
 
@@ -107,12 +113,12 @@ def idle_rule(data):
     if set(p["idle_notify"]) - {"mention", "dm"}:
         raise ValueError(f"policy.idle_notify {p['idle_notify']!r}: teach scripts/site_blocks.py idle_rule")
     told = "알려 드립니다" if p["idle_notify"] else "사용 현황 리포트에 표시됩니다"
-    text = f"Slurm 잡으로 GPU를 할당받아 두고 **{p['idle_hours']}시간 넘게 쓰지 않으면** {told}."
+    text = f"Slurm 잡이 할당받은 GPU를 **{p['idle_hours']}시간 넘게 쓰지 않으면** {told}."
     if p["cancel_after_hours"]:
-        text += (f" **{p['cancel_after_hours']}시간** 동안 GPU를 쓰지 않은 잡은 자동으로 취소되며, "
+        text += (f" 할당받은 GPU를 **{p['cancel_after_hours']}시간** 동안 쓰지 않은 잡은 자동으로 취소되며, "
                  f"취소 **{p['cancel_warn_hours']}시간 전**에 미리 알려 드립니다.")
     else:
-        text += " 쓰지 않는 잡을 자동으로 취소하지는 않습니다."
+        text += f" {IDLE_JOB}을 자동으로 취소하지는 않습니다."
     return text + "\n"
 
 
@@ -401,6 +407,8 @@ def body(data, name):
         return quota(data, arg)
     if name == "rule:idle":
         return idle_rule(data)
+    if name == "term:idle_job":
+        return f"{IDLE_JOB}\n"
     if kind == "date":
         return f"{data['dates'][arg]}\n"
     if kind == "day":

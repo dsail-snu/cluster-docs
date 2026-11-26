@@ -20,7 +20,7 @@ Placeholders, filled from data/site.json so no fact is typed twice:
   [[/cluster]]        the bot's slash command
   [[bot.subcommands]] its subcommands as a table, with their Korean help
   [[commands]]        the cluster commands as a table, with their Korean summaries
-  [[rule:idle]]       the idle-GPU rule (scripts/site_blocks.py)
+  [[rule:idle]]       the rule on jobs leaving their GPUs idle (scripts/site_blocks.py)
   [[reports]]         the status channel's reports as a table: when, what
   [[reports:inline]]  the same on one line
   [[#ROLE]]           that channel: left for the bot, which writes a mention in the

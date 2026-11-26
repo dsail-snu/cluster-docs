@@ -2,6 +2,7 @@
 date: 2026-11-27
 slug: home-maintenance
 categories: [maintenance]
+pin_until: date:home_downtime
 ---
 
 # /home 점검으로 클러스터를 잠시 멈춥니다

@@ -18,7 +18,7 @@ sq --help   # 전체 옵션 (항상 최신)
 
 - 자원 표의 각 칸은 `사용/전체`입니다.
 - 노드 상태(`STATE`)는 `sinfo`가 보여 주는 그대로입니다: `idle`(비어 있음), `mix`(일부 사용),
-  `alloc`(꽉 참), `drain`/`drng`(관리자가 새 잡을 막음, `drng`는 돌던 잡이 끝나기를 기다리는 중), `down`(쓸 수 없음).
+  `alloc`(꽉 참), `drain`/`drng`(관리자가 새 잡을 막음, `drng`는 실행 중인 잡이 끝나기를 기다리는 중), `down`(쓸 수 없음).
   새 잡을 받지 못하는 노드는 빨간색으로 보입니다.
 - 상태 뒤의 기호는 노드에 붙은 표시입니다. 자주 보이는 것은 `*`(노드가 응답하지 않음, 새 잡이 들어가지 않음),
   `-`(대기 중인 잡을 위해 비워 두는 중), `~`(전원이 꺼져 있음)입니다. 전체 목록은 `sq --help`에 있습니다.
@@ -65,13 +65,13 @@ scontrol show node <노드 이름>       # 특정 노드의 할당, 여유 자�
 ```bash
 squeue                  # 전체
 squeue --me             # 내 잡
-squeue --me --start     # 대기 잡의 예상 시작 시각 (추정)
+squeue --me --start     # 대기 중인 잡의 예상 시작 시각 (추정)
 ```
 
 ### 우선순위
 
 ```bash
-sprio -l                # 대기 잡의 우선순위 구성
+sprio -l                # 대기 중인 잡의 우선순위 구성
 sprio -j <JOBID> -l     # 특정 잡의 우선순위 분해
 ```
 
@@ -89,7 +89,7 @@ sacct -S today -X --format=JobID,JobName,State,Elapsed
 
 ## 내 잡이 도는 노드
 
-- `sq`: 내 잡의 **NODE(REASON)** 열에 나옵니다. 도는 잡은 그 노드가, 기다리는 잡은 기다리는 이유가 보입니다.
+- `sq`: 내 잡의 **NODE(REASON)** 열에 나옵니다. 실행 중인 잡은 그 노드가, 대기 중인 잡은 대기 사유가 보입니다.
 - `scontrol show job <JOBID>`: `NodeList`에 노드가, `AllocTRES`에 받은 GPU 수가 나옵니다.
 - `gpu-usage <JOBID>`: 잡이 돈 노드와 GPU 수, 그 GPU가 실제로 한 일을 보여 줍니다.
 - [웹 대시보드](#웹-대시보드)에서는 잡이 도는 노드와 GPU를 찾아 그 노드의 상태를 볼 수 있습니다.
@@ -121,7 +121,7 @@ htop                    # CPU, 메모리
 <!-- BEGIN GENERATED: service:dashboards -->
 - **GPU / Nodes**: GPU 노드 한 대의 GPU(사용률, 메모리, 온도, 전력)와 CPU, 메모리, 디스크, 네트워크. 위쪽의 **hostname**에서 노드를 고릅니다.
 - **Node Exporter / Hosts**: 모든 호스트의 자세한 수치(CPU, 메모리, 디스크, 네트워크). 위쪽의 **nodename**에서 호스트를 고릅니다.
-- **Slurm / Scheduler**: 클러스터 전체의 노드 상태, 쓰고 있는 CPU와 GPU, 도는 잡과 기다리는 잡.
+- **Slurm / Scheduler**: 클러스터 전체의 노드 상태, 쓰고 있는 CPU와 GPU, 실행 중인 잡과 대기 중인 잡.
 - **Storage / NFS and disks**: 공유 스토리지(NFS)와 디스크를 누가 얼마나 읽고 쓰는지: 노드별, 잡별(**Top jobs by I/O**).
 - **Storage / per person**: 한 사람의 파일시스템별 사용량과 파일 수(경고 수준과 한도), 정리하면 좋을 폴더, 내 잡과 로그인의 I/O를 시간에 따라 봅니다. `disk-usage`가 보여 주는 값입니다. 위쪽의 **user**에서 사람을 고릅니다.
 - **Slurm / GPU allocation**: 지금 GPU마다 누가 어떤 잡으로 쓰는지(**Allocations now**), 잡별 GPU 사용률과 메모리, 사람별, 팀별 할당. 내 잡이 도는 노드와 GPU를 여기서 찾습니다.

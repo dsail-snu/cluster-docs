@@ -158,18 +158,18 @@ def submit_refusals(data):
     out = []
     if p.get("max_submit_jobs"):
         out.append("### `Job violates accounting/QOS policy`\n\n"
-                   f"기다리는 잡과 도는 잡을 합쳐 한 사람이 **{p['max_submit_jobs']:,}개**까지 제출해 둘 수 있습니다. "
+                   f"대기 중인 잡과 실행 중인 잡을 합쳐 한 사람이 **{p['max_submit_jobs']:,}개**까지 제출해 둘 수 있습니다. "
                    "배열 잡은 작업 하나하나를 셉니다. 앞의 잡이 끝나거나 필요 없는 잡을 취소하면 다시 제출할 수 있습니다. "
                    "내 잡 수는 `squeue --me -h -r | wc -l`로 봅니다.\n")  # fmt: skip
     if p.get("submit_holds"):
         out.append(f"### `{m['hold_ended']}`\n\n"
-                   "소속 기간이 끝나 새 잡을 낼 수 없습니다. 돌던 잡은 그대로 돌고, 로그인은 메시지에 적힌 날까지 남아 있으니 "
+                   "소속 기간이 끝나 새 잡을 낼 수 없습니다. 실행 중인 잡은 그대로 돌고, 로그인은 메시지에 적힌 날까지 남아 있으니 "
                    "그 전에 파일을 옮겨 주세요. 기간이 잘못되었다면 관리자에게 알려 주세요.\n")  # fmt: skip
         if p.get("submit_holds_disk"):
             out.append(f"### `{m['hold_disk']}`\n\n"
                        "메시지에 적힌 곳에서 용량이나 파일 수가 한도에 닿아, 공간을 비울 때까지 새 잡을 낼 수 없습니다. 그곳에는 쓰기도 실패합니다. "
                        f"{command(data, 'disk-usage')}로 어디에 얼마나 쓰는지와 정리하면 좋을 폴더를 보고 공간을 비우면, "
-                       "곧 다시 제출할 수 있습니다. 돌던 잡은 그대로 돕니다.\n")  # fmt: skip
+                       "곧 다시 제출할 수 있습니다. 실행 중인 잡은 그대로 돕니다.\n")  # fmt: skip
     return "\n".join(out) or "\n"
 
 
@@ -220,7 +220,7 @@ DASHBOARDS = {
                             "사람별, 팀별 할당. 내 잡이 도는 노드와 GPU를 여기서 찾습니다.",
     "gpu-nodes": "GPU 노드 한 대의 GPU(사용률, 메모리, 온도, 전력)와 CPU, 메모리, 디스크, 네트워크. "
                  "위쪽의 **hostname**에서 노드를 고릅니다.",
-    "slurm-scheduler": "클러스터 전체의 노드 상태, 쓰고 있는 CPU와 GPU, 도는 잡과 기다리는 잡.",
+    "slurm-scheduler": "클러스터 전체의 노드 상태, 쓰고 있는 CPU와 GPU, 실행 중인 잡과 대기 중인 잡.",
     "storage-person": "한 사람의 파일시스템별 사용량과 파일 수(경고 수준과 한도), 정리하면 좋을 폴더, 내 잡과 로그인의 I/O를 "
                       "시간에 따라 봅니다. `disk-usage`가 보여 주는 값입니다. 위쪽의 **user**에서 사람을 고릅니다.",
     "storage-io": "공유 스토리지(NFS)와 디스크를 누가 얼마나 읽고 쓰는지: 노드별, 잡별(**Top jobs by I/O**).",

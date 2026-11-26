@@ -106,7 +106,7 @@ exit                           # 끝나면 반드시 나가서 자원 반납
 #SBATCH --gres=gpu:<GPU 타입>:1       # GPU 타입:개수 (필수 명시)
 #SBATCH --time=04:00:00              # 최대 실행 시간. 안 적으면 QoS나 파티션의 상한이 적용됩니다
 #SBATCH --output=logs/%x-%j.out      # 표준출력 로그 (%x=잡 이름, %j=JOBID)
-#SBATCH --error=logs/%x-%j.err       # 표준에러 로그
+#SBATCH --error=logs/%x-%j.err       # 표준 오류 로그
 
 echo "Host: $(hostname)  |  Job: $SLURM_JOB_ID"
 nvidia-smi

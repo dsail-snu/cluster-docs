@@ -16,7 +16,7 @@
 | `scontrol` | 잡, 노드, 파티션 상세 조회와 수정 (`show job`, `show node`) |
 | `sacct` | **끝난 잡을 포함한** 이력 조회 |
 | `sstat` | 실행 중인 잡의 실시간 자원 사용량 |
-| `sprio` | 대기 잡의 우선순위 분해 |
+| `sprio` | 대기 중인 잡의 우선순위 분해 |
 | `sshare` | Fairshare 점수 조회 |
 | `sacctmgr` | 계정, 사용자, QoS, association 조회 |
 | `sreport` | 기간별 사용량 리포트 (GPU 시간 등) |
@@ -201,8 +201,8 @@ scontrol show config | grep -i '^Priority'
 ### 내 위치 확인
 
 ```bash
-sprio -j <JOBID> -l      # 대기 잡 하나의 우선순위 분해
-sprio -l                 # 대기 잡 전체
+sprio -j <JOBID> -l      # 대기 중인 잡 하나의 우선순위 분해
+sprio -l                 # 대기 중인 잡 전체
 ```
 
 ### Fairshare와 과금

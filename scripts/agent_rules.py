@@ -21,6 +21,29 @@ PAGE = "policy/ai-agents.md"
 SNIPPET = re.compile(r'^--8<-- "([^"]+)"[ \t]*$', re.M)
 ADMONITION = re.compile(r'^!!! \w+(?: "([^"]*)")?\n((?:    .*\n|\n(?=    ))+)', re.M)
 MARKER = "<!-- cluster-agent-rules -->"
+# Text for people only (how to give agents the rules, why a rule is so, recommendations):
+# the site shows it, the export drops it. Markers on lines of their own (a block) go with
+# their lines; markers inside a line (a span) go alone, so the line end stays.
+PEOPLE_BLOCK = re.compile(r"^[ \t]*<!-- people -->[ \t]*\n.*?^[ \t]*<!-- /people -->[ \t]*\n", re.S | re.M)
+PEOPLE_SPAN = re.compile(r"<!-- people -->.*?<!-- /people -->", re.S)
+PEOPLE_MARKS = re.compile(r"<!-- /?people -->")
+
+
+def check_people(text):
+    """Raise ValueError when TEXT's people-only markers are nested or unbalanced."""
+    opened = 0
+    for m in PEOPLE_MARKS.finditer(text):
+        opened += -1 if m.group().startswith("<!-- /") else 1
+        if opened not in (0, 1):
+            raise ValueError(f"people-only markers nested or unbalanced at offset {m.start()}")
+    if opened:
+        raise ValueError("a people-only span is not closed")
+
+
+def for_agents(text):
+    """TEXT without its people-only spans (checked first)."""
+    check_people(text)
+    return re.sub(r"\n{3,}", "\n\n", PEOPLE_SPAN.sub("", PEOPLE_BLOCK.sub("", text)))
 
 
 def include(text, root, used=None):
@@ -57,16 +80,20 @@ def revision(root=ROOT):
                           capture_output=True, text=True).stdout.strip()
 
 
-def published(text, root, page):
+def published(text, root, page, agents=False):
     """A page's text as an export hands it out: snippets included, generated blocks as
     their values (site_blocks.plain), admonitions as quotes, links absolute. The one
-    reading for every export (this file and llms-full.txt)."""
-    return absolute_links(plain_admonitions(site_blocks.plain(include(text, root))), site_url(root), page)
+    reading for every export (this file and llms-full.txt). AGENTS: the agents' reading,
+    without the people-only spans; otherwise only their markers go."""
+    text = include(text, root)
+    check_people(text)
+    text = for_agents(text) if agents else PEOPLE_MARKS.sub("", text)
+    return absolute_links(plain_admonitions(site_blocks.plain(text)), site_url(root), page)
 
 
 def export(root=ROOT, revision=""):
     base = site_url(root)
-    text = published((root / "docs" / PAGE).read_text(), root, PAGE)
+    text = published((root / "docs" / PAGE).read_text(), root, PAGE, agents=True)
     source = base + PAGE.removesuffix(".md") + "/"
     stamp = f" ({revision})" if revision else ""
     return f"{MARKER}\n<!-- Generated from {source}{stamp}. Edit the page, not this file. -->\n\n{text}"

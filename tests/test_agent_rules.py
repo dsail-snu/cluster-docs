@@ -46,6 +46,31 @@ class ExportTests(unittest.TestCase):
         self.assertIn("--qos=<팀 QoS>", text)
         self.assertNotIn("--job-name=debug", text)
 
+    def test_the_agents_get_their_conduct_not_the_peoples_notes(self):
+        """The agent rules hold only what an agent does toward shared resources (2026-11-27):
+        how to give agents the rules, why a rule is so and the recommendations are for
+        people, shown on the site and dropped from the export."""
+        text = agent_rules.export()
+        self.assertNotIn("people -->", text, "no marker reaches the agents")
+        for gone in ("권장 (규정은 아님)", "지침 파일이나 메모리로 넣습니다", "8은 1, 2, 4로 나누어떨어지므로",
+                     "그래야 빈 GPU가", "--pty bash -i", "(사람과 AI 에이전트 모두)"):
+            self.assertNotIn(gone, text)
+        for kept in ("확인 없이 진행하는 모드에서도", "--exclusive", "sbatch --wait", "--qos=<팀 QoS>"):
+            self.assertIn(kept, text)
+        page = (agent_rules.ROOT / "docs" / agent_rules.PAGE).read_text()
+        self.assertIn("권장 (규정은 아님)", page, "the site keeps what people read")
+
+    def test_people_only_blocks_go_with_their_lines_and_spans_keep_the_line_end(self):
+        text = ("- a.<!-- people --> why a.<!-- /people -->\n- b\n\n<!-- people -->\n\nnote\n\n<!-- /people -->\n\nc\n")
+        self.assertEqual(agent_rules.for_agents(text), "- a.\n- b\n\nc\n")
+        self.assertEqual(agent_rules.PEOPLE_MARKS.sub("", text).count("why a."), 1)
+
+    def test_unbalanced_or_nested_people_markers_are_refused(self):
+        for bad in ("<!-- people --> x", "x <!-- /people -->",
+                    "<!-- people --><!-- people --> x <!-- /people --><!-- /people -->"):
+            with self.assertRaises(ValueError):
+                agent_rules.for_agents(bad)
+
     def test_includes_and_admonitions(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

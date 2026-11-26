@@ -61,7 +61,7 @@ Generators:
   quota:section   the per-person disk limits (what happens at one, the warning, a table),
                   or that there are none: it appears when the cluster sets limits
   quota:each:M    "한 사람에 5 TB까지 쓰실 수 있고, " for mount M, or nothing
-  bot:section, bot:unban, bot:leave, bot:data, bot:join, bot:unban_agents
+  bot:section, bot:unban, bot:leave, bot:data, bot:join
                   the /cluster command's requests, or whom to ask while the cluster runs
                   no bot (site.json services.bot)
   login:limits    the login nodes' per-person limits as a sentence (CPUs, memory,
@@ -386,9 +386,6 @@ def bot(data, name):
     if name == "join":
         return (f"아직 계정이 없다면 Slack에서 {cmd('join')}으로 신청하세요.\n" if on
                 else "아직 계정이 없다면 관리자에게 신청하세요.\n")  # fmt: skip
-    if name == "unban_agents":  # the agent rules' register: the agent reports, the person asks
-        return (f"차단되면 사용자에게 보고한다. 해제는 사용자가 Slack에서 {cmd('unban')}으로 신청한다.\n" if on
-                else "차단되면 사용자에게 보고한다. 해제는 사용자가 관리자에게 요청한다.\n")  # fmt: skip
     if name == "unban":
         return f"{cmd('unban')}으로 해제를 신청해 주세요.\n" if on else "관리자에게 해제를 요청해 주세요.\n"
     if name == "leave":
@@ -450,8 +447,8 @@ def threads_section(data):
             "- **계산 스레드**: 로그인 노드에서는 쓸 수 있는 CPU 수, 잡 안에서는 작업자 하나의 몫입니다. "
             "몫은 `--cpus-per-task`이고, 그것이 없으면 그 노드에서 받은 CPU를 태스크 수나 GPU 수로 나눈 값입니다.\n"
             "- **빌드 병렬 수**: 로그인 노드에서는 쓸 수 있는 CPU 수, 잡 안에서는 그 노드에서 잡이 받은 CPU 수입니다.\n\n"
-            "직접 정한 값이 있으면 클러스터는 바꾸지 않습니다. 명령줄의 `make -j`도 그대로 우선합니다. "
-            "줄이고 싶을 때만 직접 정하세요(예: `export OMP_NUM_THREADS=4`). 늘리면 받은 CPU를 넘겨 느려집니다.\n\n"
+            "이 값은 받은 CPU를 넘겨 쓰는 일을 막아 두는 기본값이라, 필요에 맞게 바꿔 쓰셔도 됩니다. "
+            "직접 정한 값(예: `export OMP_NUM_THREADS=16`)이나 명령줄의 `make -j`가 있으면 클러스터는 그 값을 그대로 둡니다.\n\n"
             + "\n".join(rows) + "\n")
 
 
@@ -526,7 +523,7 @@ def body(data, name):
         return sessions_rule(data)
     if name == "login:limits":
         return login_limits(data)
-    if kind == "bot" and arg in ("section", "unban", "leave", "data", "join", "unban_agents"):
+    if kind == "bot" and arg in ("section", "unban", "leave", "data", "join"):
         return bot(data, arg)
     if name == "bot:command":
         return f"{data['bot']['command']}\n"

@@ -274,10 +274,10 @@ class FromTheData(unittest.TestCase):
     def test_join_and_unban_follow_the_bot(self):
         d = self.data()
         self.assertIn("`/c join`", site_blocks.body(d, "bot:join"))
-        self.assertIn("`/c unban`", site_blocks.body(d, "bot:unban_agents"))
+        self.assertIn("`/c unban`", site_blocks.body(d, "bot:unban"))
         off = dict(d, services={"bot": False})
         self.assertIn("관리자", site_blocks.body(off, "bot:join"))
-        self.assertIn("관리자", site_blocks.body(off, "bot:unban_agents"))
+        self.assertIn("관리자", site_blocks.body(off, "bot:unban"))
 
 
 if __name__ == "__main__":

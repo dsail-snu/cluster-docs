@@ -4,7 +4,8 @@
   check [BASE]            validate every notice; with BASE (a git revision), also
                           require a new or changed notice when docs/policy/ changed
   export OUT              write every notice as its Slack message to OUT (the site's
-                          notices.json): {"notices": [{id, date, text, blocks}]}
+                          notices.json): {"pins_max", "notices": [{id, date, text, blocks,
+                          pin_until}]}
 
 The notice format lives here and in CONTRIBUTING.md only; the site generator reads the
 same files, so the site, its feed and Slack always show the same notice. This repository
@@ -18,7 +19,7 @@ import re
 import subprocess
 import sys
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -35,6 +36,15 @@ CATEGORIES = {
     "maintenance": (":wrench:", "점검"),
     "notice": (":mega:", "공지"),
 }
+# How long each kind of notice stays pinned in the Slack channel, from its date: days, or
+# UNTIL (the notice states its end, pin_until: in its front matter), or None (not pinned).
+# pin_until: (a date, date:NAME of the site's schedule, or none) overrides the kind's;
+# a notice of several kinds is pinned as long as the longest. The bot pins every notice
+# whose day has come and whose pin_until has not passed, the newest PINS_MAX of them, and
+# unpins the rest (deepops cluster_bot.notices): the pins are what people must know now.
+UNTIL = "until"
+PINS = {"policy": 60, "maintenance": UNTIL, "update": None, "notice": None}
+PINS_MAX = 3
 SLUG = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 # The lead is what Slack shows: a short title, then only what people must newly know, one
 # bullet each, starting with the day it takes effect. A bullet's further lines are indented.
@@ -53,13 +63,40 @@ class Notice:
     categories: list
     title: str
     summary: str
+    pin_until: date | None = None
 
     def url(self, site):
         return f"{site}news/{self.date:%Y/%m/%d}/{self.slug}/"
 
 
-def parse(path, text):
-    """A notice from its file; raises ValueError naming what is wrong."""
+def pin_until(day, categories, value, dates):
+    """The last day the notice stays pinned, or None: VALUE (its front matter's
+    pin_until: YYYY-MM-DD, date:NAME of DATES, the site's schedule, or none), else the
+    longest of its CATEGORIES' (PINS) from DAY; raises ValueError naming what is wrong."""
+    if value == "none":
+        return None
+    if value:
+        name = value.removeprefix("date:")
+        if name != value and name not in dates:
+            raise ValueError(f"pin_until: {value}: no such date in data/site.json dates")
+        try:
+            until = date.fromisoformat(dates[name] if name != value else value)
+        except ValueError:
+            raise ValueError("pin_until must be YYYY-MM-DD, date:NAME or none") from None
+        if until < day:
+            raise ValueError(f"pin_until {until} is before the notice's date {day}")
+        return until
+    rules = [PINS[c] for c in categories]
+    if UNTIL in rules:
+        raise ValueError(f"a notice of kind {', '.join(c for c in categories if PINS[c] == UNTIL)} "
+                         "states its end: pin_until: YYYY-MM-DD or date:NAME")
+    days = [r for r in rules if r is not None]
+    return day + timedelta(days=max(days)) if days else None
+
+
+def parse(path, text, dates=None):
+    """A notice from its file; raises ValueError naming what is wrong. DATES: the site's
+    schedule (data/site.json dates), for pin_until: date:NAME."""
     match = re.match(r"---\n(.*?)\n---\n(.*)", text, re.S)
     if not match:
         raise ValueError("front matter (--- ... ---) missing")
@@ -97,7 +134,8 @@ def parse(path, text):
     expected = f"{day:%Y-%m-%d}-{slug}.md"
     if Path(path).name != expected:
         raise ValueError(f"file name must be {expected}")
-    return Notice(path, day, slug, categories, title.group(1).strip(), summary)
+    until = pin_until(day, categories, meta.get("pin_until", ""), dates or {})
+    return Notice(path, day, slug, categories, title.group(1).strip(), summary, until)
 
 
 def git(*args):
@@ -111,10 +149,11 @@ def changed(base, head="HEAD", status="AMR"):
 
 def all_notices():
     notices, errors = [], []
+    dates = json.loads((ROOT / "data/site.json").read_text()).get("dates", {})
     for path in sorted((ROOT / POSTS).glob("*.md")):
         rel = str(path.relative_to(ROOT))
         try:
-            notices.append(parse(rel, path.read_text()))
+            notices.append(parse(rel, path.read_text(), dates))
         except ValueError as err:
             errors.append(f"{rel}: {err}")
     return notices, errors
@@ -254,8 +293,10 @@ def export(out):
     site = site_url(ROOT)
     help_channel = json.loads((ROOT / "data/site.json").read_text())["chat"]["channels"]["help"]
     try:
-        doc = {"notices": [{"id": n.url(site), "date": f"{n.date:%Y-%m-%d}", "text": n.title,
-                            "blocks": blocks(n, site, help_channel)}
+        doc = {"pins_max": PINS_MAX,
+               "notices": [{"id": n.url(site), "date": f"{n.date:%Y-%m-%d}", "text": n.title,
+                            "blocks": blocks(n, site, help_channel),
+                            **({"pin_until": f"{n.pin_until:%Y-%m-%d}"} if n.pin_until else {})}
                            for n in sorted(notices, key=lambda n: (n.date, n.slug))]}
     except ValueError as err:
         print(err, file=sys.stderr)

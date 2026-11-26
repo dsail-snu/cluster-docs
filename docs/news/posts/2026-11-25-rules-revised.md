@@ -4,7 +4,7 @@ slug: rules-revised
 categories: [policy]
 ---
 
-# 사용 규정이 바뀝니다
+# 사용 규정 변경 안내
 
 - **<!-- BEGIN GENERATED: day:notice_day -->2026-11-25(수)<!-- END GENERATED: day:notice_day -->부터**
   - `/scratch/<아이디>` 개인 작업 공간은 빠른 NVMe 공간이라, 읽기와 쓰기(I/O)가 많은 실험의 파일을 두시면 좋습니다.

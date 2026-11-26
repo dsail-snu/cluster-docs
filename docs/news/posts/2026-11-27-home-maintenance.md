@@ -2,9 +2,10 @@
 date: 2026-11-27
 slug: home-maintenance
 categories: [maintenance]
+pin_until: date:home_downtime
 ---
 
-# /home 점검으로 클러스터를 잠시 멈춥니다
+# /home 점검에 따른 클러스터 일시 중단 안내
 
 - **<!-- BEGIN GENERATED: day:home_downtime -->2026-12-05(토)<!-- END GENERATED: day:home_downtime --> 02:00부터 10:00까지**
   - `/home`의 사람별 사용량을 파일 시스템이 직접 세도록 바꿉니다. <!-- BEGIN GENERATED: day:limits_from -->2026-12-09(수)<!-- END GENERATED: day:limits_from -->부터의 한도를 정확하게 세기 위한

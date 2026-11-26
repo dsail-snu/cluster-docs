@@ -135,6 +135,51 @@ class ParseTests(unittest.TestCase):
             self.assertNotRegex(t, r"^\s*- |\*|`", t)
 
 
+class PinTests(unittest.TestCase):
+    """How long a notice stays pinned in Slack: what people must know now, not only the
+    newest (before, the bot pinned the newest notice alone, so a rule change came off the
+    pins with the next notice of any kind)."""
+    PATH = "docs/news/posts/2026-11-19-docs-site.md"
+
+    def notice(self, categories, extra="", dates=None):
+        text = GOOD.replace("categories: [notice, policy]", f"categories: [{categories}]" + extra)
+        return notices.parse(self.PATH, text, dates)
+
+    def test_a_rule_change_stays_pinned_its_kinds_days(self):
+        from datetime import date, timedelta
+        self.assertEqual(self.notice("policy").pin_until, date(2026, 11, 19) + timedelta(days=notices.PINS["policy"]))
+
+    def test_a_plain_notice_is_not_pinned(self):
+        self.assertIsNone(self.notice("notice").pin_until)
+        self.assertIsNone(self.notice("update").pin_until)
+
+    def test_several_kinds_take_the_longest(self):
+        self.assertEqual(self.notice("notice, policy").pin_until, self.notice("policy").pin_until)
+
+    def test_a_maintenance_states_its_end(self):
+        with self.assertRaisesRegex(ValueError, "states its end"):
+            self.notice("maintenance")
+        from datetime import date
+        self.assertEqual(self.notice("maintenance", "\npin_until: 2026-12-05").pin_until, date(2026, 12, 5))
+
+    def test_the_end_can_be_a_date_of_the_schedule(self):
+        from datetime import date
+        n = self.notice("maintenance", "\npin_until: date:downtime", {"downtime": "2026-12-05"})
+        self.assertEqual(n.pin_until, date(2026, 12, 5))
+        with self.assertRaisesRegex(ValueError, "no such date"):
+            self.notice("maintenance", "\npin_until: date:nope", {})
+
+    def test_the_front_matter_overrides_or_turns_it_off(self):
+        self.assertIsNone(self.notice("policy", "\npin_until: none").pin_until)
+        with self.assertRaisesRegex(ValueError, "before the notice"):
+            self.notice("policy", "\npin_until: 2026-01-01")
+        with self.assertRaisesRegex(ValueError, "YYYY-MM-DD"):
+            self.notice("policy", "\npin_until: soon")
+
+    def test_every_kind_has_a_pin_rule(self):
+        self.assertEqual(set(notices.PINS), set(notices.CATEGORIES))
+
+
 class GitTests(unittest.TestCase):
     """check and export against a throwaway repository."""
     def setUp(self):
@@ -198,6 +243,8 @@ class GitTests(unittest.TestCase):
         self.assertEqual(n["blocks"][1]["type"], "rich_text")
         self.assertIn("#help 채널에 편하게 남겨 주세요.", json.dumps(n["blocks"][1], ensure_ascii=False))
         self.assertNotIn('"mrkdwn"', json.dumps(n["blocks"][:2]))
+        self.assertEqual(doc["pins_max"], notices.PINS_MAX)
+        self.assertEqual(n["pin_until"], f"{notices.parse(notices.POSTS + '/2026-11-19-docs-site.md', GOOD).pin_until:%Y-%m-%d}")
 
     def test_export_refuses_a_broken_notice(self):
         (self.root / "docs/news/posts/broken.md").write_text("no front matter\n")

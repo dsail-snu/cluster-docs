@@ -14,7 +14,7 @@ Slurm을 **한 번도 써 보지 않은 사람**을 위한 문서입니다. 개�
 "GPU 2장 주세요. 이 명령을 실행해 주세요"라고 **작업(job)을 제출(submit)** 하기만 하면 Slurm이:
 
 1. 조건에 맞는 빈 노드를 찾고,
-2. 그 자원을 나에게 **독점 배정(allocation)** 하고,
+2. 그 자원을 나에게 **독점 할당(allocation)** 하고,
 3. 명령을 실행하고,
 4. 끝나면 자원을 회수합니다.
 
@@ -29,7 +29,7 @@ Slurm을 **한 번도 써 보지 않은 사람**을 위한 문서입니다. 개�
 | **Partition (파티션)** | 노드들의 묶음(큐). 이 클러스터에서는 Slurm이 GPU 타입을 보고 알맞은 파티션을 골라 주므로 **사용자가 직접 적지 않습니다.** |
 | **GRES** | "Generic RESource". GPU 같은 특수 자원. `--gres=gpu:<GPU 타입>:2` = "그 타입 GPU 2장". |
 | **QoS** | "Quality of Service". 잡의 우선순위, 한도, 선점 권한을 정하는 등급. 기본 QoS는 선점될 수 있고, 팀마다 팀 QoS가 있습니다. 내 것은 **`qos`** 로 확인합니다. -> [QoS](../reference/slurm.md#qos) |
-| **선점 (preemption)** | 높은 QoS 잡이 낮은 QoS 잡의 자원을 가져가는 것. 밀려난 잡은 큐로 돌아가 처음부터 다시 돕니다. -> [선점](../reference/slurm.md#선점) |
+| **선점 (preemption)** | 팀 QoS 잡이 기본 QoS 잡의 자원을 가져가는 것. 밀려난 잡은 큐로 돌아가 처음부터 다시 실행됩니다. -> [선점](../reference/slurm.md#선점) |
 | **Allocation (할당)** | Slurm이 나에게 배정한 자원 한 묶음. 그 안에서 여러 명령(step)을 실행할 수 있습니다. |
 
 ## 가장 많이 쓰는 명령 4개
@@ -60,7 +60,7 @@ squeue --me       # 내 잡만
 ```
 
 `squeue`의 ST(state) 열: `R`(Running, 실행 중), `PD`(Pending, 대기 중), `CG`(Completing, 마무리 중).
-대기 중이면 NODELIST(REASON) 열에 **왜 대기하는지** 이유가 나옵니다(예: `Resources`, `Priority`). -> [문제 해결](../guide/troubleshooting.md)
+대기 중이면 NODELIST(REASON) 열에 **대기하는 이유**가 나옵니다(예: `Resources`, `Priority`). -> [문제 해결](../guide/troubleshooting.md)
 
 !!! tip
     자원 현황을 컬러 표로 보여 주는 `sq` 명령도 있습니다(노드별 CPU, 메모리, GPU 사용량). -> [모니터링](../guide/monitoring.md)
@@ -78,10 +78,10 @@ srun --qos=<팀 QoS> --time=01:00:00 \
 
 `<팀 QoS>`는 `qos`로, `<GPU 타입>`은 `sq` 또는 `sinfo -o "%G"`로 확인합니다.
 
-셸이 뜨면 배정된 GPU가 보입니다.
+셸이 뜨면 할당된 GPU가 보입니다.
 
 ```bash
-nvidia-smi                     # 배정된 GPU 확인
+nvidia-smi                     # 할당된 GPU 확인
 echo $CUDA_VISIBLE_DEVICES     # 나에게 보이는 GPU 인덱스
 python -c "import torch; print(torch.cuda.get_device_name(0))"
 exit                           # 끝나면 반드시 나가서 자원 반납
@@ -164,7 +164,7 @@ sacct --starttime=today      # 오늘 내 잡들
 | 출력 | 화면에 바로 | 파일(`--output`)로 |
 
 !!! tip
-    학습은 `sbatch`로 제출하고, 그 잡이 도는 노드에 들어가 보고 싶으면
+    학습은 `sbatch`로 제출하고, 그 잡이 실행 중인 노드에 들어가 보고 싶으면
     `srun --jobid=<JOBID> --overlap --pty bash -i`로 셸을 받으세요. -> [계산 노드 접속](connect.md#계산-노드에는-내-잡이-도는-노드에만-접속할-수-있습니다)
 
 ## 특히 기억할 점

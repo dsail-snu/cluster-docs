@@ -10,13 +10,13 @@
 | `sbatch` | 배치 스크립트 제출 |
 | `srun` | 즉시 실행, 잡 스텝 실행, 인터랙티브 |
 | `salloc` | 자원만 먼저 할당받기 (셸은 로그인 노드에 유지) |
-| `squeue` | 대기, 실행 중인 잡 조회 |
+| `squeue` | 대기 중이거나 실행 중인 잡 조회 |
 | `scancel` | 잡 취소 |
 | `sinfo` | 노드, 파티션 상태 |
 | `scontrol` | 잡, 노드, 파티션 상세 조회와 수정 (`show job`, `show node`) |
 | `sacct` | **끝난 잡을 포함한** 이력 조회 |
 | `sstat` | 실행 중인 잡의 실시간 자원 사용량 |
-| `sprio` | 대기 중인 잡의 우선순위 분해 |
+| `sprio` | 대기 중인 잡의 우선순위 구성 |
 | `sshare` | Fairshare 점수 조회 |
 | `sacctmgr` | 계정, 사용자, QoS, association 조회 |
 | `sreport` | 기간별 사용량 리포트 (GPU 시간 등) |
@@ -27,17 +27,17 @@
 | 명령 | 내용 |
 |---|---|
 | `disk-usage` | 내 파일시스템별 사용량과 파일 수, 경고 수준과 한도, 정리하면 좋을 폴더, 최근 I/O |
-| `gpu-usage` | 잡의 GPU가 실제로 한 일: 사용률, SM 활동, 메모리, 전력 (실행 중이거나 끝난 잡) |
+| `gpu-usage` | 잡이 GPU를 실제로 얼마나 썼는지: 사용률, SM 활동, 메모리, 전력 (실행 중이거나 끝난 잡) |
 | `qos` | 내가 잡을 낼 수 있는 QoS |
 | `scratch-space` | 스크래치 공간에서 정리될 예정인 내 파일과 그 시점 |
 | `sq` | 큐, 누가 무엇을 쓰는지, 파티션별 남은 자원 |
 <!-- END GENERATED: commands:table -->
 
-옵션은 각 명령의 `--help` 가 항상 최신입니다.
+최신 옵션은 각 명령의 `--help`로 확인하세요.
 
 ### 클러스터 명령의 옵션
 
-클러스터 명령마다의 옵션입니다. 명령의 정의에서 만들어지므로 `--help`와 같습니다.
+클러스터 명령별 옵션입니다. 명령의 정의에서 생성하므로 `--help`와 내용이 같습니다.
 
 <!-- BEGIN GENERATED: options:all -->
 #### `disk-usage`의 옵션
@@ -165,7 +165,7 @@ sbatch --qos=<팀 QoS> job.sbatch    # --qos 생략 시 기본 QoS
 
 ### 팀 몫: `QOSGrpGRES` 로 대기하는 이유
 
-팀 QoS에는 **팀 전체가 동시에 쓸 수 있는 GPU 수** 상한(`GrpTRES`)이 있습니다. 이 한도는 사람마다 따로 걸리지 않고, **그 QoS로 도는 모든 잡의 GPU를 합친 수**에 걸립니다.
+팀 QoS에는 **팀 전체가 동시에 쓸 수 있는 GPU 수** 상한(`GrpTRES`)이 있습니다. 이 한도는 사람마다 따로 걸리지 않고, **그 QoS로 실행 중인 모든 잡의 GPU를 합친 수**에 걸립니다.
 
 그래서 클러스터에 GPU가 남아 있어도 내 잡이 `(QOSGrpGRES)` 사유로 대기할 수 있습니다. 팀 몫을 이미 팀원들이 쓰고 있다는 뜻입니다. `qos` 의 사용량 막대가 바로 이 숫자입니다.
 
@@ -201,7 +201,7 @@ scontrol show config | grep -i '^Priority'
 ### 내 위치 확인
 
 ```bash
-sprio -j <JOBID> -l      # 대기 중인 잡 하나의 우선순위 분해
+sprio -j <JOBID> -l      # 대기 중인 잡 하나의 우선순위 구성
 sprio -l                 # 대기 중인 잡 전체
 ```
 
@@ -233,9 +233,9 @@ Slurm은 "이 QoS가 무엇을 선점하는지"만 기록하고, "무엇에 선�
 1. 잡의 모든 프로세스에 곧바로 **SIGTERM** 이 옵니다. 최소 실행 시간을 보장하지 않으므로 막 시작한 잡도 선점될 수 있습니다.
 2. 유예 시간(`GraceTime`) 동안 잡은 계속 돌 수 있습니다. 이 클러스터에서는 <!-- BEGIN GENERATED: slurm:preempt_grace_seconds -->120<!-- END GENERATED: slurm:preempt_grace_seconds -->초입니다.
 3. 유예가 끝나면 Slurm이 잡을 끝내고, 그래도 남은 프로세스는 `KillWait` 뒤 **SIGKILL** 로 종료됩니다. 선점부터 SIGKILL까지 최대 <!-- BEGIN GENERATED: slurm:sigkill_after_seconds -->240<!-- END GENERATED: slurm:sigkill_after_seconds -->초입니다.
-4. 배치 잡은 **requeue** 됩니다. 큐로 돌아가 다시 실행되고, 체크포인트가 있으면 거기서 이어 갑니다.
+4. 배치 잡은 **requeue** 됩니다. 큐로 돌아가 다시 실행되고, 잡이 체크포인트에서 이어 가도록 짜여 있으면 거기서 이어 갑니다.
 
-유예 시간 안에 체크포인트를 저장하세요: `SIGTERM` 을 잡거나(아래), `sbatch --signal` 로 미리 신호를 받습니다. 다시 시작한 잡은 그 체크포인트에서 이어 돌면 됩니다.
+유예 시간 안에 체크포인트를 저장하세요. 선점에는 `SIGTERM`을 잡아(아래) 대비하고, 시간 제한에는 `sbatch --signal`로 미리 신호를 받아 대비합니다. 다시 시작한 잡은 그 체크포인트에서 이어 돌면 됩니다.
 
 ### 유예 시간 활용: SIGTERM 처리
 
@@ -248,7 +248,7 @@ trap 'touch /scratch/$USER/ckpt.request' TERM
     (클러스터가 `PreemptParameters=send_user_signal` 을 켜 둔 경우는 예외입니다.)
     시간 제한에는 `--signal` 로, 선점에는 `TERM` 트랩으로 대비합니다. 둘 다 대비하려면 `trap <명령> USR1 TERM` 을 쓰세요.
 
-트랩은 마지막 순간을 쓰는 수단일 뿐입니다. **체크포인트를 주기적으로 남기고, 재시작하면 이어서 돌도록** 짜는 것이 근본 대책입니다. -> [스토리지 가이드](../guide/storage.md), [잡 레시피](../guide/job-recipes.md)
+트랩은 마지막 순간에 쓰는 비상 수단일 뿐입니다. **체크포인트를 주기적으로 남기고, 재시작하면 이어서 돌도록** 짜는 것이 근본 대책입니다. -> [스토리지 가이드](../guide/storage.md), [잡 레시피](../guide/job-recipes.md)
 
 ### 인터랙티브 잡: 재시작 없음
 
@@ -282,7 +282,7 @@ GPU 타입 이름은 `sq` 또는 `sinfo -o "%G"` 로 확인합니다.
 ### 자동 할당: GPU 수에 비례하는 CPU와 메모리
 
 GPU 잡의 **CPU와 메모리는 요청한 GPU 수에 비례해** 자동으로 정해집니다 (`DefCpuPerGPU`, `DefMemPerCPU`). 노드마다 GPU 한 장에 딸린 CPU와 메모리가 넉넉하게 정해져 있습니다.
-GPU 잡은 이 값을 바꿀 수 없습니다. 더 많이 잡으면 그 노드에 남은 GPU가 CPU나 메모리가 모자라 놀게 되기 때문입니다.
+GPU 잡은 이 값을 바꿀 수 없습니다. 더 많이 잡으면 그 노드에 남은 GPU에 줄 CPU나 메모리가 모자라 그 GPU가 놀게 되기 때문입니다.
 
 GPU 한 장당 몫은 노드 크기에 따라 다를 수 있습니다. 실제로 받은 양은 이렇게 확인합니다.
 
@@ -309,7 +309,7 @@ scontrol show job <JOBID> | grep -i tres
 
 잡마다 CPU, GPU, 메모리가 cgroup으로 격리됩니다.
 
-- 다른 잡의 GPU는 **보이지 않습니다**. `nvidia-smi` 에는 내게 배정된 GPU만 나옵니다.
+- 다른 잡의 GPU는 **보이지 않습니다**. `nvidia-smi` 에는 내게 할당된 GPU만 나옵니다.
 - 메모리 한도를 넘으면 그 잡만 OOM으로 종료됩니다. 노드 전체는 안전합니다.
 - 한 자원(GPU, 코어)을 두 잡이 공유하지 않습니다.
 - 한 노드에서 내 마지막 잡이 끝나면 그 노드에 남은 내 프로세스와 임시 파일(`/tmp`, `/dev/shm`)이 정리됩니다.
@@ -364,7 +364,7 @@ sacctmgr show qos format=Name,Priority,Flags,MaxWall,MaxTRESPU%30,GrpTRES%30
 --container-image=  --container-mounts=  --container-workdir=
 ```
 
-잡 알림: <!-- BEGIN GENERATED: service:job_notices -->잡에 `--mail-type=END,FAIL`(또는 `BEGIN`, `ALL` 등)을 적으면 그 일이 생길 때 잡의 주인에게 Slack DM으로 알려 드립니다. 메일은 보내지 않으니 `--mail-user`는 적지 않으셔도 되고, 적어도 받는 사람은 잡의 주인입니다. 짧은 사이에 생긴 알림은 한 메시지로 모아 드립니다. 받지 않으려면 봇의 홈 탭에서 끄실 수 있습니다.<!-- END GENERATED: service:job_notices -->
+잡 알림: <!-- BEGIN GENERATED: service:job_notices -->잡에 `--mail-type=END,FAIL`(또는 `BEGIN`, `ALL` 등)을 적으면 적은 일(시작, 끝, 실패 등)이 생길 때 잡의 주인에게 Slack DM으로 알려 드립니다. 메일은 보내지 않으니 `--mail-user`는 적지 않으셔도 되고, 적으시더라도 알림은 잡의 주인에게 갑니다. 짧은 사이에 생긴 알림은 한 메시지로 모아 드립니다. 받지 않으려면 봇의 홈 탭에서 끄실 수 있습니다.<!-- END GENERATED: service:job_notices -->
 
 `--time` 이 파티션 상한보다 길면 제출은 되지만 `PartitionTimeLimit` 사유로 시작하지 못하고 계속 대기합니다. 상한은 `qos` 와 `scontrol show partition` 으로 확인하세요.
 컨테이너 옵션은 [컨테이너 가이드](../guide/containers.md)를 보세요.
@@ -378,7 +378,7 @@ sacctmgr show qos format=Name,Priority,Flags,MaxWall,MaxTRESPU%30,GrpTRES%30
 | 변수 | 의미 |
 |---|---|
 | `SLURM_JOB_ID` | 잡 ID |
-| `SLURM_JOB_NODELIST` | 배정된 노드 목록 |
+| `SLURM_JOB_NODELIST` | 할당된 노드 목록 |
 | `SLURM_JOB_NUM_NODES` | 노드 수 |
 | `SLURM_NTASKS` / `SLURM_NPROCS` | 태스크 수 |
 | `SLURM_CPUS_PER_TASK` | 태스크당 CPU |

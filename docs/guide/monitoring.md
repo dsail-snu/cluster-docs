@@ -9,7 +9,7 @@
 
 `sq`는 모든 노드에 설치된 클러스터 현황 명령입니다. 큐를 상태별 색으로 보여 주고, 표 여러 개를 출력합니다.
 사람별 점유, 팀별 몫, 그리고 GPU 타입별, 노드별 CPU, 메모리, GPU 사용량입니다.
-표에는 잡이 실제로 요청할 수 있는 자원만 셉니다. 그래서 표의 숫자가 바로 지금 요청할 수 있는 양입니다.
+표는 잡이 실제로 요청할 수 있는 자원만 셉니다. 그래서 표의 숫자가 바로 지금 요청할 수 있는 양입니다.
 
 ```bash
 sq          # 내 잡 + 사람별 점유(USERS) + 팀별 몫(TEAMS) + 자원 표
@@ -26,10 +26,10 @@ sq --help   # 전체 옵션 (항상 최신)
   사유별 대처는 [문제 해결](troubleshooting.md#잡이-안-돌-때-pending)에 있습니다.
 
 사용자 표(USERS)는 사람마다 다음을 보여 줍니다. 팀(`TEAM`), 실행 중인 잡 수(`RUN`), 대기 중인 잡 수(`PEND`, 배열 잡은 대기 중인 태스크마다 하나로 셉니다),
-그리고 쓰고 있는 노드, CPU, 메모리, GPU입니다. GPU는 타입마다 두 칸으로 나뉩니다. `HIGH`는 높은 우선순위 QoS(팀 몫)로 쓰는 GPU 수이고,
-`LOW`는 낮은 QoS(선점될 수 있음)로 쓰는 GPU 수입니다.
+그리고 쓰고 있는 노드, CPU, 메모리, GPU입니다. GPU는 타입마다 두 칸으로 나뉩니다. `HIGH`는 팀 QoS(팀 몫)로 쓰는 GPU 수이고,
+`LOW`는 기본 QoS(선점될 수 있음)로 쓰는 GPU 수입니다.
 
-그 아래 팀 표(TEAMS)에는 팀마다 한 줄이 있습니다. 팀(`TEAM`), 그 팀의 높은 우선순위 QoS(`QOS`), 그리고 GPU 타입마다
+그 아래 팀 표(TEAMS)에는 팀마다 한 줄이 있습니다. 팀(`TEAM`), 그 팀의 팀 QoS(`QOS`), 그리고 GPU 타입마다
 팀 몫을 지금 얼마나 쓰고 있는지(막대, 사용/한도)가 나옵니다. 팀 몫은 팀원 모두가 함께 씁니다. 몫이 다 찼다면 사용자 표에서
 같은 팀이면서 `HIGH` GPU를 쓰고 있는 분을 찾아, GPU를 비워 주실 수 있는지 여쭤 보세요.
 
@@ -72,7 +72,7 @@ squeue --me --start     # 대기 중인 잡의 예상 시작 시각 (추정)
 
 ```bash
 sprio -l                # 대기 중인 잡의 우선순위 구성
-sprio -j <JOBID> -l     # 특정 잡의 우선순위 분해
+sprio -j <JOBID> -l     # 특정 잡의 우선순위 구성
 ```
 
 우선순위가 어떻게 정해지는지는 [Slurm 레퍼런스](../reference/slurm.md#우선순위)를 보세요.
@@ -84,19 +84,19 @@ sacct -j <JOBID> --format=JobID,JobName,State,Elapsed,AllocTRES%40,MaxRSS,ExitCo
 sacct -S today -X --format=JobID,JobName,State,Elapsed
 ```
 
-- `MaxRSS`로 실제 메모리 사용량을 보고 다음 잡의 요청량을 조정하세요.
+- CPU 전용 잡이라면 `MaxRSS`로 실제 메모리 사용량을 보고 다음 잡의 `--mem`을 조정하세요(GPU 잡은 메모리를 적지 않습니다).
 - `State`, `ExitCode`로 실패 원인을 추적합니다. -> [문제 해결](troubleshooting.md)
 
-## 내 잡이 도는 노드
+## 내 잡이 실행 중인 노드
 
 - `sq`: 내 잡의 **NODE(REASON)** 열에 나옵니다. 실행 중인 잡은 그 노드가, 대기 중인 잡은 대기 사유가 보입니다.
 - `scontrol show job <JOBID>`: `NodeList`에 노드가, `AllocTRES`에 받은 GPU 수가 나옵니다.
-- `gpu-usage <JOBID>`: 잡이 돈 노드와 GPU 수, 그 GPU가 실제로 한 일을 보여 줍니다.
-- [웹 대시보드](#웹-대시보드)에서는 잡이 도는 노드와 GPU를 찾아 그 노드의 상태를 볼 수 있습니다.
+- `gpu-usage <JOBID>`: 잡이 실행된 노드와 GPU 수, 그 GPU의 실제 사용률을 보여 줍니다.
+- [웹 대시보드](#웹-대시보드)에서는 잡이 실행 중인 노드와 GPU를 찾아 그 노드의 상태를 볼 수 있습니다.
 
 ## 내 잡이 GPU를 잘 쓰는지
 
-노드에 들어가지 않고 보려면 `gpu-usage <JOBID>`를 씁니다. 실시간으로 보려면 잡이 도는 노드에 들어갑니다.
+노드에 들어가지 않고 보려면 `gpu-usage <JOBID>`를 씁니다. 실시간으로 보려면 잡이 실행 중인 노드에 들어갑니다.
 
 ```bash
 srun --jobid=<JOBID> --overlap --pty bash -i
@@ -114,7 +114,7 @@ htop                    # CPU, 메모리
 ## 웹 대시보드
 
 클러스터와 내 잡의 상태를 브라우저에서 늘 볼 수 있습니다. 잡을 내기 전에 지금 얼마나 바쁜지 가늠하거나,
-내 잡이 도는 노드의 GPU와 CPU, 메모리를 확인할 때 쓰세요.
+내 잡이 실행 중인 노드의 GPU와 CPU, 메모리를 확인할 때 쓰세요.
 
 <!-- BEGIN GENERATED: service:dashboard -->대시보드는 웹 포털에 클러스터 계정으로 로그인한 뒤 상단 메뉴의 **Grafana**에서 여실 수 있습니다. 포털 주소는 계정을 받을 때 함께 알려 드립니다.<!-- END GENERATED: service:dashboard -->
 
@@ -123,17 +123,17 @@ htop                    # CPU, 메모리
 - **Node Exporter / Hosts**: 모든 호스트의 자세한 수치(CPU, 메모리, 디스크, 네트워크). 위쪽의 **nodename**에서 호스트를 고릅니다.
 - **Slurm / Scheduler**: 클러스터 전체의 노드 상태, 쓰고 있는 CPU와 GPU, 실행 중인 잡과 대기 중인 잡.
 - **Storage / NFS and disks**: 공유 스토리지(NFS)와 디스크를 누가 얼마나 읽고 쓰는지: 노드별, 잡별(**Top jobs by I/O**).
-- **Storage / per person**: 한 사람의 파일시스템별 사용량과 파일 수(경고 수준과 한도), 정리하면 좋을 폴더, 내 잡과 로그인의 I/O를 시간에 따라 봅니다. `disk-usage`가 보여 주는 값입니다. 위쪽의 **user**에서 사람을 고릅니다.
-- **Slurm / GPU allocation**: 지금 GPU마다 누가 어떤 잡으로 쓰는지(**Allocations now**), 잡별 GPU 사용률과 메모리, 사람별, 팀별 할당. 내 잡이 도는 노드와 GPU를 여기서 찾습니다.
+- **Storage / per person**: 한 사람의 파일시스템별 사용량과 파일 수(경고 수준과 한도), 정리하면 좋을 폴더, 그 사람의 잡과 로그인 노드 작업의 I/O를 시간에 따라 봅니다. `disk-usage`가 보여 주는 값입니다. 위쪽의 **user**에서 사람을 고릅니다.
+- **Slurm / GPU allocation**: 지금 GPU마다 누가 어떤 잡으로 쓰는지(**Allocations now**), 잡별 GPU 사용률과 메모리, 사람별, 팀별 할당. 내 잡이 실행 중인 노드와 GPU를 여기서 찾습니다.
 <!-- END GENERATED: service:dashboards -->
 
 ## Slack 알림
 
 - **GPU 사용량 보고**: <!-- BEGIN GENERATED: reports:usage -->매시간<!-- END GENERATED: reports:usage --> 클러스터 GPU 사용 현황이 Slack <!-- BEGIN GENERATED: chat:status -->`#infra-status`<!-- END GENERATED: chat:status -->에 올라옵니다.
-- **<!-- BEGIN GENERATED: term:idle_job_title -->GPU 유휴 잡<!-- END GENERATED: term:idle_job_title --> 알림**: <!-- BEGIN GENERATED: rule:idle -->Slurm 잡이 할당받은 GPU를 **2시간 넘게 쓰지 않으면** 알려 드립니다. 할당받은 GPU를 **6시간** 동안 쓰지 않은 잡은 자동으로 취소되며, 취소 **1시간 전**에 미리 알려 드립니다.<!-- END GENERATED: rule:idle -->
+- **<!-- BEGIN GENERATED: term:idle_job -->GPU 유휴 잡<!-- END GENERATED: term:idle_job --> 알림**: <!-- BEGIN GENERATED: rule:idle -->Slurm 잡이 할당받은 GPU를 **2시간 넘게 쓰지 않으면** 알려 드립니다. 할당받은 GPU를 **6시간** 동안 쓰지 않은 잡은 자동으로 취소되며, 취소 **1시간 전**에 미리 알려 드립니다.<!-- END GENERATED: rule:idle -->
   알림을 받으셨다면 잡이 GPU를 제대로 쓰는지 확인해 주시고, 쓰지 않는다면 취소해 주세요.
   -> [디버깅 규정](../policy/rules.md#디버깅)
-- **잡 알림**: <!-- BEGIN GENERATED: service:job_notices -->잡에 `--mail-type=END,FAIL`(또는 `BEGIN`, `ALL` 등)을 적으면 그 일이 생길 때 잡의 주인에게 Slack DM으로 알려 드립니다. 메일은 보내지 않으니 `--mail-user`는 적지 않으셔도 되고, 적어도 받는 사람은 잡의 주인입니다. 짧은 사이에 생긴 알림은 한 메시지로 모아 드립니다. 받지 않으려면 봇의 홈 탭에서 끄실 수 있습니다.<!-- END GENERATED: service:job_notices -->
+- **잡 알림**: <!-- BEGIN GENERATED: service:job_notices -->잡에 `--mail-type=END,FAIL`(또는 `BEGIN`, `ALL` 등)을 적으면 적은 일(시작, 끝, 실패 등)이 생길 때 잡의 주인에게 Slack DM으로 알려 드립니다. 메일은 보내지 않으니 `--mail-user`는 적지 않으셔도 되고, 적으시더라도 알림은 잡의 주인에게 갑니다. 짧은 사이에 생긴 알림은 한 메시지로 모아 드립니다. 받지 않으려면 봇의 홈 탭에서 끄실 수 있습니다.<!-- END GENERATED: service:job_notices -->
 
 ## 더 읽기
 

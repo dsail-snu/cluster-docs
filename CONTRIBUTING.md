@@ -98,7 +98,7 @@ Slack에는 끝에 "궁금한 점은 (질문 채널)에 편하게 남겨 주세�
 `data/site.json`에서 생성합니다(`service:overview`, `service:dashboard`, `rule:sessions` 등, `scripts/site_blocks.py` 맨 위).
 검사가 막는 것:
 
-- 자리 표시 `<...>`는 읽는 사람이 채우는 값(`<JOBID>`, `<팀 QoS>`, `<아이디>` 등)과 계정을 받을 때 따로 알려 드리는 값
+- 자리표시자 `<...>`는 읽는 사람이 채우는 값(`<JOBID>`, `<팀 QoS>`, `<아이디>` 등)과 계정을 받을 때 따로 알려 드리는 값
   (`<로그인 주소>`, `<SSH 포트>`)만 씁니다. 목록은 `tests/test_site_state.py`에 있습니다. 클러스터가 아는 값은 생성 블록으로 씁니다.
 - 규정과 안내 페이지에는 "도입 중", "예정", "준비 중", "지금은", "아직 없" 같은 때에 묶인 말을 쓰지 않습니다. 날짜가 있는 일은
   "**날짜**부터"처럼 날짜와 함께 씁니다. 공지는 날짜가 있는 글이라 예외입니다.
@@ -122,7 +122,7 @@ uv run zensical serve      # http://localhost:8000 에서 미리보기
 uv run zensical build      # 공개 전 빌드 검사
 ```
 
-커밋할 때 민감정보 검사가 자동으로 돕니다 (아래 설치 참고).
+커밋할 때 민감정보 검사가 자동으로 실행됩니다 (아래 설치 참고).
 
 ```bash
 uv run pre-commit install
@@ -133,5 +133,5 @@ git config deepops.sensitivePatterns <비공개 패턴 파일 경로>
 
 각 Slack 채널의 목적, 주제, 캔버스(채널의 안내 탭), 북마크는 `slack/<역할>.md`(announce, help, status, admin)에
 씁니다. 빌드가 사이트의 `channels.json`으로 내보내고, 클러스터 봇이 각 채널을 그대로 맞춥니다(캔버스를 직접 고쳐도
-하루 안에 되돌아갑니다). 채널 이름, 명령, 일정 같은 값은 `[[...]]` 자리 표시로 쓰고 `data/site.json`에서 채웁니다.
+하루 안에 되돌아갑니다). 채널 이름, 명령, 일정 같은 값은 `[[...]]` 자리표시자로 쓰고 `data/site.json`에서 채웁니다.
 형식은 `scripts/channels.py` 맨 위에 있습니다.

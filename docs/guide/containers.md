@@ -69,7 +69,7 @@ Enroot 표기는 `<레지스트리>#<이미지>:<태그>` 입니다. 레지스�
 |---|---|
 | NGC | `nvcr.io#nvidia/pytorch:<태그>` |
 | Docker Hub | `pytorch/pytorch:<태그>` 또는 `docker.io#pytorch/pytorch:<태그>` |
-| 저장해 둔 파일 | `$HOME/images/pytorch.sqsh` (절대 경로. `--container-image=~/...`의 `~`는 셸이 풀지 않습니다) |
+| 저장해 둔 파일 | `$HOME/images/pytorch.sqsh` (절대 경로. `--container-image=~/...`의 `~`는 셸이 홈 경로로 바꾸지 않습니다) |
 
 ### 자주 쓰는 Pyxis 옵션
 
@@ -101,7 +101,7 @@ Enroot 표기는 `<레지스트리>#<이미지>:<태그>` 입니다. 레지스�
 --container-mounts=$HOME:$HOME,$HOME/data:/data:ro              # 여러 개는 쉼표로
 ```
 
-어떤 경로를 어디에 두면 좋은지는 [스토리지](storage.md)를 보세요.
+어떤 데이터를 어디에 두면 좋은지는 [스토리지](storage.md)를 보세요.
 
 ---
 
@@ -112,7 +112,7 @@ Enroot 표기는 `<레지스트리>#<이미지>:<태그>` 입니다. 레지스�
 
 ### 방법 1: Enroot CLI로 import
 
-**계산 노드 위에서**(인터랙티브 잡 안에서) 수행합니다. 이미지를 받는 데는 GPU가 필요 없으니 CPU 전용 잡으로 받으세요.
+**계산 노드에서**(인터랙티브 잡 안에서) 수행합니다. 이미지를 받는 데는 GPU가 필요 없으니 CPU 전용 잡으로 받으세요.
 
 ```bash
 # 1) CPU 전용 인터랙티브 셸 확보 (GPU를 잡지 않습니다)
@@ -135,7 +135,7 @@ srun --gres=gpu:<GPU 타입>:1 --container-image=$HOME/images/pytorch.sqsh pytho
 
 ### 방법 2: 패키지를 설치한 뒤 `--container-save`
 
-베이스 이미지에 패키지를 더 깐 상태를 저장할 때 씁니다. 패키지 설치에는 GPU가 필요 없으니 CPU 전용 잡으로 합니다.
+베이스 이미지에 패키지를 더 설치한 상태를 저장할 때 씁니다. 패키지 설치에는 GPU가 필요 없으니 CPU 전용 잡으로 합니다.
 
 ```bash
 srun --cpus-per-task=4 --time=01:00:00 \
@@ -147,7 +147,7 @@ srun --cpus-per-task=4 --time=01:00:00 \
 
 ### 노드 로컬 캐시
 
-Enroot는 이미지를 풀어 놓는 런타임, 캐시, 데이터 경로를 공유 스토리지(NFS)가 아니라 **각 노드의 로컬 디스크**에
+Enroot는 런타임, 캐시, 데이터(이미지를 풀어 놓는 곳) 경로를 공유 스토리지(NFS)가 아니라 **각 노드의 로컬 디스크**에
 사람마다 따로 둡니다. 이미지를 풀 때는 작은 파일을 많이 읽고 쓰므로, 공유 스토리지에 두면 모두가 느려지기 때문입니다.
 
 - 노드 로컬 데이터는 노드마다 따로 있고 잡이 끝나면 지워질 수 있습니다. 보관용으로 쓰지 마세요.
@@ -194,7 +194,7 @@ machine <레지스트리 주소> login <사용자명> password <토큰>
 
 | 증상 | 원인과 해결 |
 |---|---|
-| 컨테이너 안에서 GPU가 안 보임 | `--gres=gpu:<GPU 타입>:N`으로 GPU를 요청했는지 확인. 배정된 GPU만 보입니다 |
+| 컨테이너 안에서 GPU가 안 보임 | `--gres=gpu:<GPU 타입>:N`으로 GPU를 요청했는지 확인. 할당된 GPU만 보입니다 |
 | 홈이 안 보임 | `--container-mounts=$HOME:$HOME` 또는 `--container-mount-home` 추가 |
 | 스크래치 데이터가 안 보임 | `--container-mounts=/scratch:/scratch` 추가 |
 | 이미지 받기가 느림 | 한 번 `.sqsh`로 저장한 뒤 재사용 |

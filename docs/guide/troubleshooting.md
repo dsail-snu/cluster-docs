@@ -23,7 +23,7 @@ ssh -p <SSH 포트> <아이디>@<로그인 주소>
 
 ### 계산 노드에 `ssh`했더니 거부돼요
 
-계산 노드는 **내 잡이 실행 중일 때만** 들어갈 수 있습니다. 내 잡이 도는 노드에 들어가려면:
+계산 노드는 **내 잡이 실행 중일 때만** 들어갈 수 있습니다. 내 잡이 실행 중인 노드에 들어가려면:
 
 ```bash
 srun --jobid=<JOBID> --overlap --pty bash -i
@@ -31,7 +31,7 @@ srun --jobid=<JOBID> --overlap --pty bash -i
 
 ### 로그인 노드가 느리거나 내 프로세스가 죽어요
 
-<!-- BEGIN GENERATED: login:limits -->로그인 노드에는 한 사람당 CPU 8개, 메모리 64 GB, 프로세스 4,096개까지 쓰실 수 있도록 제한이 걸려 있습니다.<!-- END GENERATED: login:limits --> 무거운 작업이 이 한도에 걸린 것이니,
+<!-- BEGIN GENERATED: login:limits -->로그인 노드에서는 한 사람이 CPU 8개, 메모리 64 GB, 프로세스 4,096개까지 쓰실 수 있습니다.<!-- END GENERATED: login:limits --> 무거운 작업을 돌렸다면 이 한도에 걸린 것이니,
 **연산은 Slurm으로 계산 노드에 제출**하세요. -> [첫 잡 실행하기](../start/first-job.md)
 
 ## 잡이 안 돌 때 (Pending)
@@ -57,7 +57,7 @@ srun --jobid=<JOBID> --overlap --pty bash -i
 ```bash
 squeue --me --start                                      # 예상 시작 시각 (추정)
 scontrol show job <JOBID> | grep -iE 'Reason|JobState|TRES'
-sprio -j <JOBID> -l                                      # 우선순위 분해
+sprio -j <JOBID> -l                                      # 우선순위 구성
 qos                                                      # 내 QoS 한도와 팀 사용량
 ```
 
@@ -68,15 +68,15 @@ QoS와 우선순위의 배경은 [Slurm 레퍼런스](../reference/slurm.md#qos)
 <!-- BEGIN GENERATED: submit:refusals -->
 ### `Job violates accounting/QOS policy`
 
-대기 중인 잡과 실행 중인 잡을 합쳐 한 사람이 **500개**까지 제출해 둘 수 있습니다. 배열 잡은 작업 하나하나를 셉니다. 앞의 잡이 끝나거나 필요 없는 잡을 취소하면 다시 제출할 수 있습니다. 내 잡 수는 `squeue --me -h -r | wc -l`로 봅니다.
+대기 중인 잡과 실행 중인 잡을 합쳐 한 사람이 **500개**까지 제출해 둘 수 있습니다. 배열 잡은 그 안의 태스크 하나하나를 잡 하나로 셉니다. 앞의 잡이 끝나거나 필요 없는 잡을 취소하면 다시 제출할 수 있습니다. 내 잡 수는 `squeue --me -h -r | wc -l`로 봅니다.
 
 ### `Your membership ended on`
 
-소속 기간이 끝나 새 잡을 낼 수 없습니다. 실행 중인 잡은 그대로 돌고, 로그인은 메시지에 적힌 날까지 남아 있으니 그 전에 파일을 옮겨 주세요. 기간이 잘못되었다면 관리자에게 알려 주세요.
+소속 기간이 끝나 새 잡을 낼 수 없습니다. 실행 중인 잡은 그대로 돌고, 로그인은 메시지에 적힌 날까지 할 수 있으니 그 전에 파일을 옮겨 주세요. 기간이 잘못되었다면 관리자에게 알려 주세요.
 
 ### `Your disk use on`
 
-메시지에 적힌 곳에서 용량이나 파일 수가 한도에 닿아, 공간을 비울 때까지 새 잡을 낼 수 없습니다. 그곳에는 쓰기도 실패합니다. `disk-usage`로 어디에 얼마나 쓰는지와 정리하면 좋을 폴더를 보고 공간을 비우면, 곧 다시 제출할 수 있습니다. 실행 중인 잡은 그대로 돕니다.
+메시지에 적힌 곳에서 용량이나 파일 수가 한도에 닿아, 공간을 비울 때까지 새 잡을 낼 수 없습니다. 그곳에는 파일을 더 쓸 수도 없습니다. `disk-usage`로 어디에 얼마나 쓰는지와 정리하면 좋을 폴더를 보고 공간을 비우면, 곧 다시 제출할 수 있습니다. 실행 중인 잡은 그대로 실행됩니다.
 <!-- END GENERATED: submit:refusals -->
 
 ### `Requested node configuration is not available`
@@ -102,7 +102,7 @@ GPU 타입 문자열을 확인하세요. 유효한 값은 `sinfo -o "%G"` 또는
 ### 코드나 컨테이너에서 GPU가 안 보여요 (`torch.cuda.is_available()` 가 `False`)
 
 - 잡에 `--gres=gpu:<GPU 타입>:<개수>`를 줬는지 확인하세요. 안 주면 GPU가 0개입니다.
-- 잡 안에서 `echo $CUDA_VISIBLE_DEVICES`, `nvidia-smi`로 배정된 GPU를 확인하세요.
+- 잡 안에서 `echo $CUDA_VISIBLE_DEVICES`, `nvidia-smi`로 할당된 GPU를 확인하세요.
 - 로그인 노드에서는 GPU가 보이지 않는 것이 정상입니다. 잡 안에서 확인하세요.
 - pip 휠의 CUDA 버전과 드라이버가 맞는지 확인하세요. 애매하면 CUDA가 들어 있는 컨테이너를 쓰세요. -> [컨테이너](containers.md)
 
@@ -131,7 +131,7 @@ qos                                                     # 무엇이 내 QoS를 �
 
 ### `module: command not found`, 또는 원하는 CUDA 버전이 없어요
 
-`module avail cuda`로 올라와 있는 버전을 확인하세요. 원하는 버전이 없으면 CUDA가 들어 있는 컨테이너를 쓰거나
+`module avail cuda`로 설치된 버전을 확인하세요. 원하는 버전이 없으면 CUDA가 들어 있는 컨테이너를 쓰거나
 관리자에게 요청하세요. -> [모듈](modules.md)
 
 ### Ray가 `/tmp/ray` 권한 오류로 시작하지 않아요
@@ -152,7 +152,7 @@ export RAY_TMPDIR=/tmp/ray-$SLURM_JOB_ID      # ray.init(), ray start 가 이 �
 
 ### `/home` 파일 접근이 느려요
 
-누군가 공유 스토리지에 큰 부하를 주고 있을 수 있습니다. 본인도 데이터가 크거나 작은 파일이 많은 I/O(읽기와 쓰기)는
+누군가 공유 스토리지에 큰 부하를 주고 있을 수 있습니다. 본인 작업 가운데 큰 데이터나 작은 파일을 많이 읽고 쓰는 작업은
 `/scratch`에서 하세요. -> [스토리지](storage.md#공유-스토리지를-느리게-만들지-않는-법)
 
 ## 자원
@@ -160,7 +160,7 @@ export RAY_TMPDIR=/tmp/ray-$SLURM_JOB_ID      # ray.init(), ray start 가 이 �
 ### 파티션, CPU, 메모리를 꼭 지정해야 하나요?
 
 GPU 잡은 **GPU 타입과 개수만** 지정하면 됩니다. 맞는 파티션으로 자동으로 보내지고 CPU, 메모리도
-GPU 수에 맞춰 배정됩니다. GPU 잡에 메모리를 적으면 제출이 거부됩니다. CPU 전용 잡은 CPU 수만 필요한 만큼 주세요.
+GPU 수에 맞춰 할당됩니다. GPU 잡에 메모리를 적으면 제출이 거부됩니다. CPU 전용 잡은 CPU 수만 필요한 만큼 주세요.
 -> [자동 할당과 라우팅](../reference/slurm.md#자동-할당과-라우팅)
 
 ### 어떤 GPU 타입을 써야 하나요?

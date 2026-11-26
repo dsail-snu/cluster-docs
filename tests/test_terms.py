@@ -5,7 +5,7 @@ a refused variant. The owner asked for the glossary on 2026-11-27, after "GPU를
 site_blocks.IDLE_JOB, which pages write through the term:idle_job block.
 
 Titles are nouns, sentences stay descriptive (owner, 2026-11-27): an entry's title form
-(GPU 유휴 잡, site_blocks.IDLE_JOB_TITLE) in every title, its sentence form everywhere
+(as 중단 노드 beside 쓸 수 없는 노드) in every title, its sentence form everywhere
 else, the title idioms (title_not) refused in titles, and no title ending a sentence
 outside the exempt files (site.json titles). A title here is a Markdown heading, a
 bold-only line or a list item's bold lead, a table header row, or a Slack guide's title,
@@ -125,8 +125,7 @@ class Terms(unittest.TestCase):
     def test_pages_write_the_idle_job_through_its_block(self):
         typed = [f"{p}:{n}" for p, text in texts() if p.startswith(PAGES)
                  for n, line in enumerate(text.splitlines(), 1)
-                 for name in (site_blocks.IDLE_JOB, site_blocks.IDLE_JOB_TITLE)
-                 if name in TERM_BLOCK.sub("", line)]  # fmt: skip
+                 if site_blocks.IDLE_JOB in TERM_BLOCK.sub("", line)]  # fmt: skip
         self.assertEqual(typed, [], "write <!-- BEGIN GENERATED: term:idle_job --> (or _title) instead")
 
     def test_titles_are_nouns_and_sentences_stay_descriptive(self):
@@ -134,18 +133,17 @@ class Terms(unittest.TestCase):
         self.assertEqual(found, [], "titles are nouns (deepops scripts/deepops/terms_ko.yml, titles)")
 
     def test_the_title_rules_catch_what_they_should(self):
-        self.assertTrue(title_problems("a.md", "## 할당받은 GPU를 쓰지 않는 잡\n"))
-        self.assertTrue(title_problems("a.md", "GPU 유휴 잡은 취소됩니다.\n"))
+        self.assertTrue(title_problems("a.md", "## 쓸 수 없는 노드\n"))
+        self.assertTrue(title_problems("a.md", "중단 노드는 잡을 받지 않습니다.\n"))
         self.assertTrue(title_problems("a.md", "# 사용 규정이 바뀝니다\n"))
         self.assertTrue(title_problems("a.md", "| 명령 | 하는 일 |\n|---|---|\n"))
-        self.assertFalse(title_problems("a.md", "## GPU 유휴 잡 { #old }\n\n할당받은 GPU를 쓰지 않는 잡은 취소됩니다.\n"))
+        self.assertFalse(title_problems("a.md", "## 중단 노드 { #old }\n\n쓸 수 없는 노드는 잡을 받지 않습니다.\n"))
         self.assertFalse(title_problems("a.md", "```bash\n# 확인합니다\n```\n"))
         self.assertFalse(title_problems(EXEMPT[0], "### 밖에서 접속이 안 돼요\n"))
 
     def test_the_name_is_the_glossarys_and_the_rule_says_allocated(self):
         glossary = next(e for e in DATA["terms"] if e.get("id") == "idle_job")
-        self.assertEqual(site_blocks.IDLE_JOB, glossary["use"])
-        self.assertEqual(site_blocks.IDLE_JOB_TITLE, glossary["title"])
+        self.assertEqual(site_blocks.IDLE_JOB, glossary["use"], "a noun in titles and sentences alike")
         data = {"policy": {"idle_hours": 2, "cancel_after_hours": 6, "cancel_warn_hours": 1, "idle_notify": ["dm"]}}
         for policy in (data["policy"], dict(data["policy"], cancel_after_hours=0)):
             rule = site_blocks.idle_rule({"policy": policy})

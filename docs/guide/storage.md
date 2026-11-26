@@ -36,12 +36,12 @@ df -h /home /scratch          # 공간 전체의 용량과 마운트 확인
 | `UV_CACHE_DIR` | `~/.cache/uv` | `/tmp/uv-cache` |
 <!-- END GENERATED: env:table -->
 
-`HF_HOME`은 로그인 토큰이 들어 있는 각자의 디렉터리입니다. 공유 위치로 옮기지 마세요.
+`HF_HOME`은 Hugging Face 로그인 토큰이 들어 있는 각자의 디렉터리입니다. 공유 위치로 옮기지 마세요.
 
 ## 공용 모델
 
 <!-- BEGIN GENERATED: models -->
-공용 모델 캐시는 `/home/shared/models/hub`에 있고, 모든 로그인과 잡에서 `SHARED_HF_HUB_CACHE`가 그곳을 가리킵니다. **읽기 전용**이라 여기에는 내려받을 수 없으니, 각자의 `HF_HUB_CACHE`로 바꾸지 말고 읽을 때 이 경로를 직접 주세요: `from_pretrained(<모델>, cache_dir=os.environ["SHARED_HF_HUB_CACHE"], local_files_only=True)`, 또는 `HF_HUB_OFFLINE=1 hf download <모델> --cache-dir "$SHARED_HF_HUB_CACHE"`가 출력하는 스냅샷 경로. 그 밖의 모델은 평소처럼 각자의 캐시(`HF_HOME` 아래)에 내려받고, 여럿이 쓸 모델은 관리자에게 요청하세요.
+공용 모델 캐시는 `/home/shared/models/hub`에 있고, 로그인 노드와 모든 잡에서 `SHARED_HF_HUB_CACHE`가 그곳을 가리킵니다. **읽기 전용**이라 여기에는 내려받을 수 없으니, 이 경로를 각자의 `HF_HUB_CACHE`로 정하지 말고 읽을 때 이 경로를 직접 지정해 주세요: `from_pretrained(<모델>, cache_dir=os.environ["SHARED_HF_HUB_CACHE"], local_files_only=True)`, 또는 `HF_HUB_OFFLINE=1 hf download <모델> --cache-dir "$SHARED_HF_HUB_CACHE"`가 출력하는 스냅샷 경로를 쓰시면 됩니다. 그 밖의 모델은 평소처럼 각자의 캐시(`HF_HOME` 아래)에 내려받고, 여럿이 쓸 모델은 관리자에게 요청하세요.
 <!-- END GENERATED: models -->
 
 ## 공간별 용도
@@ -109,7 +109,7 @@ scp -P <SSH 포트> file.tar.gz <아이디>@<로그인 주소>:/scratch/<아이�
 ## 용량 한도와 정리
 
 <!-- BEGIN GENERATED: quota:section -->
-사람마다 정해진 용량과 파일 수 상한은 없습니다. 사용량은 Slack 디스크 리포트(매일 09:00)로 알려 드립니다.
+사람마다 정해진 용량과 파일 수 한도는 없습니다. 사용량은 Slack 디스크 리포트(매일 09:00)로 알려 드립니다.
 <!-- END GENERATED: quota:section -->
 
 - 내 사용량은 `du`로 직접 세지 말고 <!-- BEGIN GENERATED: command:disk-usage -->`disk-usage`<!-- END GENERATED: command:disk-usage -->로 확인하세요: <!-- BEGIN GENERATED: command:disk-usage:what -->내 파일시스템별 사용량과 파일 수, 경고 수준과 한도, 정리하면 좋을 폴더, 최근 I/O<!-- END GENERATED: command:disk-usage:what -->.

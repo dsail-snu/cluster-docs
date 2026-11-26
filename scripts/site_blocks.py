@@ -33,7 +33,6 @@ Generators:
   quota:MOUNT:F   a limit of the filesystem at MOUNT: block_hard, block_warn (TB),
                   inode_hard, inode_warn (a count); quota:ratio, files per TB
   term:idle_job   the one name for a job whose allocated GPUs all sat idle (IDLE_JOB)
-  term:idle_job_title  its title form, for a heading or a bold lead (IDLE_JOB_TITLE)
   rule:idle       the rule on such jobs as a sentence: that the owner is told from the
                   idle hours (or, with policy.idle_notify empty, only listed), and the
                   cancel with its warning, or that no cancel is active (cancel 0)
@@ -56,11 +55,14 @@ Generators:
                   muted from the bot's Home tab when the bot runs, or nothing
   paths:shared_data the shared data folders, as paths
   chat:ROLE       the Slack channel of ROLE (announce, help, status, admin), as code
+  rule:idle:plain, rule:sessions:plain
+                  the same in the rule pages' -한다 register (docs/policy/ai-agents.md and
+                  the snippets it includes)
   rule:sessions   whether srun and salloc GPU sessions must name a team QoS, checked at
                   submit (policy.interactive_team_qos), or only asked to
   quota:section   the per-person disk limits (what happens at one, the warning, a table),
                   or that there are none: it appears when the cluster sets limits
-  quota:each:M    "한 사람에 5 TB까지 쓰실 수 있고, " for mount M, or nothing
+  quota:each:M    "한 사람당 5 TB까지 쓰실 수 있고, " for mount M, or nothing
   bot:section, bot:unban, bot:leave, bot:data, bot:join
                   the /cluster command's requests, or whom to ask while the cluster runs
                   no bot (site.json services.bot)
@@ -89,12 +91,10 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data" / "site.json"
 # A block may sit indented in a list item: its body takes the BEGIN marker's indent.
 # The one name for a job whose allocated GPUs all sat idle, as deepops' usage report
-# names it (cluster_tools.usage_report.IDLE_JOB). Without "allocated" it reads as a
-# CPU-only job (owner, 2026-11-27); pages write it through term:idle_job, and
-# tests/test_terms.py refuses the old phrasings.
-IDLE_JOB = "할당받은 GPU를 쓰지 않는 잡"
-# Its title form (titles are nouns, owner 2026-11-27): term:idle_job_title in a heading.
-IDLE_JOB_TITLE = "GPU 유휴 잡"
+# names it (cluster_tools.usage_report.IDLE_JOB): a noun in titles and sentences alike
+# (owner, 2026-11-27); pages write it through term:idle_job, and tests/test_terms.py
+# holds it to deepops' glossary (site.json terms).
+IDLE_JOB = "GPU 유휴 잡"
 BLOCK = re.compile(r"^([ ]*)(<!-- BEGIN GENERATED: (\S+) -->\n)(.*?)([ ]*<!-- END GENERATED: \3 -->)", re.S | re.M)
 
 
@@ -162,33 +162,39 @@ def submit_refusals(data):
     if p.get("max_submit_jobs"):
         out.append("### `Job violates accounting/QOS policy`\n\n"
                    f"대기 중인 잡과 실행 중인 잡을 합쳐 한 사람이 **{p['max_submit_jobs']:,}개**까지 제출해 둘 수 있습니다. "
-                   "배열 잡은 작업 하나하나를 셉니다. 앞의 잡이 끝나거나 필요 없는 잡을 취소하면 다시 제출할 수 있습니다. "
+                   "배열 잡은 그 안의 태스크 하나하나를 잡 하나로 셉니다. 앞의 잡이 끝나거나 필요 없는 잡을 취소하면 다시 제출할 수 있습니다. "
                    "내 잡 수는 `squeue --me -h -r | wc -l`로 봅니다.\n")  # fmt: skip
     if p.get("submit_holds"):
         out.append(f"### `{m['hold_ended']}`\n\n"
-                   "소속 기간이 끝나 새 잡을 낼 수 없습니다. 실행 중인 잡은 그대로 돌고, 로그인은 메시지에 적힌 날까지 남아 있으니 "
+                   "소속 기간이 끝나 새 잡을 낼 수 없습니다. 실행 중인 잡은 그대로 돌고, 로그인은 메시지에 적힌 날까지 할 수 있으니 "
                    "그 전에 파일을 옮겨 주세요. 기간이 잘못되었다면 관리자에게 알려 주세요.\n")  # fmt: skip
         if p.get("submit_holds_disk"):
             out.append(f"### `{m['hold_disk']}`\n\n"
-                       "메시지에 적힌 곳에서 용량이나 파일 수가 한도에 닿아, 공간을 비울 때까지 새 잡을 낼 수 없습니다. 그곳에는 쓰기도 실패합니다. "
+                       "메시지에 적힌 곳에서 용량이나 파일 수가 한도에 닿아, 공간을 비울 때까지 새 잡을 낼 수 없습니다. 그곳에는 파일을 더 쓸 수도 없습니다. "
                        f"{command(data, 'disk-usage')}로 어디에 얼마나 쓰는지와 정리하면 좋을 폴더를 보고 공간을 비우면, "
-                       "곧 다시 제출할 수 있습니다. 실행 중인 잡은 그대로 돕니다.\n")  # fmt: skip
+                       "곧 다시 제출할 수 있습니다. 실행 중인 잡은 그대로 실행됩니다.\n")  # fmt: skip
     return "\n".join(out) or "\n"
 
 
-def idle_rule(data):
+def idle_rule(data, plain=False):
+    """The rule on jobs leaving their GPUs idle as a sentence; PLAIN in the rule pages' -한다 register
+    (docs/policy/ai-agents.md and the snippets it includes), else the guides' polite one."""
     p = data["policy"]
     # How the owner is told (a mention in the report, a DM) is the cluster's setting
     # (policy.idle_notify) and not stated here; with none, the report only lists the job.
     if set(p["idle_notify"]) - {"mention", "dm"}:
         raise ValueError(f"policy.idle_notify {p['idle_notify']!r}: teach scripts/site_blocks.py idle_rule")
-    told = "알려 드립니다" if p["idle_notify"] else "사용 현황 리포트에 표시됩니다"
+    tell, shown, cancel, warn, kept = (
+        ("알린다", "사용 현황 리포트에 표시된다", "취소되고", "미리 알린다", "취소하지는 않는다") if plain
+        else ("알려 드립니다", "사용 현황 리포트에 표시됩니다", "취소되며", "미리 알려 드립니다", "취소하지는 않습니다")
+    )  # fmt: skip
+    told = tell if p["idle_notify"] else shown
     text = f"Slurm 잡이 할당받은 GPU를 **{p['idle_hours']}시간 넘게 쓰지 않으면** {told}."
     if p["cancel_after_hours"]:
-        text += (f" 할당받은 GPU를 **{p['cancel_after_hours']}시간** 동안 쓰지 않은 잡은 자동으로 취소되며, "
-                 f"취소 **{p['cancel_warn_hours']}시간 전**에 미리 알려 드립니다.")
+        text += (f" 할당받은 GPU를 **{p['cancel_after_hours']}시간** 동안 쓰지 않은 잡은 자동으로 {cancel}, "
+                 f"취소 **{p['cancel_warn_hours']}시간 전**에 {warn}.")
     else:
-        text += f" {IDLE_JOB}을 자동으로 취소하지는 않습니다."
+        text += f" {IDLE_JOB}을 자동으로 {kept}."
     return text + "\n"
 
 
@@ -220,11 +226,11 @@ PORTAL_GROUPS = {
 # at their own jobs and nodes. tests/test_site_blocks.py holds every exported uid to a line.
 DASHBOARDS = {
     "slurm-gpu-allocation": "지금 GPU마다 누가 어떤 잡으로 쓰는지(**Allocations now**), 잡별 GPU 사용률과 메모리, "
-                            "사람별, 팀별 할당. 내 잡이 도는 노드와 GPU를 여기서 찾습니다.",
+                            "사람별, 팀별 할당. 내 잡이 실행 중인 노드와 GPU를 여기서 찾습니다.",
     "gpu-nodes": "GPU 노드 한 대의 GPU(사용률, 메모리, 온도, 전력)와 CPU, 메모리, 디스크, 네트워크. "
                  "위쪽의 **hostname**에서 노드를 고릅니다.",
     "slurm-scheduler": "클러스터 전체의 노드 상태, 쓰고 있는 CPU와 GPU, 실행 중인 잡과 대기 중인 잡.",
-    "storage-person": "한 사람의 파일시스템별 사용량과 파일 수(경고 수준과 한도), 정리하면 좋을 폴더, 내 잡과 로그인의 I/O를 "
+    "storage-person": "한 사람의 파일시스템별 사용량과 파일 수(경고 수준과 한도), 정리하면 좋을 폴더, 그 사람의 잡과 로그인 노드 작업의 I/O를 "
                       "시간에 따라 봅니다. `disk-usage`가 보여 주는 값입니다. 위쪽의 **user**에서 사람을 고릅니다.",
     "storage-io": "공유 스토리지(NFS)와 디스크를 누가 얼마나 읽고 쓰는지: 노드별, 잡별(**Top jobs by I/O**).",
     "node-exporter-hosts": "모든 호스트의 자세한 수치(CPU, 메모리, 디스크, 네트워크). 위쪽의 **nodename**에서 "
@@ -272,11 +278,11 @@ def service(data, name):
         return "웹 대시보드는 운영하지 않습니다. `sq`와 `gpu-usage`로 확인해 주세요.\n"
     if name == "job_notices":
         if not svc["job_notices"]:
-            return "잡에 `--mail-type`을 적어도 알림은 보내지 않습니다.\n"
+            return "잡에 `--mail-type`을 적더라도 알림은 보내지 않습니다.\n"
         mute = " 받지 않으려면 봇의 홈 탭에서 끄실 수 있습니다." if svc["bot"] else ""
-        return ("잡에 `--mail-type=END,FAIL`(또는 `BEGIN`, `ALL` 등)을 적으면 그 일이 생길 때 잡의 주인에게 "
-                "Slack DM으로 알려 드립니다. 메일은 보내지 않으니 `--mail-user`는 적지 않으셔도 되고, 적어도 "
-                f"받는 사람은 잡의 주인입니다. 짧은 사이에 생긴 알림은 한 메시지로 모아 드립니다.{mute}\n")
+        return ("잡에 `--mail-type=END,FAIL`(또는 `BEGIN`, `ALL` 등)을 적으면 적은 일(시작, 끝, 실패 등)이 생길 때 잡의 주인에게 "
+                "Slack DM으로 알려 드립니다. 메일은 보내지 않으니 `--mail-user`는 적지 않으셔도 되고, 적으시더라도 "
+                f"알림은 잡의 주인에게 갑니다. 짧은 사이에 생긴 알림은 한 메시지로 모아 드립니다.{mute}\n")
     raise SystemExit(f"unknown generated block: service:{name}")
 
 
@@ -286,10 +292,16 @@ def shared_data(data):
     return ", ".join(f"`{root}/{d}`" for d in data["paths"]["shared_data"]) + "\n"
 
 
-def sessions_rule(data):
+def sessions_rule(data, plain=False):
+    """Whether GPU sessions must name a team QoS; PLAIN in the rule pages' register."""
     if data["policy"]["interactive_team_qos"]:
+        if plain:
+            return ("`srun`, `salloc`으로 여는 GPU 세션은 팀 QoS(`--qos=<팀 QoS>`)로만 시작할 수 있다. "
+                    "팀 QoS 없이 제출하면 `qos`로 내 QoS를 확인하라는 안내와 함께 거부된다.\n")
         return ("`srun`, `salloc`으로 여는 GPU 세션은 팀 QoS(`--qos=<팀 QoS>`)로만 시작할 수 있습니다. "
                 "팀 QoS 없이 제출하면 `qos`로 내 QoS를 확인하라는 안내와 함께 거부됩니다.\n")
+    if plain:
+        return "`srun`, `salloc`으로 여는 GPU 세션은 팀 QoS(`--qos=<팀 QoS>`)로 실행한다.\n"
     return "`srun`, `salloc`으로 여는 GPU 세션은 팀 QoS(`--qos=<팀 QoS>`)로 실행해 주세요.\n"
 
 
@@ -308,7 +320,7 @@ def login_limits(data):
     parts = login_parts(data)
     if not parts:
         return "로그인 노드에는 사람별 자원 한도가 따로 걸려 있지 않습니다.\n"
-    return f"로그인 노드에는 한 사람당 {', '.join(parts)}까지 쓰실 수 있도록 제한이 걸려 있습니다.\n"
+    return f"로그인 노드에서는 한 사람이 {', '.join(parts)}까지 쓰실 수 있습니다.\n"
 
 
 def table(header, rows):
@@ -343,16 +355,16 @@ def quota_section(data):
     at a limit, the warning, a table, the files per TB; or that there are none yet."""
     q, p = data["quota"], data["policy"]
     if not q:
-        return ("사람마다 정해진 용량과 파일 수 상한은 없습니다. 사용량은 Slack 디스크 리포트"
+        return ("사람마다 정해진 용량과 파일 수 한도는 없습니다. 사용량은 Slack 디스크 리포트"
                 f"({report_when(data, 'disk')})로 알려 드립니다.\n")
     spaces = "과 ".join(f"`{m}`" for m in q) if len(q) == 2 else ", ".join(f"`{m}`" for m in q)
-    held = " 새 잡 제출도 보류되니" if p.get("submit_holds_disk") else "니"
+    held = "고 새 잡 제출도 보류되니" if p.get("submit_holds_disk") else "으니"
     rows = [(f"`{m}`", f"{_tb(v['block_hard_tib'])} | {count(v['inode_hard'])}개") for m, v in q.items()]
     first = next(iter(q.values()))
     return (
-        f"사람마다 {spaces}에 아래 용량과 파일 수 상한이 있습니다. 상한에 이르면 그 공간에 더 쓸 수 없고{held}, "
-        f"그 전에 정리해 주시면 감사하겠습니다. 상한의 {round(p['warn_fraction'] * 100)}%에 이르면 Slack으로 미리 알려 드립니다.\n\n"
-        + "| 공간 | 용량 상한 | 파일 수 상한 |\n|---|---|---|\n"
+        f"사람마다 {spaces}에 아래 용량과 파일 수 한도가 있습니다. 한도에 이르면 그 공간에 더 쓸 수 없{held}, "
+        f"그 전에 정리해 주시면 감사하겠습니다. 한도의 {round(p['warn_fraction'] * 100)}%에 이르면 Slack으로 미리 알려 드립니다.\n\n"
+        + "| 공간 | 용량 한도 | 파일 수 한도 |\n|---|---|---|\n"
         + "".join(f"| {a} | {b} |\n" for a, b in rows)
         + f"\n- 파일 수 한도는 용량에 비례합니다(1 TB당 {count(round(first['inode_hard'] / first['block_hard_tib']))}개). "
         "작은 파일 수천만 개는 파일 서버의 모든 사용자를 느리게 하니 묶음 포맷(tar, WebDataset, HDF5, Arrow 등)을 써 주세요.\n"
@@ -362,7 +374,7 @@ def quota_section(data):
 def quota_each(data, mount):
     """One filesystem's per-person limit as the start of a sentence, or nothing."""
     q = data["quota"].get(mount)
-    return f"한 사람에 {_tb(q['block_hard_tib'])}까지 쓰실 수 있고, \n" if q else "\n"
+    return f"한 사람당 {_tb(q['block_hard_tib'])}까지 쓰실 수 있고, \n" if q else "\n"
 
 
 def bot(data, name):
@@ -384,8 +396,8 @@ def bot(data, name):
                 "아무 채널에서나 아래 명령을 입력해 주세요.\n\n" + bot_subcommands(data)
                 + "\n관리자가 승인하면 봇이 DM으로 알려 드립니다. 봇의 홈 탭에서 내 신청과 공동작업 폴더를 보실 수 있습니다.\n")  # fmt: skip
     if name == "join":
-        return (f"아직 계정이 없다면 Slack에서 {cmd('join')}으로 신청하세요.\n" if on
-                else "아직 계정이 없다면 관리자에게 신청하세요.\n")  # fmt: skip
+        return (f"아직 계정이 없다면 Slack에서 {cmd('join')}으로 신청해 주세요.\n" if on
+                else "아직 계정이 없다면 관리자에게 신청해 주세요.\n")  # fmt: skip
     if name == "unban":
         return f"{cmd('unban')}으로 해제를 신청해 주세요.\n" if on else "관리자에게 해제를 요청해 주세요.\n"
     if name == "leave":
@@ -442,9 +454,9 @@ def threads_section(data):
     rows += [f"| `{k['name']}` | {KNOB_KIND[k['kind']]} | {knob_value(k['value'])} |" for k in knobs]
     return ("## CPU 스레드 수와 빌드 병렬 수\n\n"
             "많은 라이브러리와 빌드 도구는 노드에 달린 CPU 수만큼 스레드나 병렬 작업을 띄웁니다. "
-            "로그인 노드나 잡이 받은 코어는 그보다 적어서, 그대로 두면 코어 수보다 훨씬 많은 스레드가 코어를 나눠 쓰느라 오히려 느려집니다. "
-            "그래서 클러스터가 아래 변수를 받은 CPU에 맞게 정해 둡니다.\n\n"
-            "- **계산 스레드**: 로그인 노드에서는 쓸 수 있는 CPU 수, 잡 안에서는 작업자 하나의 몫입니다. "
+            "로그인 노드에서 쓸 수 있는 CPU나 잡이 받은 CPU는 그보다 적어서, 그대로 두면 코어 수보다 훨씬 많은 스레드가 코어를 나눠 쓰느라 오히려 느려집니다. "
+            "그래서 클러스터가 쓸 수 있는 CPU 수에 맞춰 아래 변수를 정해 둡니다.\n\n"
+            "- **계산 스레드**: 로그인 노드에서는 쓸 수 있는 CPU 수, 잡 안에서는 태스크 하나의 몫입니다. "
             "몫은 `--cpus-per-task`이고, 그것이 없으면 그 노드에서 받은 CPU를 태스크 수나 GPU 수로 나눈 값입니다.\n"
             "- **빌드 병렬 수**: 로그인 노드에서는 쓸 수 있는 CPU 수, 잡 안에서는 그 노드에서 잡이 받은 CPU 수입니다.\n\n"
             "이 값은 코어 수보다 스레드를 지나치게 많이 띄워 느려지는 일을 막는 기본값이라, 필요에 맞게 바꿔 쓰셔도 됩니다. "
@@ -456,11 +468,11 @@ def models(data):
     hub = env(data).get("SHARED_HF_HUB_CACHE")
     if not hub:
         return "공용 모델 캐시는 없습니다. 모델은 각자 `HF_HOME` 아래에 내려받습니다.\n"
-    return (f"공용 모델 캐시는 `{hub['login']}`에 있고, 모든 로그인과 잡에서 `SHARED_HF_HUB_CACHE`가 그곳을 가리킵니다. "
-            "**읽기 전용**이라 여기에는 내려받을 수 없으니, 각자의 `HF_HUB_CACHE`로 바꾸지 말고 읽을 때 "
-            "이 경로를 직접 주세요: `from_pretrained(<모델>, cache_dir=os.environ[\"SHARED_HF_HUB_CACHE\"], "
+    return (f"공용 모델 캐시는 `{hub['login']}`에 있고, 로그인 노드와 모든 잡에서 `SHARED_HF_HUB_CACHE`가 그곳을 가리킵니다. "
+            "**읽기 전용**이라 여기에는 내려받을 수 없으니, 이 경로를 각자의 `HF_HUB_CACHE`로 정하지 말고 읽을 때 "
+            "이 경로를 직접 지정해 주세요: `from_pretrained(<모델>, cache_dir=os.environ[\"SHARED_HF_HUB_CACHE\"], "
             "local_files_only=True)`, 또는 `HF_HUB_OFFLINE=1 hf download <모델> --cache-dir \"$SHARED_HF_HUB_CACHE\"`가 "
-            "출력하는 스냅샷 경로. 그 밖의 모델은 평소처럼 각자의 캐시(`HF_HOME` 아래)에 내려받고, 여럿이 쓸 모델은 "
+            "출력하는 스냅샷 경로를 쓰시면 됩니다. 그 밖의 모델은 평소처럼 각자의 캐시(`HF_HOME` 아래)에 내려받고, 여럿이 쓸 모델은 "
             "관리자에게 요청하세요.\n")
 
 
@@ -489,12 +501,10 @@ def body(data, name):
         return policy(data, arg)
     if kind == "quota":
         return quota(data, arg)
-    if name == "rule:idle":
-        return idle_rule(data)
+    if name in ("rule:idle", "rule:idle:plain"):
+        return idle_rule(data, plain=name.endswith(":plain"))
     if name == "term:idle_job":
         return f"{IDLE_JOB}\n"
-    if name == "term:idle_job_title":
-        return f"{IDLE_JOB_TITLE}\n"
     if kind == "date":
         return f"{data['dates'][arg]}\n"
     if kind == "day":
@@ -519,8 +529,8 @@ def body(data, name):
         return shared_data(data)
     if kind == "chat" and arg in data["chat"]["channels"]:
         return f"`{data['chat']['channels'][arg]}`\n"
-    if name == "rule:sessions":
-        return sessions_rule(data)
+    if name in ("rule:sessions", "rule:sessions:plain"):
+        return sessions_rule(data, plain=name.endswith(":plain"))
     if name == "login:limits":
         return login_limits(data)
     if kind == "bot" and arg in ("section", "unban", "leave", "data", "join"):

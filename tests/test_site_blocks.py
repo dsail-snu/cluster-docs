@@ -92,7 +92,7 @@ class Blocks(unittest.TestCase):
 
     def test_the_limits_appear_when_the_cluster_sets_them(self):
         none = dict(DATA, quota={})
-        self.assertIn("상한은 없습니다", site_blocks.quota_section(none))
+        self.assertIn("한도는 없습니다", site_blocks.quota_section(none))
         self.assertIn("디스크 리포트(매일 08:30)", site_blocks.quota_section(none))
         self.assertEqual(site_blocks.quota_each(none, "/scratch"), "\n")
         q = {"/home": {"block_hard_tib": 10.0, "block_warn_tib": 9.0, "inode_hard": 30000000, "inode_warn": 27000000}}
@@ -101,7 +101,7 @@ class Blocks(unittest.TestCase):
         self.assertIn("| `/home` | 10 TB | 3,000만개 |", text)
         self.assertIn("새 잡 제출도 보류", text)
         self.assertNotIn("보류", site_blocks.quota_section(dict(on, policy=dict(on["policy"], submit_holds_disk=False))))
-        self.assertEqual(site_blocks.quota_each(on, "/home"), "한 사람에 10 TB까지 쓰실 수 있고, \n")
+        self.assertEqual(site_blocks.quota_each(on, "/home"), "한 사람당 10 TB까지 쓰실 수 있고, \n")
 
     def test_the_bot_as_the_cluster_runs_it(self):
         bot = {"command": "/c", "subcommands": [{"name": n, "help": n} for n in ("unban", "leave", "data", "help")]}
@@ -167,7 +167,7 @@ class Blocks(unittest.TestCase):
     def test_the_login_limits_as_a_sentence(self):
         data = dict(DATA, login={"cpus": 8, "memory_gib": 64, "tasks": 4096})
         self.assertEqual(site_blocks.login_limits(data),
-                         "로그인 노드에는 한 사람당 CPU 8개, 메모리 64 GB, 프로세스 4,096개까지 쓰실 수 있도록 제한이 걸려 있습니다.\n")
+                         "로그인 노드에서는 한 사람이 CPU 8개, 메모리 64 GB, 프로세스 4,096개까지 쓰실 수 있습니다.\n")
         self.assertIn("걸려 있지 않습니다", site_blocks.login_limits(dict(DATA, login={})))
 
     def test_the_shared_model_cache_is_read_by_name_never_as_hf_hub_cache(self):

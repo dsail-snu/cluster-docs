@@ -11,7 +11,7 @@ bookmark: :bar_chart: | 모니터링 안내 | guide/monitoring.md
 
 [[reports]]
 
-## [[term:idle_job_title]]
+## [[term:idle_job]]
 
 [[rule:idle]]
 

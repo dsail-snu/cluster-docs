@@ -20,7 +20,7 @@ module list                  # 현재 로드된 모듈
 module unload cuda           # 빼기
 module purge                 # 전부 초기화
 module spider cuda           # 검색 (다른 모듈에 딸린 것까지)
-module show cuda/<버전>      # 이 모듈이 어떤 환경변수를 바꾸는지
+module show cuda/<버전>      # 이 모듈이 어떤 환경 변수를 바꾸는지
 ```
 
 | 명령 | 언제 쓰나 |
@@ -28,7 +28,7 @@ module show cuda/<버전>      # 이 모듈이 어떤 환경변수를 바꾸는�
 | `module avail` | 무엇이 설치되어 있는지 볼 때 |
 | `module load` / `unload` | 쓰거나 뺄 때 |
 | `module list` | 지금 무엇이 로드되어 있는지 볼 때 |
-| `module purge` | 환경이 꼬였을 때 처음부터 다시 |
+| `module purge` | 환경이 꼬여 처음부터 다시 시작할 때 |
 | `module spider` | `avail`에 안 보이는 모듈을 찾을 때 |
 
 !!! note
@@ -91,9 +91,9 @@ uv run python train.py        # 프로젝트 환경으로 실행 (활성화가 �
 |---|---|
 | PyTorch, TensorFlow만 쓴다 | pip 휠에 CUDA 런타임이 들어 있어 보통 `module load cuda`가 필요 없습니다 (드라이버만 맞으면 됨) |
 | 직접 CUDA 코드를 컴파일한다 (custom 커널 등) | `module load cuda/<버전>`으로 `nvcc`를 맞춥니다 |
-| 홈 용량이 부족하다 | `uv cache prune` 으로 쓰지 않는 캐시를 정리. 용량 확인은 [스토리지](storage.md) |
+| 홈 용량이 부족하다 | `uv cache prune`으로 쓰지 않는 캐시를 정리. 용량 확인은 [스토리지](storage.md) |
 | 환경을 다른 곳에서 재현하고 싶다 | `pyproject.toml`과 `uv.lock`을 함께 두면 `uv sync`로 똑같이 만듭니다 |
-| 이미 conda 환경이 있다 | 그대로 써도 됩니다. 새 프로젝트부터 uv로 옮기는 것을 권장합니다 |
+| 이미 conda 환경이 있다 | 그대로 써도 됩니다. 새 프로젝트는 uv로 시작하는 것을 권장합니다 |
 
 ---
 
@@ -134,7 +134,7 @@ uv run python train.py
 | 클러스터에 설치해 둔 공용 소프트웨어 | `module load <이름>` |
 | CUDA 툴킷 | `module load cuda/<버전>` |
 
-- 공유 스토리지에 있고 사용자는 읽기만 합니다. 모든 노드에서 똑같이 보입니다.
+- 공유 스토리지에 있고 사용자는 읽기만 할 수 있습니다. 모든 노드에서 똑같이 보입니다.
 - 여러 사람이 쓸 소프트웨어가 필요하면 [관리자에게 요청](../help.md)하세요. 설치되면 모두가
   `module load`로 씁니다.
 - 나만 쓸 소프트웨어는 홈에 설치하고, 원하면 개인 모듈 파일을 만들어 `module use ~/modulefiles`로

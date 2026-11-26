@@ -702,6 +702,167 @@
       "write_iops": 483
     }
   },
+  "terms": [
+    {
+      "id": "idle_job",
+      "not": [
+        "(?<!할당받은 )GPU를 (?:\\S+ ){0,2}쓰지 않",
+        "GPU를 할당받아 두고",
+        "유휴 (?:GPU|잡)",
+        "쉬(?:는|던) 잡",
+        "잡아 둔"
+      ],
+      "scope": [],
+      "use": "할당받은 GPU를 쓰지 않는 잡",
+      "why": "\"GPU를 쓰지 않는 잡\" alone reads as a CPU-only job (owner, 2026-11-27); the GPUs were allocated to it. Its rule: every GPU it was allocated sat idle the whole time."
+    },
+    {
+      "not": [
+        "(?i:\\bidle[- ](?:GPU )?(?:jobs?|rule)\\b)"
+      ],
+      "scope": [],
+      "use": "a job leaving its GPUs idle",
+      "why": "The English for the same job, as plain as the Korean."
+    },
+    {
+      "not": [
+        "기다리는 잡",
+        "대기 잡",
+        "대기하는 잡"
+      ],
+      "scope": [],
+      "use": "대기 중인 잡",
+      "why": "Slurm's PENDING, as the owner names it (2026-11-27); a verb phrase as a noun reads loosely."
+    },
+    {
+      "not": [
+        "도는 잡",
+        "돌고 있는 잡"
+      ],
+      "scope": [],
+      "use": "실행 중인 잡",
+      "why": "Slurm's RUNNING, in the words the reports use; \"도는\" is spoken Korean."
+    },
+    {
+      "not": [
+        "돌던 잡"
+      ],
+      "scope": [],
+      "use": "실행 중이던 잡",
+      "why": "The same, for jobs that were running when something happened."
+    },
+    {
+      "not": [
+        "공개 키"
+      ],
+      "scope": [],
+      "use": "공개키",
+      "why": "One spelling, the one most pages already use (as 개인키)."
+    },
+    {
+      "not": [
+        "개인 키"
+      ],
+      "scope": [],
+      "use": "개인키",
+      "why": "One spelling, as 공개키."
+    },
+    {
+      "not": [
+        "에러"
+      ],
+      "scope": [],
+      "use": "오류",
+      "why": "The standard word (National Institute of Korean Language), and the one most texts use."
+    },
+    {
+      "not": [
+        "디스크 할당량"
+      ],
+      "scope": [],
+      "use": "디스크 한도",
+      "why": "The disk limit is a 한도 everywhere else (경고 수준과 한도); 할당량 is what a job is given."
+    },
+    {
+      "not": [
+        "잡(?:은|이) 제출되지 않"
+      ],
+      "scope": [],
+      "use": "잡을 제출할 수 없습니다",
+      "why": "The person cannot submit; the passive reads as if the jobs failed on their own."
+    },
+    {
+      "not": [
+        "사람 명부"
+      ],
+      "scope": [],
+      "use": "명부",
+      "why": "The roster is 명부 in every other text."
+    },
+    {
+      "not": [
+        "컴퓨트 노드",
+        "연산 노드"
+      ],
+      "scope": [],
+      "use": "계산 노드",
+      "why": "The docs' word for the nodes jobs run on, beside 로그인 노드."
+    },
+    {
+      "not": [
+        "디렉토리"
+      ],
+      "scope": [],
+      "use": "디렉터리",
+      "why": "The standard spelling, the one every text uses."
+    },
+    {
+      "not": [
+        "공유 저장소"
+      ],
+      "scope": [],
+      "use": "공유 스토리지",
+      "why": "The docs' word for the shared filesystems."
+    },
+    {
+      "not": [
+        "도움 채널"
+      ],
+      "scope": [],
+      "use": "질문 채널",
+      "why": "The help channel's name in the channel guides (slack/help.md) and notices."
+    },
+    {
+      "not": [
+        "공동 작업 폴더",
+        "프로젝트 폴더"
+      ],
+      "scope": [],
+      "use": "공동작업 폴더",
+      "why": "The bot's name for a shared folder (/cluster project), written one way."
+    },
+    {
+      "not": [
+        "프로젝트"
+      ],
+      "scope": [
+        "roles/cluster_bot/"
+      ],
+      "use": "공동작업 폴더",
+      "why": "The bot's buttons and messages called one folder both 공동작업 폴더 and 프로젝트; elsewhere 프로젝트 is a uv project."
+    },
+    {
+      "not": [
+        "관리자(?:와 멤버| \\(|만 할 수|가 됩니다| 중 한 명)",
+        "함께 관리할 사람"
+      ],
+      "scope": [
+        "roles/cluster_bot/"
+      ],
+      "use": "소유자",
+      "why": "A shared folder's owners were 관리자, the cluster administrators' word, so \"관리자가 승인합니다\" meant two people."
+    }
+  ],
   "threads": {
     "variables": [
       {

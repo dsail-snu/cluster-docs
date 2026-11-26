@@ -17,6 +17,7 @@ CI runs it with --check, so a page whose block no longer matches the data fails 
 
 Generators:
   options:CMD     the options of the cluster command CMD, as a table
+  options:all     every cluster command's options, each under its own heading
   policy:FIELD    one value of site.json policy; warn_percent is warn_fraction as a percent
   date:NAME       one announced date (the site's schedule); in notices only (docs/news/)
   day:NAME        the same with its weekday, as the notices write it: 2026-11-25(수)
@@ -92,6 +93,11 @@ def policy(data, field):
     if field == "warn_percent":
         return f"{round(p['warn_fraction'] * 100)}%\n"
     return f"{p[field]}\n"
+
+
+def options_all(data):
+    """Every cluster command's options, each under a heading of its own."""
+    return "\n".join(f"#### `{c}`의 옵션\n\n" + options(data, c) for c in sorted(data["commands"]))
 
 
 def idle_rule(data):
@@ -385,6 +391,8 @@ def body(data, name):
         return quota_section(data)
     if name.startswith("quota:each:"):
         return quota_each(data, name.removeprefix("quota:each:"))
+    if name == "options:all":
+        return options_all(data)
     if kind == "options":
         return options(data, arg)
     if kind == "policy":

@@ -212,5 +212,25 @@ class Blocks(unittest.TestCase):
         self.assertEqual(site_blocks.main(["--check"]), 0, "run scripts/site_blocks.py")
 
 
+class EveryCommand(unittest.TestCase):
+    """The reference listed options for sq and qos only; disk-usage, gpu-usage and
+    scratch-space had none (2026-11-27 audit)."""
+
+    def test_every_commands_options_under_its_heading(self):
+        data = dict(DATA, commands={**DATA["commands"], "other": {"summary_ko": "x", "options": []}})
+        out = site_blocks.body(data, "options:all")
+        self.assertIn("#### `other`의 옵션", out)
+        self.assertIn("#### `tool`의 옵션", out)
+        self.assertIn("| `-a`, `--all` | everything |", out)
+
+    def test_the_reference_shows_every_cluster_commands_options(self):
+        import json
+
+        real = json.loads(site_blocks.DATA.read_text())
+        page = (site_blocks.ROOT / "docs/reference/slurm.md").read_text()
+        for command in real["commands"]:
+            self.assertIn(f"#### `{command}`의 옵션", page, "options:all on docs/reference/slurm.md")
+
+
 if __name__ == "__main__":
     unittest.main()

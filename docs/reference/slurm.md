@@ -37,11 +37,67 @@
 
 ### 클러스터 명령의 옵션
 
-`sq`와 `qos`의 옵션입니다. 명령의 정의에서 만들어지므로 `--help`와 같습니다.
+클러스터 명령마다의 옵션입니다. 명령의 정의에서 만들어지므로 `--help`와 같습니다.
+
+<!-- BEGIN GENERATED: options:all -->
+#### `disk-usage`의 옵션
+
+| 옵션 | 설명 |
+|---|---|
+| `-u`, `--user` `NAME` | someone else's figures instead of yours |
+| `--hours` `N` | the I/O window, in hours (default 24) |
+| `--top` `N` | rows per table of folders and I/O (default 10) |
+| `--json` | the figures as JSON, for scripts |
+| `--theme` `FLAVOUR` | catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command |
+| `--themes` | list the flavours with a swatch |
+| `--color` `WHEN`, `--colour` `WHEN` | always, never or auto (default; $NO_COLOR is honoured) |
+| `--no-color`, `--no-colour` | the same as --color never |
+| `--ascii` | ASCII glyphs for terminals without UTF-8 |
+| `--wide` | every column at full width, whatever the terminal fits |
+
+#### `gpu-usage`의 옵션
+
+| 옵션 | 설명 |
+|---|---|
+| `--source` `WHERE` | auto (default: Slurm's figures where the job has them, else Prometheus'), slurm or prometheus |
+| `--json` | the figures as JSON, for scripts |
+| `--theme` `FLAVOUR` | catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command |
+| `--themes` | list the flavours with a swatch |
+| `--color` `WHEN`, `--colour` `WHEN` | always, never or auto (default; $NO_COLOR is honoured) |
+| `--no-color`, `--no-colour` | the same as --color never |
+| `--ascii` | ASCII glyphs for terminals without UTF-8 |
+| `--wide` | every column at full width, whatever the terminal fits |
+
+#### `qos`의 옵션
+
+| 옵션 | 설명 |
+|---|---|
+| `-m`, `--me` | only the QoS you may submit against |
+| `-a`, `--all` | include QoS held by no user (Slurm's built-in normal) |
+| `-u`, `--user` `NAME` | answer for someone else instead of you |
+| `--usage` | the live usage figures (--no-usage skips the job list) |
+| `--json` | the model as JSON, for scripts (ignores $QOS_OPTIONS) |
+| `--theme` `FLAVOUR` | catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command |
+| `--themes` | list the flavours with a swatch |
+| `--color` `WHEN`, `--colour` `WHEN` | always, never or auto (default; $NO_COLOR is honoured) |
+| `--no-color`, `--no-colour` | the same as --color never |
+| `--ascii` | ASCII glyphs for terminals without UTF-8 |
+| `--wide` | every column at full width, whatever the terminal fits |
+
+#### `scratch-space`의 옵션
+
+| 옵션 | 설명 |
+|---|---|
+| `--root` `DIR` | the scratch space (default: the cluster's, scratch_root in cluster.json) |
+| `--theme` `FLAVOUR` | catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command |
+| `--themes` | list the flavours with a swatch |
+| `--color` `WHEN`, `--colour` `WHEN` | always, never or auto (default; $NO_COLOR is honoured) |
+| `--no-color`, `--no-colour` | the same as --color never |
+| `--ascii` | ASCII glyphs for terminals without UTF-8 |
+| `--wide` | every column at full width, whatever the terminal fits |
 
 #### `sq`의 옵션
 
-<!-- BEGIN GENERATED: options:sq -->
 | 옵션 | 설명 |
 |---|---|
 | `-m`, `--me` | only your jobs |
@@ -73,25 +129,7 @@
 | `--no-color`, `--no-colour` | the same as --color never |
 | `--ascii` | ASCII glyphs for terminals without UTF-8 |
 | `--wide` | every column at full width, whatever the terminal fits |
-<!-- END GENERATED: options:sq -->
-
-#### `qos`의 옵션
-
-<!-- BEGIN GENERATED: options:qos -->
-| 옵션 | 설명 |
-|---|---|
-| `-m`, `--me` | only the QoS you may submit against |
-| `-a`, `--all` | include QoS held by no user (Slurm's built-in normal) |
-| `-u`, `--user` `NAME` | answer for someone else instead of you |
-| `--usage` | the live usage figures (--no-usage skips the job list) |
-| `--json` | the model as JSON, for scripts (ignores $QOS_OPTIONS) |
-| `--theme` `FLAVOUR` | catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command |
-| `--themes` | list the flavours with a swatch |
-| `--color` `WHEN`, `--colour` `WHEN` | always, never or auto (default; $NO_COLOR is honoured) |
-| `--no-color`, `--no-colour` | the same as --color never |
-| `--ascii` | ASCII glyphs for terminals without UTF-8 |
-| `--wide` | every column at full width, whatever the terminal fits |
-<!-- END GENERATED: options:qos -->
+<!-- END GENERATED: options:all -->
 
 ## QoS
 

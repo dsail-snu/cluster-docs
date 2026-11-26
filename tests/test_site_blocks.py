@@ -270,6 +270,8 @@ class FromTheData(unittest.TestCase):
         holds = site_blocks.submit_refusals(self.data(submit_holds=True))
         self.assertNotIn("Disk on", holds, "disk holds off")
         self.assertNotIn("개**", holds, "no cap")
+        unset = site_blocks.submit_refusals(dict(self.data(submit_holds=True, submit_holds_disk=True), quota={}))
+        self.assertNotIn("Disk on", unset, "no per-person limit yet: nothing to reach (2026-11-27)")
 
     def test_join_and_unban_follow_the_bot(self):
         d = self.data()

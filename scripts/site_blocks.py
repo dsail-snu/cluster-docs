@@ -156,7 +156,9 @@ def storage(data, mount, kind):
 def submit_refusals(data):
     """The refusals the cluster's own limits give a submission, each a section: the cap on
     queued and running jobs (policy.max_submit_jobs), and with the submit holds the end of
-    a membership and a disk hard limit, each quoted as it begins (site.json messages)."""
+    a membership and a disk hard limit, each quoted as it begins (site.json messages). The
+    disk refusal appears only while per-person limits exist (site.json quota, the
+    condition quota:section states), so no page names a limit the cluster does not set."""
     p, m = data["policy"], data.get("messages", {})
     out = []
     if p.get("max_submit_jobs"):
@@ -168,7 +170,7 @@ def submit_refusals(data):
         out.append(f"### `{m['hold_ended']}`\n\n"
                    "소속 기간이 끝나 새 잡을 낼 수 없습니다. 실행 중인 잡은 그대로 돌고, 로그인은 메시지에 적힌 날까지 할 수 있으니 "
                    "그 전에 파일을 옮겨 주세요. 기간이 잘못되었다면 관리자에게 알려 주세요.\n")  # fmt: skip
-        if p.get("submit_holds_disk"):
+        if p.get("submit_holds_disk") and data.get("quota"):
             out.append(f"### `{m['hold_disk']}`\n\n"
                        "메시지에 적힌 곳에서 용량이나 파일 수가 한도에 닿아, 공간을 비울 때까지 새 잡을 낼 수 없습니다. 그곳에는 파일을 더 쓸 수도 없습니다. "
                        f"{command(data, 'disk-usage')}로 어디에 얼마나 쓰는지와 정리하면 좋을 폴더를 보고 공간을 비우면, "

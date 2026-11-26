@@ -15,14 +15,10 @@
 
 <!-- BEGIN GENERATED: rule:sessions -->`srun`, `salloc`으로 여는 GPU 세션은 팀 QoS(`--qos=<팀 QoS>`)로만 시작할 수 있습니다. 팀 QoS 없이 제출하면 `qos`로 내 QoS를 확인하라는 안내와 함께 거부됩니다.<!-- END GENERATED: rule:sessions -->
 
-<!-- people -->
-
 ```bash
 # GPU를 점유하는 인터랙티브 셸 (팀 QoS는 본인 것으로. `qos` 로 확인)
 srun --qos=<팀 QoS> --time=04:00:00 --gres=gpu:<GPU 타입>:1 --pty bash -i
 ```
-
-<!-- /people -->
 
 GPU 사용률은 상시 감시됩니다.
 <!-- BEGIN GENERATED: rule:idle -->

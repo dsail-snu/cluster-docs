@@ -52,13 +52,14 @@ class ExportTests(unittest.TestCase):
         people, shown on the site and dropped from the export."""
         text = agent_rules.export()
         self.assertNotIn("people -->", text, "no marker reaches the agents")
-        for gone in ("권장 (규정은 아님)", "지침 파일이나 메모리로 넣습니다", "8은 1, 2, 4로 나누어떨어지므로",
-                     "그래야 빈 GPU가", "--pty bash -i", "(사람과 AI 에이전트 모두)"):
+        for gone in ("지침 파일이나 메모리로 넣습니다", "8은 1, 2, 4로 나누어떨어지므로", "그래야 빈 GPU가",
+                     "(사람과 AI 에이전트 모두)", "제출 전에 한 번 읽어 보세요"):
             self.assertNotIn(gone, text)
-        for kept in ("확인 없이 진행하는 모드에서도", "--exclusive", "sbatch --wait", "--qos=<팀 QoS>"):
+        # The recommendations stay: agents write the code now, so they choose the tools.
+        for kept in ("--exclusive", "sbatch --wait", "--qos=<팀 QoS>", "--pty bash -i", "권장 (규정은 아님)", "uv"):
             self.assertIn(kept, text)
         page = (agent_rules.ROOT / "docs" / agent_rules.PAGE).read_text()
-        self.assertIn("권장 (규정은 아님)", page, "the site keeps what people read")
+        self.assertIn("제출 전에 한 번 읽어 보세요", page, "the site keeps what people read")
 
     def test_people_only_blocks_go_with_their_lines_and_spans_keep_the_line_end(self):
         text = ("- a.<!-- people --> why a.<!-- /people -->\n- b\n\n<!-- people -->\n\nnote\n\n<!-- /people -->\n\nc\n")

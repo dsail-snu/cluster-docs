@@ -38,6 +38,86 @@
     }
   },
   "commands": {
+    "disk-usage": {
+      "options": [
+        {
+          "flags": [
+            "-u",
+            "--user"
+          ],
+          "help": "someone else's figures instead of yours",
+          "metavar": "NAME"
+        },
+        {
+          "flags": [
+            "--hours"
+          ],
+          "help": "the I/O window, in hours (default 24)",
+          "metavar": "N"
+        },
+        {
+          "flags": [
+            "--top"
+          ],
+          "help": "rows per table of folders and I/O (default 10)",
+          "metavar": "N"
+        },
+        {
+          "flags": [
+            "--json"
+          ],
+          "help": "the figures as JSON, for scripts",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "--theme"
+          ],
+          "help": "catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command",
+          "metavar": "FLAVOUR"
+        },
+        {
+          "flags": [
+            "--themes"
+          ],
+          "help": "list the flavours with a swatch",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "--color",
+            "--colour"
+          ],
+          "help": "always, never or auto (default; $NO_COLOR is honoured)",
+          "metavar": "WHEN"
+        },
+        {
+          "flags": [
+            "--no-color",
+            "--no-colour"
+          ],
+          "help": "the same as --color never",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "--ascii"
+          ],
+          "help": "ASCII glyphs for terminals without UTF-8",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "--wide"
+          ],
+          "help": "every column at full width, whatever the terminal fits",
+          "metavar": ""
+        }
+      ],
+      "summary": "your space and files on each filesystem against their limits, folders worth cleaning, recent I/O",
+      "summary_ko": "내 파일시스템별 사용량과 파일 수, 경고 수준과 한도, 정리하면 좋을 폴더, 최근 I/O",
+      "usage": "disk-usage [OPTIONS]"
+    },
     "gpu-usage": {
       "options": [
         {
@@ -577,6 +657,10 @@
       {
         "title": "Storage / NFS and disks",
         "uid": "storage-io"
+      },
+      {
+        "title": "Storage / per person",
+        "uid": "storage-person"
       },
       {
         "title": "Slurm / GPU allocation",

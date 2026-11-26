@@ -25,7 +25,10 @@ PAGES = ("docs/", "snippets/", "slack/")
 
 
 def tracked():
-    out = subprocess.run(["git", "ls-files", "-z"], cwd=ROOT, capture_output=True, text=True, check=True).stdout
+    """Every file git would commit: tracked, and new ones not yet added (a run before
+    `git add` once passed over a new test that used a variant, 2026-11-27)."""
+    out = subprocess.run(["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard"], cwd=ROOT,
+                         capture_output=True, text=True, check=True).stdout  # fmt: skip
     return [ROOT / p for p in out.split("\0") if p and (ROOT / p).is_file()]
 
 

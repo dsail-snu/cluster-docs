@@ -1,8 +1,8 @@
 """site_blocks.plain: an export of the pages (the agent rules, llms-full.txt, the Slack
 notices) drops the generated blocks' markers and nothing else. Its pattern took the line
 end after every END marker, so an inline value at the end of a line glued the next line
-onto it: a list item of the agent rules, the idle rule's next item in a notice posted to
-Slack, and the blank line after each block (2026-11-27)."""
+onto it: a list item of the agent rules, the item after the rule on jobs leaving their
+GPUs idle in a notice posted to Slack, and the blank line after each block (2026-11-27)."""
 
 import importlib.util
 import re

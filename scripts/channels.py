@@ -25,6 +25,7 @@ Placeholders, filled from data/site.json so no fact is typed twice:
   [[reports:inline]]  the same on one line
   [[reports:names]]   the reports' names, in a sentence
   [[term:idle_job]]   the one name for a job whose allocated GPUs all sat idle
+  [[term:idle_job_title]]  its title form, for a heading
   [[#ROLE]]           that channel: left for the bot, which writes a mention in the
                       canvas and the channel's name in a purpose or topic
 
@@ -133,6 +134,8 @@ def fill(text, data):
             return ", ".join(short for short, _ in REPORTS.values())
         if name == "term:idle_job":
             return site_blocks.IDLE_JOB
+        if name == "term:idle_job_title":
+            return site_blocks.IDLE_JOB_TITLE
         raise ValueError(f"[[{name}]]: unknown placeholder")
 
     return PLACEHOLDER.sub(one, text)

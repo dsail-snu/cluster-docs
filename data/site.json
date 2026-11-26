@@ -704,15 +704,21 @@
   },
   "terms": [
     {
+      "code": {
+        "title": "IDLE_JOB_TITLE",
+        "use": "IDLE_JOB"
+      },
       "id": "idle_job",
       "not": [
         "(?<!할당받은 )GPU를 (?:\\S+ ){0,2}쓰지 않",
         "GPU를 할당받아 두고",
-        "유휴 (?:GPU|잡)",
+        "유휴 GPU",
         "쉬(?:는|던) 잡",
         "잡아 둔"
       ],
       "scope": [],
+      "title": "GPU 유휴 잡",
+      "title_not": [],
       "use": "할당받은 GPU를 쓰지 않는 잡",
       "why": "\"GPU를 쓰지 않는 잡\" alone reads as a CPU-only job (owner, 2026-11-27); the GPUs were allocated to it. Its rule: every GPU it was allocated sat idle the whole time."
     },
@@ -721,6 +727,7 @@
         "(?i:\\bidle[- ](?:GPU )?(?:jobs?|rule)\\b)"
       ],
       "scope": [],
+      "title_not": [],
       "use": "a job leaving its GPUs idle",
       "why": "The English for the same job, as plain as the Korean."
     },
@@ -731,6 +738,7 @@
         "대기하는 잡"
       ],
       "scope": [],
+      "title_not": [],
       "use": "대기 중인 잡",
       "why": "Slurm's PENDING, as the owner names it (2026-11-27); a verb phrase as a noun reads loosely."
     },
@@ -740,6 +748,7 @@
         "돌고 있는 잡"
       ],
       "scope": [],
+      "title_not": [],
       "use": "실행 중인 잡",
       "why": "Slurm's RUNNING, in the words the reports use; \"도는\" is spoken Korean."
     },
@@ -748,6 +757,7 @@
         "돌던 잡"
       ],
       "scope": [],
+      "title_not": [],
       "use": "실행 중이던 잡",
       "why": "The same, for jobs that were running when something happened."
     },
@@ -756,6 +766,7 @@
         "공개 키"
       ],
       "scope": [],
+      "title_not": [],
       "use": "공개키",
       "why": "One spelling, the one most pages already use (as 개인키)."
     },
@@ -764,6 +775,7 @@
         "개인 키"
       ],
       "scope": [],
+      "title_not": [],
       "use": "개인키",
       "why": "One spelling, as 공개키."
     },
@@ -772,6 +784,7 @@
         "에러"
       ],
       "scope": [],
+      "title_not": [],
       "use": "오류",
       "why": "The standard word (National Institute of Korean Language), and the one most texts use."
     },
@@ -780,6 +793,7 @@
         "디스크 할당량"
       ],
       "scope": [],
+      "title_not": [],
       "use": "디스크 한도",
       "why": "The disk limit is a 한도 everywhere else (경고 수준과 한도); 할당량 is what a job is given."
     },
@@ -788,6 +802,7 @@
         "잡(?:은|이) 제출되지 않"
       ],
       "scope": [],
+      "title_not": [],
       "use": "잡을 제출할 수 없습니다",
       "why": "The person cannot submit; the passive reads as if the jobs failed on their own."
     },
@@ -796,6 +811,7 @@
         "사람 명부"
       ],
       "scope": [],
+      "title_not": [],
       "use": "명부",
       "why": "The roster is 명부 in every other text."
     },
@@ -805,6 +821,7 @@
         "연산 노드"
       ],
       "scope": [],
+      "title_not": [],
       "use": "계산 노드",
       "why": "The docs' word for the nodes jobs run on, beside 로그인 노드."
     },
@@ -813,6 +830,7 @@
         "디렉토리"
       ],
       "scope": [],
+      "title_not": [],
       "use": "디렉터리",
       "why": "The standard spelling, the one every text uses."
     },
@@ -821,6 +839,7 @@
         "공유 저장소"
       ],
       "scope": [],
+      "title_not": [],
       "use": "공유 스토리지",
       "why": "The docs' word for the shared filesystems."
     },
@@ -829,6 +848,7 @@
         "도움 채널"
       ],
       "scope": [],
+      "title_not": [],
       "use": "질문 채널",
       "why": "The help channel's name in the channel guides (slack/help.md) and notices."
     },
@@ -838,6 +858,7 @@
         "프로젝트 폴더"
       ],
       "scope": [],
+      "title_not": [],
       "use": "공동작업 폴더",
       "why": "The bot's name for a shared folder (/cluster project), written one way."
     },
@@ -848,6 +869,7 @@
       "scope": [
         "roles/cluster_bot/"
       ],
+      "title_not": [],
       "use": "공동작업 폴더",
       "why": "The bot's buttons and messages called one folder both 공동작업 폴더 and 프로젝트; elsewhere 프로젝트 is a uv project."
     },
@@ -859,8 +881,65 @@
       "scope": [
         "roles/cluster_bot/"
       ],
+      "title_not": [],
       "use": "소유자",
       "why": "A shared folder's owners were 관리자, the cluster administrators' word, so \"관리자가 승인합니다\" meant two people."
+    },
+    {
+      "code": {
+        "title": "DOWN_TITLE"
+      },
+      "not": [],
+      "scope": [],
+      "title": "중단 노드",
+      "title_not": [],
+      "use": "쓸 수 없는 노드",
+      "why": "A drained or down node in a title is 중단 노드 (owner, 2026-11-27); not 장애 노드, since a drain is no failure. Sentences say what it means."
+    },
+    {
+      "not": [],
+      "scope": [],
+      "title": "역할",
+      "title_not": [
+        "(?<![가-힣])하는 일"
+      ],
+      "why": "A table's or heading's \"하는 일\" is the thing's role."
+    },
+    {
+      "not": [],
+      "scope": [],
+      "title": "사용법, 확인 방법, 변경 방법 (동작의 명사 + 방법)",
+      "title_not": [
+        "[가-힣]+는 법"
+      ],
+      "why": "\"쓰는 법\", \"보는 법\", \"바꾸는 법\" are sentences cut short; the noun says it."
+    },
+    {
+      "not": [],
+      "scope": [],
+      "title": "내용",
+      "title_not": [
+        "보여 주는 것"
+      ],
+      "why": "What a command shows, as a table header."
+    },
+    {
+      "not": [],
+      "scope": [],
+      "title": "용도",
+      "title_not": [
+        "두는 것"
+      ],
+      "why": "What a place is for, as a table header."
+    },
+    {
+      "not": [],
+      "scope": [],
+      "title": "대상 노드",
+      "title_not": [
+        "받는 노드"
+      ],
+      "why": "The nodes a step applies to, as a table header."
     }
   ],
   "threads": {
@@ -990,6 +1069,15 @@
         "name": "MAKEFLAGS",
         "reader": "GNU make",
         "value": "-j{n}"
+      }
+    ]
+  },
+  "titles": {
+    "endings": "(?:다|요|까|죠)$",
+    "exempt": [
+      {
+        "path": "docs/guide/troubleshooting.md",
+        "why": "Its headings are the readers' own questions (FAQ), asked as they would ask them (owner, 2026-11-27)."
       }
     ]
   }

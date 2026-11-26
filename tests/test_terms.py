@@ -2,7 +2,15 @@
 (scripts/deepops/terms_ko.yml, exported to data/site.json terms): no tracked file uses
 a refused variant. The owner asked for the glossary on 2026-11-27, after "GPU를 쓰지 않는
 잡" read as a CPU-only job. The name of a job whose allocated GPUs all sat idle is also
-site_blocks.IDLE_JOB, which pages write through the term:idle_job block."""
+site_blocks.IDLE_JOB, which pages write through the term:idle_job block.
+
+Titles are nouns, sentences stay descriptive (owner, 2026-11-27): an entry's title form
+(GPU 유휴 잡, site_blocks.IDLE_JOB_TITLE) in every title, its sentence form everywhere
+else, the title idioms (title_not) refused in titles, and no title ending a sentence
+outside the exempt files (site.json titles). A title here is a Markdown heading, a
+bold-only line or a list item's bold lead, a table header row, or a Slack guide's title,
+table or bookmark (slack/*.md front matter), as deepops' scripts/deepops/terms.py reads
+them; code blocks hold none."""
 
 import json
 import re
@@ -17,10 +25,14 @@ import site_blocks  # noqa: E402
 
 DATA = json.loads((ROOT / "data" / "site.json").read_text())
 # A scoped entry names deepops paths; here every page is in scope of the others.
-ENTRIES = [dict(e, patterns=[re.compile(p) for p in e["not"]]) for e in DATA["terms"] if not e.get("scope")]
+ENTRIES = [dict(e, patterns=[re.compile(p) for p in e["not"]], title_patterns=[re.compile(p) for p in e.get("title_not", [])])
+           for e in DATA["terms"] if not e.get("scope")]  # fmt: skip
+FORMED = [e for e in ENTRIES if e.get("title") and e.get("use") and e["title"] != e["use"]]
+ENDINGS = re.compile(DATA["titles"]["endings"])
+EXEMPT = tuple(x["path"] for x in DATA["titles"]["exempt"])
 # The files that quote the variants: the exported glossary and this test.
 QUOTING = {"data/site.json", "tests/test_terms.py"}
-TERM_BLOCK = re.compile(r"<!-- BEGIN GENERATED: term:idle_job -->[^\n]*?<!-- END GENERATED: term:idle_job -->")
+TERM_BLOCK = re.compile(r"<!-- BEGIN GENERATED: (term:idle_job\S*) -->[^\n]*?<!-- END GENERATED: \1 -->")
 PAGES = ("docs/", "snippets/", "slack/")
 
 
@@ -43,6 +55,60 @@ def texts():
             continue
 
 
+def titles(rel, lines):
+    """[(line number, title)] of the title positions of a Markdown file."""
+    out, fence = [], False
+    front = lines[:1] == ["---"]
+    end = lines.index("---", 1) if front and "---" in lines[1:] else -1
+    for i, line in enumerate(lines):
+        if 0 < i < end:
+            m = re.match(r"(title|table|bookmark):\s*(.*)", line)
+            if m:
+                out.append((i + 1, m.group(2).split("|")[1].strip() if m.group(1) == "bookmark" else m.group(2)))
+            continue
+        if re.match(r"\s*(```|~~~)", line):
+            fence = not fence
+            continue
+        if fence:
+            continue
+        m = (re.match(r"\s*#{1,6}\s+(.*)", line) or re.match(r"\s*(?:[-*]\s+)?\*\*([^*]+)\*\*\s*:?\s*$", line)
+             or re.match(r"\s*[-*]\s+\*\*([^*]+)\*\*\s*:", line))  # fmt: skip
+        if m:
+            out.append((i + 1, m.group(1)))
+        elif line.lstrip().startswith("|") and i + 1 < len(lines) and re.match(r"\s*\|[\s:|-]+\|\s*$", lines[i + 1]):
+            out += [(i + 1, c.strip()) for c in line.strip().strip("|").split("|")]
+    return out
+
+
+def bare(title):
+    """TITLE as read: no markers, code, links, heading attributes, closing parenthetical
+    or punctuation."""
+    text = site_blocks.MARKERS.sub("", title)
+    text = re.sub(r"`[^`]*`|\[([^\]]*)\]\([^)]*\)", lambda m: m.group(1) or "", text)
+    text = re.sub(r"\s*\{[^}]*\}\s*$", "", text.strip())
+    text = re.sub(r"\s*\([^()]*\)\s*$", "", text)
+    return text.rstrip(".:!? ").strip()
+
+
+def title_problems(rel, text):
+    lines, out = text.split("\n"), []
+    found = titles(rel, lines)
+    by_line = {}
+    for n, t in found:
+        by_line.setdefault(n, []).append(t)
+        shown = bare(t)
+        out += [f"{rel}:{n}: title {t!r} -> {e['title']}" for e in FORMED if e["use"] in shown]
+        out += [f"{rel}:{n}: title {t!r} -> {e['title']}" for e in ENTRIES for p in e["title_patterns"] if p.search(shown)]
+        if re.search("[\uac00-\ud7a3]", shown) and ENDINGS.search(shown) and not rel.startswith(EXEMPT):
+            out.append(f"{rel}:{n}: title {t!r} ends a sentence -> a noun")
+    for n, line in enumerate(lines, 1):
+        rest = site_blocks.MARKERS.sub("", line)
+        for t in by_line.get(n, []):
+            rest = rest.replace(bare(t), "")
+        out += [f"{rel}:{n}: {e['title']!r} outside a title -> {e['use']}" for e in FORMED if e["title"] in rest]
+    return out
+
+
 def refused(line):
     return [(m.group(0), e["use"]) for e in ENTRIES for p in e["patterns"] for m in [p.search(line)] if m]
 
@@ -59,12 +125,27 @@ class Terms(unittest.TestCase):
     def test_pages_write_the_idle_job_through_its_block(self):
         typed = [f"{p}:{n}" for p, text in texts() if p.startswith(PAGES)
                  for n, line in enumerate(text.splitlines(), 1)
-                 if site_blocks.IDLE_JOB in TERM_BLOCK.sub("", line)]  # fmt: skip
-        self.assertEqual(typed, [], "write <!-- BEGIN GENERATED: term:idle_job --> instead")
+                 for name in (site_blocks.IDLE_JOB, site_blocks.IDLE_JOB_TITLE)
+                 if name in TERM_BLOCK.sub("", line)]  # fmt: skip
+        self.assertEqual(typed, [], "write <!-- BEGIN GENERATED: term:idle_job --> (or _title) instead")
+
+    def test_titles_are_nouns_and_sentences_stay_descriptive(self):
+        found = [v for p, text in texts() if p.endswith(".md") for v in title_problems(p, text)]
+        self.assertEqual(found, [], "titles are nouns (deepops scripts/deepops/terms_ko.yml, titles)")
+
+    def test_the_title_rules_catch_what_they_should(self):
+        self.assertTrue(title_problems("a.md", "## 할당받은 GPU를 쓰지 않는 잡\n"))
+        self.assertTrue(title_problems("a.md", "GPU 유휴 잡은 취소됩니다.\n"))
+        self.assertTrue(title_problems("a.md", "# 사용 규정이 바뀝니다\n"))
+        self.assertTrue(title_problems("a.md", "| 명령 | 하는 일 |\n|---|---|\n"))
+        self.assertFalse(title_problems("a.md", "## GPU 유휴 잡 { #old }\n\n할당받은 GPU를 쓰지 않는 잡은 취소됩니다.\n"))
+        self.assertFalse(title_problems("a.md", "```bash\n# 확인합니다\n```\n"))
+        self.assertFalse(title_problems(EXEMPT[0], "### 밖에서 접속이 안 돼요\n"))
 
     def test_the_name_is_the_glossarys_and_the_rule_says_allocated(self):
-        glossary = next(e["use"] for e in DATA["terms"] if e.get("id") == "idle_job")
-        self.assertEqual(site_blocks.IDLE_JOB, glossary)
+        glossary = next(e for e in DATA["terms"] if e.get("id") == "idle_job")
+        self.assertEqual(site_blocks.IDLE_JOB, glossary["use"])
+        self.assertEqual(site_blocks.IDLE_JOB_TITLE, glossary["title"])
         data = {"policy": {"idle_hours": 2, "cancel_after_hours": 6, "cancel_warn_hours": 1, "idle_notify": ["dm"]}}
         for policy in (data["policy"], dict(data["policy"], cancel_after_hours=0)):
             rule = site_blocks.idle_rule({"policy": policy})

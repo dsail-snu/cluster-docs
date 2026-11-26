@@ -130,7 +130,7 @@ htop                    # CPU, 메모리
 ## Slack 알림
 
 - **GPU 사용량 보고**: <!-- BEGIN GENERATED: reports:usage -->매시간<!-- END GENERATED: reports:usage --> 클러스터 GPU 사용 현황이 Slack <!-- BEGIN GENERATED: chat:status -->`#infra-status`<!-- END GENERATED: chat:status -->에 올라옵니다.
-- **<!-- BEGIN GENERATED: term:idle_job -->할당받은 GPU를 쓰지 않는 잡<!-- END GENERATED: term:idle_job --> 알림**: <!-- BEGIN GENERATED: rule:idle -->Slurm 잡이 할당받은 GPU를 **2시간 넘게 쓰지 않으면** 알려 드립니다. 할당받은 GPU를 **6시간** 동안 쓰지 않은 잡은 자동으로 취소되며, 취소 **1시간 전**에 미리 알려 드립니다.<!-- END GENERATED: rule:idle -->
+- **<!-- BEGIN GENERATED: term:idle_job_title -->GPU 유휴 잡<!-- END GENERATED: term:idle_job_title --> 알림**: <!-- BEGIN GENERATED: rule:idle -->Slurm 잡이 할당받은 GPU를 **2시간 넘게 쓰지 않으면** 알려 드립니다. 할당받은 GPU를 **6시간** 동안 쓰지 않은 잡은 자동으로 취소되며, 취소 **1시간 전**에 미리 알려 드립니다.<!-- END GENERATED: rule:idle -->
   알림을 받으셨다면 잡이 GPU를 제대로 쓰는지 확인해 주시고, 쓰지 않는다면 취소해 주세요.
   -> [디버깅 규정](../policy/rules.md#디버깅)
 - **잡 알림**: <!-- BEGIN GENERATED: service:job_notices -->잡에 `--mail-type=END,FAIL`(또는 `BEGIN`, `ALL` 등)을 적으면 그 일이 생길 때 잡의 주인에게 Slack DM으로 알려 드립니다. 메일은 보내지 않으니 `--mail-user`는 적지 않으셔도 되고, 적어도 받는 사람은 잡의 주인입니다. 짧은 사이에 생긴 알림은 한 메시지로 모아 드립니다. 받지 않으려면 봇의 홈 탭에서 끄실 수 있습니다.<!-- END GENERATED: service:job_notices -->

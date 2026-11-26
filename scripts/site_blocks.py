@@ -33,6 +33,7 @@ Generators:
   quota:MOUNT:F   a limit of the filesystem at MOUNT: block_hard, block_warn (TB),
                   inode_hard, inode_warn (a count); quota:ratio, files per TB
   term:idle_job   the one name for a job whose allocated GPUs all sat idle (IDLE_JOB)
+  term:idle_job_title  its title form, for a heading or a bold lead (IDLE_JOB_TITLE)
   rule:idle       the rule on such jobs as a sentence: that the owner is told from the
                   idle hours (or, with policy.idle_notify empty, only listed), and the
                   cancel with its warning, or that no cancel is active (cancel 0)
@@ -92,6 +93,8 @@ DATA = ROOT / "data" / "site.json"
 # CPU-only job (owner, 2026-11-27); pages write it through term:idle_job, and
 # tests/test_terms.py refuses the old phrasings.
 IDLE_JOB = "할당받은 GPU를 쓰지 않는 잡"
+# Its title form (titles are nouns, owner 2026-11-27): term:idle_job_title in a heading.
+IDLE_JOB_TITLE = "GPU 유휴 잡"
 BLOCK = re.compile(r"^([ ]*)(<!-- BEGIN GENERATED: (\S+) -->\n)(.*?)([ ]*<!-- END GENERATED: \3 -->)", re.S | re.M)
 
 
@@ -315,12 +318,12 @@ def table(header, rows):
 def bot_subcommands(data):
     """The cluster bot's subcommands as a table, each with its Korean help (site.json bot)."""
     bot = data["bot"]
-    return table(("명령", "하는 일"), [(f"`{bot['command']} {s['name']}`", s["help"]) for s in bot["subcommands"]])
+    return table(("명령", "역할"), [(f"`{bot['command']} {s['name']}`", s["help"]) for s in bot["subcommands"]])
 
 
 def commands_table(data):
     """The cluster's own commands as a table, each with its Korean summary (site.json commands)."""
-    return table(("명령", "보여 주는 것"), [(f"`{c}`", d["summary_ko"]) for c, d in data["commands"].items()])
+    return table(("명령", "내용"), [(f"`{c}`", d["summary_ko"]) for c, d in data["commands"].items()])
 
 
 def report_when(data, name):
@@ -493,6 +496,8 @@ def body(data, name):
         return idle_rule(data)
     if name == "term:idle_job":
         return f"{IDLE_JOB}\n"
+    if name == "term:idle_job_title":
+        return f"{IDLE_JOB_TITLE}\n"
     if kind == "date":
         return f"{data['dates'][arg]}\n"
     if kind == "day":

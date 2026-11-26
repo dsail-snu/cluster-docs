@@ -51,7 +51,8 @@ sinfo -N -l                              # 노드별 상세 (CPU, 메모리, 상
 sinfo -o "%P %.6D %.10c %.10m %.20G %t"  # 파티션/노드 수/CPU/메모리/GRES/상태
 ```
 
-상태(STATE) 약어: `idle`(비어 있음), `alloc`/`mix`(전부 또는 일부 사용 중), `down`/`drain`(점검 중).
+상태(STATE) 약어와 뒤에 붙는 기호(`idle*` 등)는 `sq`와 같습니다. 뜻은
+[자원 현황 한눈에 보기](../guide/monitoring.md#자원-현황-한눈에-보기-sq)에 있습니다.
 
 ```bash
 squeue            # 전체 큐

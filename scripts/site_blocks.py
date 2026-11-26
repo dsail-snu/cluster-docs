@@ -539,14 +539,19 @@ def body(data, name):
 
 
 INLINE = re.compile(r"(<!-- BEGIN GENERATED: (\S+) -->)([^\n]*?)(<!-- END GENERATED: \2 -->)")
-MARKERS = re.compile(r"<!-- (?:BEGIN|END) GENERATED: \S+ -->\n?")
+MARKER = r"<!-- (?:BEGIN|END) GENERATED: \S+ -->"
+# A marker on a line of its own goes with its line; one inside a line (an inline value)
+# goes alone and leaves the line's end, or the next line would join it (a list item glued
+# onto the agent rules' line before it, 2026-11-27).
+MARKER_LINE = re.compile(rf"^[ ]*{MARKER}[ ]*\n", re.M)
+MARKERS = re.compile(MARKER)
 
 
 def plain(text):
-    """TEXT as a reader gets it: each generated block's value without its markers. Every
-    export of the pages (the agent rules, llms-full.txt, the Slack notices) reads the
-    pages through this, so the block syntax is known here alone."""
-    return MARKERS.sub("", text)
+    """TEXT as a reader gets it: each generated block's value without its markers, every
+    other line as it was. Every export of the pages (the agent rules, llms-full.txt, the
+    Slack notices) reads the pages through this, so the block syntax is known here alone."""
+    return MARKERS.sub("", MARKER_LINE.sub("", text))
 
 
 def section(dirname, page):

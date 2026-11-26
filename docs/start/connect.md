@@ -1,6 +1,7 @@
 # 접속하기
 
 클러스터 계정을 처음 받았을 때 해야 할 것들입니다. 순서대로 따라 하세요.
+<!-- BEGIN GENERATED: bot:join -->아직 계정이 없다면 Slack에서 `/cluster join`으로 신청하세요.<!-- END GENERATED: bot:join -->
 
 !!! warning "AI 에이전트를 쓴다면"
     AI 에이전트로 접속하거나 전송하려면 그 에이전트에 [AI 에이전트 규칙](../policy/ai-agents.md)을 반드시 넣어야 합니다.
@@ -139,7 +140,7 @@ sinfo                         # 노드 상태가 보이면 Slurm 정상
 squeue                        # 현재 큐
 qos                           # 내가 쓸 수 있는 QoS, 선점 관계, 팀 몫
 module avail 2>&1 | head      # 사용 가능한 소프트웨어 모듈
-df -h ~                       # 홈 디렉터리 마운트와 사용량 확인
+disk-usage                    # 내 디스크 사용량과 한도 (파일시스템별)
 ```
 
 - `qos`에서 `▌`로 표시된 것이 내가 쓸 수 있는 QoS입니다. 기본 QoS와 함께 **본인 팀 QoS**가 보이는지 확인하세요. 보이지 않으면 관리자에게 문의하세요. -> [QoS 설명](../reference/slurm.md#qos)

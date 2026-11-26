@@ -18,7 +18,16 @@ CI runs it with --check, so a page whose block no longer matches the data fails 
 Generators:
   options:CMD     the options of the cluster command CMD, as a table
   options:all     every cluster command's options, each under its own heading
-  policy:FIELD    one value of site.json policy; warn_percent is warn_fraction as a percent
+  command:CMD     the cluster command CMD, as code: a page names one only through this,
+                  so it never names a command the cluster does not have
+  command:CMD:what  what CMD shows, its Korean summary
+  policy:FIELD    one value of site.json policy; warn_percent is warn_fraction as a percent;
+                  gpus_per_node the allowed GPUs per node as a list (1, 2, 4, 8)
+  storage:M:seq, storage:M:random
+                  how fast the filesystem at M reads and writes (site.json storage, its
+                  measured model): sequential in GB/s, random in operations a second
+  submit:refusals the refusals of a submission the cluster's own limits give (the cap on
+                  queued jobs, the submit holds), each a section with what to do
   date:NAME       one announced date (the site's schedule); in notices only (docs/news/)
   day:NAME        the same with its weekday, as the notices write it: 2026-11-25(수)
   quota:MOUNT:F   a limit of the filesystem at MOUNT: block_hard, block_warn (TB),
@@ -51,7 +60,7 @@ Generators:
   quota:section   the per-person disk limits (what happens at one, the warning, a table),
                   or that there are none: it appears when the cluster sets limits
   quota:each:M    "한 사람에 5 TB까지 쓰실 수 있고, " for mount M, or nothing
-  bot:section, bot:unban, bot:leave, bot:data
+  bot:section, bot:unban, bot:leave, bot:data, bot:join, bot:unban_agents
                   the /cluster command's requests, or whom to ask while the cluster runs
                   no bot (site.json services.bot)
   login:limits    the login nodes' per-person limits as a sentence (CPUs, memory,
@@ -96,14 +105,72 @@ def options(data, command):
 
 def policy(data, field):
     p = data["policy"]
+    if field == "gpus_per_node":
+        return gpus_per_node(data) + "\n"
     if field == "warn_percent":
         return f"{round(p['warn_fraction'] * 100)}%\n"
     return f"{p[field]}\n"
 
 
+def gpus_per_node(data):
+    """The allowed GPUs per node as the job rules list them: 1, 2, 4, 8. The rules explain
+    them by each dividing the largest, so a list where one does not is refused."""
+    counts = data["policy"]["gpus_per_node"]
+    if not counts or any(max(counts) % n for n in counts):
+        raise ValueError(f"policy.gpus_per_node {counts!r}: teach snippets/job-rules.md and scripts/site_blocks.py")
+    return ", ".join(str(n) for n in counts)
+
+
+def command(data, name):
+    """The cluster command NAME as code, refused when the cluster has none of that name."""
+    if name not in data["commands"]:
+        raise SystemExit(f"command:{name}: the cluster has no such command (site.json commands)")
+    return f"`{name}`"
+
+
 def options_all(data):
     """Every cluster command's options, each under a heading of its own."""
     return "\n".join(f"#### `{c}`의 옵션\n\n" + options(data, c) for c in sorted(data["commands"]))
+
+
+def _about(n):
+    """N to two significant figures, as a page says 'about': 1587 -> 1,600, 483 -> 480."""
+    digits = len(str(int(n)))
+    return f"{int(round(n, 2 - digits)) if digits > 2 else int(n):,}"
+
+
+def storage(data, mount, kind):
+    """How fast the filesystem at MOUNT reads and writes (site.json storage): KIND seq in
+    GB/s, random in operations a second, both rounded as 'about'."""
+    s = data["storage"][mount]
+    if kind == "seq":
+        return f"대략 읽기 {s['read_bps'] / 1e9:.1f} GB/s, 쓰기 {s['write_bps'] / 1e9:.1f} GB/s"
+    if kind == "random":
+        return f"대략 초당 {_about(s['read_iops'])}번 읽기, {_about(s['write_iops'])}번 쓰기"
+    raise SystemExit(f"unknown generated block: storage:{mount}:{kind}")
+
+
+def submit_refusals(data):
+    """The refusals the cluster's own limits give a submission, each a section: the cap on
+    queued and running jobs (policy.max_submit_jobs), and with the submit holds the end of
+    a membership and a disk hard limit, each quoted as it begins (site.json messages)."""
+    p, m = data["policy"], data.get("messages", {})
+    out = []
+    if p.get("max_submit_jobs"):
+        out.append("### `Job violates accounting/QOS policy`\n\n"
+                   f"기다리는 잡과 도는 잡을 합쳐 한 사람이 **{p['max_submit_jobs']:,}개**까지 제출해 둘 수 있습니다. "
+                   "배열 잡은 작업 하나하나를 셉니다. 앞의 잡이 끝나거나 필요 없는 잡을 취소하면 다시 제출할 수 있습니다. "
+                   "내 잡 수는 `squeue --me -h -r | wc -l`로 봅니다.\n")  # fmt: skip
+    if p.get("submit_holds"):
+        out.append(f"### `{m['hold_ended']}`\n\n"
+                   "소속 기간이 끝나 새 잡을 낼 수 없습니다. 돌던 잡은 그대로 돌고, 로그인은 메시지에 적힌 날까지 남아 있으니 "
+                   "그 전에 파일을 옮겨 주세요. 기간이 잘못되었다면 관리자에게 알려 주세요.\n")  # fmt: skip
+        if p.get("submit_holds_disk"):
+            out.append(f"### `{m['hold_disk']}`\n\n"
+                       "메시지에 적힌 곳에서 용량이나 파일 수가 한도에 닿아, 공간을 비울 때까지 새 잡을 낼 수 없습니다. 그곳에는 쓰기도 실패합니다. "
+                       f"{command(data, 'disk-usage')}로 어디에 얼마나 쓰는지와 정리하면 좋을 폴더를 보고 공간을 비우면, "
+                       "곧 다시 제출할 수 있습니다. 돌던 잡은 그대로 돕니다.\n")  # fmt: skip
+    return "\n".join(out) or "\n"
 
 
 def idle_rule(data):
@@ -313,6 +380,12 @@ def bot(data, name):
         return ("## 봇으로 하는 신청\n\n계정, 차단 해제, 공동작업 폴더, 공유 데이터는 Slack에서 클러스터 봇에게 신청하실 수 있습니다.\n"
                 "아무 채널에서나 아래 명령을 입력해 주세요.\n\n" + bot_subcommands(data)
                 + "\n관리자가 승인하면 봇이 DM으로 알려 드립니다. 봇의 홈 탭에서 내 신청과 공동작업 폴더를 보실 수 있습니다.\n")  # fmt: skip
+    if name == "join":
+        return (f"아직 계정이 없다면 Slack에서 {cmd('join')}으로 신청하세요.\n" if on
+                else "아직 계정이 없다면 관리자에게 신청하세요.\n")  # fmt: skip
+    if name == "unban_agents":  # the agent rules' register: the agent reports, the person asks
+        return (f"차단되면 사용자에게 보고한다. 해제는 사용자가 Slack에서 {cmd('unban')}으로 신청한다.\n" if on
+                else "차단되면 사용자에게 보고한다. 해제는 사용자가 관리자에게 요청한다.\n")  # fmt: skip
     if name == "unban":
         return f"{cmd('unban')}으로 해제를 신청해 주세요.\n" if on else "관리자에게 해제를 요청해 주세요.\n"
     if name == "leave":
@@ -401,6 +474,17 @@ def body(data, name):
         return options_all(data)
     if kind == "options":
         return options(data, arg)
+    if kind == "command":
+        cmd, _, what = arg.partition(":")
+        if what == "what":
+            command(data, cmd)
+            return data["commands"][cmd]["summary_ko"] + "\n"
+        return command(data, arg) + "\n"
+    if kind == "storage":
+        mount, _, which = arg.rpartition(":")
+        return storage(data, mount, which) + "\n"
+    if name == "submit:refusals":
+        return submit_refusals(data)
     if kind == "policy":
         return policy(data, arg)
     if kind == "quota":
@@ -437,7 +521,7 @@ def body(data, name):
         return sessions_rule(data)
     if name == "login:limits":
         return login_limits(data)
-    if kind == "bot" and arg in ("section", "unban", "leave", "data"):
+    if kind == "bot" and arg in ("section", "unban", "leave", "data", "join", "unban_agents"):
         return bot(data, arg)
     if name == "bot:command":
         return f"{data['bot']['command']}\n"

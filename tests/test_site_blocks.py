@@ -232,5 +232,53 @@ class EveryCommand(unittest.TestCase):
             self.assertIn(f"#### `{command}`의 옵션", page, "options:all on docs/reference/slurm.md")
 
 
+class FromTheData(unittest.TestCase):
+    """Values a page used to type by hand (2026-11-27 audit): each comes from site.json,
+    and a value the page's prose cannot hold is refused."""
+
+    def data(self, **policy):
+        return dict(DATA, policy=dict(DATA["policy"], **policy), commands={**DATA["commands"], "disk-usage": {
+            "summary_ko": "내 사용량", "options": []}}, messages={"hold_ended": "Ended on", "hold_disk": "Disk on"},
+            storage={"/home": {"read_bps": 1272070703, "write_bps": 894575285, "read_iops": 1587, "write_iops": 483}},
+            services={"bot": True}, bot={"command": "/c", "subcommands": [{"name": "join"}, {"name": "unban"}]})  # fmt: skip
+
+    def test_the_gpus_per_node_and_a_list_the_rules_cannot_explain(self):
+        self.assertEqual(site_blocks.body(self.data(gpus_per_node=[1, 2, 4, 8]), "policy:gpus_per_node"), "1, 2, 4, 8\n")
+        for bad in ([], [1, 3, 8]):
+            with self.assertRaises(ValueError):
+                site_blocks.body(self.data(gpus_per_node=bad), "policy:gpus_per_node")
+
+    def test_a_command_is_named_only_when_the_cluster_has_it(self):
+        self.assertEqual(site_blocks.body(self.data(), "command:disk-usage"), "`disk-usage`\n")
+        self.assertEqual(site_blocks.body(self.data(), "command:disk-usage:what"), "내 사용량\n")
+        with self.assertRaises(SystemExit):
+            site_blocks.body(self.data(), "command:du-me")
+
+    def test_the_measured_speeds_rounded_as_about(self):
+        d = self.data()
+        self.assertEqual(site_blocks.storage(d, "/home", "seq"), "대략 읽기 1.3 GB/s, 쓰기 0.9 GB/s")
+        self.assertEqual(site_blocks.storage(d, "/home", "random"), "대략 초당 1,600번 읽기, 480번 쓰기")
+
+    def test_the_refusals_follow_the_limits_the_cluster_sets(self):
+        none = site_blocks.submit_refusals(self.data())
+        self.assertEqual(none, "\n")
+        out = site_blocks.submit_refusals(self.data(max_submit_jobs=500, submit_holds=True, submit_holds_disk=True))
+        self.assertIn("**500개**", out)
+        self.assertIn("### `Ended on`", out)
+        self.assertIn("### `Disk on`", out)
+        self.assertIn("`disk-usage`", out, "the disk refusal points at the command")
+        holds = site_blocks.submit_refusals(self.data(submit_holds=True))
+        self.assertNotIn("Disk on", holds, "disk holds off")
+        self.assertNotIn("개**", holds, "no cap")
+
+    def test_join_and_unban_follow_the_bot(self):
+        d = self.data()
+        self.assertIn("`/c join`", site_blocks.body(d, "bot:join"))
+        self.assertIn("`/c unban`", site_blocks.body(d, "bot:unban_agents"))
+        off = dict(d, services={"bot": False})
+        self.assertIn("관리자", site_blocks.body(off, "bot:join"))
+        self.assertIn("관리자", site_blocks.body(off, "bot:unban_agents"))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -112,8 +112,9 @@ scp -P <SSH 포트> file.tar.gz <아이디>@<로그인 주소>:/scratch/<아이�
 사람마다 정해진 용량과 파일 수 상한은 없습니다. 사용량은 Slack 디스크 리포트(매일 09:00)로 알려 드립니다.
 <!-- END GENERATED: quota:section -->
 
-- 내 사용량은 `du`로 직접 세지 말고 클러스터가 제공하는 보기로 확인하세요. 전체는 Slack 디스크 리포트(<!-- BEGIN GENERATED: reports:disk -->매일 09:00<!-- END GENERATED: reports:disk -->, 상위 사용자, 정리하면 좋을 폴더)로,
-  `/scratch`는 `scratch-space` 명령으로 봅니다.
+- 내 사용량은 `du`로 직접 세지 말고 <!-- BEGIN GENERATED: command:disk-usage -->`disk-usage`<!-- END GENERATED: command:disk-usage -->로 확인하세요: <!-- BEGIN GENERATED: command:disk-usage:what -->내 파일시스템별 사용량과 파일 수, 경고 수준과 한도, 정리하면 좋을 폴더, 최근 I/O<!-- END GENERATED: command:disk-usage:what -->.
+  전체는 Slack 디스크 리포트(<!-- BEGIN GENERATED: reports:disk -->매일 09:00<!-- END GENERATED: reports:disk -->)로,
+  `/scratch`에서 정리될 내 파일은 <!-- BEGIN GENERATED: command:scratch-space -->`scratch-space`<!-- END GENERATED: command:scratch-space -->로 봅니다.
 
 ### `/scratch`: 빠른 작업 공간
 

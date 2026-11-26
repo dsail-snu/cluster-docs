@@ -98,7 +98,7 @@ AI 코딩 에이전트(Claude Code, Codex CLI 등)는 쓸 수 있습니다. 다�
 ## 제출 전 체크리스트
 
 - [ ] GPU 타입을 명시했나요? (`--gres=gpu:<GPU 타입>:N`)
-- [ ] 노드당 GPU 수가 1, 2, 4, 8 중 하나인가요?
+- [ ] 노드당 GPU 수가 <!-- BEGIN GENERATED: policy:gpus_per_node -->1, 2, 4, 8<!-- END GENERATED: policy:gpus_per_node --> 중 하나인가요?
 - [ ] GPU를 점유하는 세션이라면 팀 QoS인가요? (`qos` 로 본인 QoS 확인)
 - [ ] 기본 QoS로 도는 긴 잡이라면 선점에 대비해 체크포인트를 남기나요?
 - [ ] GPU 잡이라면 파티션, CPU, 메모리를 직접 지정하지 않았나요? (메모리를 적으면 제출이 거부됩니다)

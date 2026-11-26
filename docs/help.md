@@ -7,7 +7,7 @@
 |---|---|
 | `#infra-help` | 질문, 문제 신고, 요청을 편하게 남겨 주세요 |
 | `#infra-announce` | 공지: 규정 변경, 점검, 소프트웨어 업데이트 |
-| `#infra-status` | 클러스터 상태: GPU 사용 현황, 오래 쉬는 잡 알림, 디스크 사용량 |
+| `#infra-status` | 클러스터 상태: GPU 사용 현황, 주간 요약, 디스크 사용량 |
 <!-- END GENERATED: chat:channels -->
 
 먼저 [자주 묻는 질문과 문제 해결](guide/troubleshooting.md)에 같은 증상이 있는지 확인하세요.

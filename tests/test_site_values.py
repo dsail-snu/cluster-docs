@@ -33,6 +33,14 @@ def typed_forms(data):
     forms |= {f"{v}초" for k, v in s.items() if k.endswith("_seconds")}
     for e in data.get("environment", []):
         forms |= {v for v in (e["login"], e["job"]) if v}
+    if p.get("gpus_per_node"):
+        forms |= {site_blocks.gpus_per_node(data)}
+    if p.get("max_submit_jobs"):
+        forms |= {f"{p['max_submit_jobs']:,}개"}
+    for mount in data.get("storage", {}):
+        for kind in ("seq", "random"):
+            # each figure as the sentence writes it: "1.3 GB/s", "1,600번"
+            forms |= set(re.findall(r"[\d.,]+ GB/s|[\d,]+번", site_blocks.storage(data, mount, kind)))
     for q in data.get("quota", {}).values():
         forms |= {f"{q['block_hard_tib']:g} TB", f"{q['block_warn_tib']:g} TB"}
         forms |= {site_blocks.count(q["inode_hard"]), site_blocks.count(q["inode_warn"])}
@@ -61,6 +69,10 @@ class TypedValues(unittest.TestCase):
         self.assertLessEqual(set(DATA["chat"]["channels"].values()), forms)
         self.assertIn(DATA["bot"]["command"], forms)
         self.assertLessEqual({channels.when(v) for v in DATA["reports"].values()}, forms)
+        self.assertIn(site_blocks.gpus_per_node(DATA), forms)
+        self.assertIn(f"{p['max_submit_jobs']:,}개", forms)
+        for mount in DATA["storage"]:
+            self.assertIn(site_blocks.storage(DATA, mount, "seq").split()[2] + " GB/s", forms, "the measured speeds")
 
     def test_no_owned_value_is_typed_outside_a_generated_block(self):
         forms = typed_forms(DATA)

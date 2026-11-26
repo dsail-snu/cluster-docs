@@ -23,6 +23,8 @@ Placeholders, filled from data/site.json so no fact is typed twice:
   [[rule:idle]]       the rule on jobs leaving their GPUs idle (scripts/site_blocks.py)
   [[reports]]         the status channel's reports as a table: when, what
   [[reports:inline]]  the same on one line
+  [[reports:names]]   the reports' names, in a sentence
+  [[term:idle_job]]   the one name for a job whose allocated GPUs all sat idle
   [[#ROLE]]           that channel: left for the bot, which writes a mention in the
                       canvas and the channel's name in a purpose or topic
 
@@ -48,8 +50,8 @@ DAYS = {"Mon": "월요일", "Tue": "화요일", "Wed": "수요일", "Thu": "목�
         "Sun": "일요일"}  # fmt: skip
 CALENDAR = re.compile(r"(?:(Mon|Tue|Wed|Thu|Fri|Sat|Sun) +)?\*-\*-\* +(\d{2}):(\d{2})(?::00)?")
 REPORTS = {  # what each of the status channel's reports holds (site.json reports)
-    "usage": ("GPU 사용 현황", "누가 어떤 GPU를 쓰는지, 남은 GPU"),
-    "weekly": ("주간 요약", "지난 한 주 사람별 GPU 사용 시간과 쓰지 않고 잡아 둔 시간"),
+    "usage": ("GPU 사용 현황", f"누가 어떤 GPU를 쓰는지, 남은 GPU, {site_blocks.IDLE_JOB}"),
+    "weekly": ("주간 요약", "지난 한 주 사람별 GPU 사용 시간과 할당받은 GPU를 쓰지 않은 시간"),
     "disk": ("디스크 사용량", "사람별, 공간별 디스크 사용량과 경고 수준을 넘은 사람"),
 }
 
@@ -127,6 +129,10 @@ def fill(text, data):
                                              for k, (short, what) in REPORTS.items()])  # fmt: skip
         if name == "reports:inline":
             return " | ".join(f"{when(data['reports'][k])} {short}" for k, (short, _) in REPORTS.items())
+        if name == "reports:names":
+            return ", ".join(short for short, _ in REPORTS.values())
+        if name == "term:idle_job":
+            return site_blocks.IDLE_JOB
         raise ValueError(f"[[{name}]]: unknown placeholder")
 
     return PLACEHOLDER.sub(one, text)
@@ -166,7 +172,7 @@ def document(data, root=ROOT):
 def help_table(data, root=ROOT):
     """The help page's table: each listed channel's name and line, in ROLES order."""
     guides, names = sources(root), data["chat"]["channels"]
-    rows = [(f"`{names[r]}`", guides[r]["table"]) for r in ROLES if r in guides and guides[r]["table"]]
+    rows = [(f"`{names[r]}`", fill(guides[r]["table"], data)) for r in ROLES if r in guides and guides[r]["table"]]
     return _table(("Slack 채널", "용도"), rows) + "\n"
 
 

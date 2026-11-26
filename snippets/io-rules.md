@@ -4,7 +4,7 @@
 
 | 공간 | 성격 | 두는 것 |
 |---|---|---|
-| `/home` | 용량이 크고 오래 보관하는 공간입니다. HDD RAID라서 큰 파일을 처음부터 순서대로 읽고 쓰면 빠릅니다(대략 읽기 1.2 GB/s, 쓰기 0.85 GB/s). 작은 파일을 여기저기 읽고 쓰면 매우 느립니다(대략 초당 1,600번 읽기, 500번 쓰기) | 코드, 결과, **묶음 파일로 보관하는** 데이터셋 |
+| `/home` | 용량이 크고 오래 보관하는 공간입니다. HDD RAID라서 큰 파일을 처음부터 순서대로 읽고 쓰면 빠릅니다(<!-- BEGIN GENERATED: storage:/home:seq -->대략 읽기 1.3 GB/s, 쓰기 0.9 GB/s<!-- END GENERATED: storage:/home:seq -->). 작은 파일을 여기저기 읽고 쓰면 매우 느립니다(<!-- BEGIN GENERATED: storage:/home:random -->대략 초당 1,600번 읽기, 480번 쓰기<!-- END GENERATED: storage:/home:random -->) | 코드, 결과, **묶음 파일로 보관하는** 데이터셋 |
 | `/scratch` | 진행 중인 실험이 자주 읽고 쓰는 작업본을 두는 NVMe RAID입니다. 작은 파일, 무작위 접근, 체크포인트에 강합니다. <!-- BEGIN GENERATED: quota:each:/scratch --><!-- END GENERATED: quota:each:/scratch --><!-- BEGIN GENERATED: policy:stale_days -->60<!-- END GENERATED: policy:stale_days -->일 동안 아무도 읽거나 쓰지 않은 파일은 정리됩니다 | 진행 중인 실험의 작업본 (임시) |
 | 잡의 `/tmp` | 잡이 도는 노드의 로컬 디스크에 잡마다 따로 생기고, 잡이 끝나면 지워집니다 | 풀어 놓은 실행 환경, 압축을 푼 데이터셋, 한 잡의 임시 파일 |
 
@@ -23,6 +23,6 @@
 **3. 무거운 파일 작업 삼가기**
 
 - 큰 디렉터리 트리 전체에 `du`나 `find`를 돌리지 않습니다. 큰 `rsync`나 `tar`도 로그인 노드에서 하지 않습니다.
-  사용량은 클러스터가 제공하는 quota, 디스크 리포트, 정리하면 좋을 폴더 목록으로 확인합니다.
+  내 사용량은 <!-- BEGIN GENERATED: command:disk-usage -->`disk-usage`<!-- END GENERATED: command:disk-usage -->로(파일시스템별 사용량과 한도, 정리하면 좋을 폴더), 전체는 디스크 리포트로 확인합니다.
 - 무거운 파일 작업이 꼭 필요하면 Slurm 잡(CPU 전용, 낮은 우선순위)으로 돌립니다. 다만 잡도 같은 파일 서버를 쓰므로 부담은
   그대로 남습니다.

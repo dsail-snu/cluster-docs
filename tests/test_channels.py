@@ -92,6 +92,15 @@ class TheRealGuides(unittest.TestCase):
         table = channels.help_table(DATA)
         self.assertIn(f"`{DATA['chat']['channels']['help']}`", table)
         self.assertNotIn(DATA["chat"]["channels"]["admin"], table, "the admin channel is not listed")
+        self.assertNotIn("[[", table, "a guide's table line is filled like its other fields")
+
+    def test_the_status_channel_lists_its_reports_from_the_data(self):
+        """slack/status.md listed its report kinds by hand, one of them under an old name."""
+        names = channels.fill("[[reports:names]]", DATA)
+        self.assertEqual(names, ", ".join(short for short, _ in channels.REPORTS.values()))
+        status = channels.document(DATA)["channels"]["status"]
+        self.assertIn(names, json.dumps(status, ensure_ascii=False))
+        self.assertIn(channels.site_blocks.IDLE_JOB, json.dumps(status, ensure_ascii=False))
 
 
 if __name__ == "__main__":

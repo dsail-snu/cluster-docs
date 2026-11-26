@@ -296,7 +296,7 @@ scontrol show job <JOBID> | grep -i tres
 | `--mem`, `--mem-per-cpu`, `--mem-per-gpu` | **거부**. 해당 줄을 지우고 다시 제출 |
 | `-n`/`--ntasks`, `--ntasks-per-node` | `-n`은 잡 전체의 GPU 수 이하, `--ntasks-per-node`는 노드당 GPU 수 이하만 허용 (GPU당 태스크 1개). 넘으면 거부. 여러 노드면 `-N` 으로 노드 수를 적습니다 |
 | `--ntasks-per-gpu` | 1만 허용 |
-| 노드당 GPU 수 (`--gres`, `--gpus`, `-N`과 함께) | **1, 2, 4, 8**만 허용. 다른 수는 거부되고, 메시지에 허용되는 수가 나옵니다 |
+| 노드당 GPU 수 (`--gres`, `--gpus`, `-N`과 함께) | **<!-- BEGIN GENERATED: policy:gpus_per_node -->1, 2, 4, 8<!-- END GENERATED: policy:gpus_per_node -->**만 허용. 다른 수는 거부되고, 메시지에 허용되는 수가 나옵니다 |
 
 !!! info "메모리만 거부하는 이유"
     제출 규칙은 사용자가 적은 메모리 값을 지워 "지정 안 함"으로 되돌릴 수 없습니다. 되돌리면 `--mem=0`, 즉 노드 메모리 전부가 되기 때문입니다. 그래서 값을 지우는 대신 제출을 거부합니다.

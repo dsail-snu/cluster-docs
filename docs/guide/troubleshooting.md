@@ -65,6 +65,20 @@ QoS와 우선순위의 배경은 [Slurm 레퍼런스](../reference/slurm.md#qos)
 
 ## 제출이 거부될 때
 
+<!-- BEGIN GENERATED: submit:refusals -->
+### `Job violates accounting/QOS policy`
+
+기다리는 잡과 도는 잡을 합쳐 한 사람이 **500개**까지 제출해 둘 수 있습니다. 배열 잡은 작업 하나하나를 셉니다. 앞의 잡이 끝나거나 필요 없는 잡을 취소하면 다시 제출할 수 있습니다. 내 잡 수는 `squeue --me -h -r | wc -l`로 봅니다.
+
+### `Your membership ended on`
+
+소속 기간이 끝나 새 잡을 낼 수 없습니다. 돌던 잡은 그대로 돌고, 로그인은 메시지에 적힌 날까지 남아 있으니 그 전에 파일을 옮겨 주세요. 기간이 잘못되었다면 관리자에게 알려 주세요.
+
+### `Your disk use on`
+
+메시지에 적힌 곳에서 용량이나 파일 수가 한도에 닿아, 공간을 비울 때까지 새 잡을 낼 수 없습니다. 그곳에는 쓰기도 실패합니다. `disk-usage`로 어디에 얼마나 쓰는지와 정리하면 좋을 폴더를 보고 공간을 비우면, 곧 다시 제출할 수 있습니다. 돌던 잡은 그대로 돕니다.
+<!-- END GENERATED: submit:refusals -->
+
 ### `Requested node configuration is not available`
 
 노드 하나가 가진 것보다 많은 자원을 요청했습니다. 예: 노드 하나에 달린 GPU보다 많은 GPU를 한 노드에 요청.

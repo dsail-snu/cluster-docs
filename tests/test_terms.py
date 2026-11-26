@@ -19,6 +19,7 @@ OLD = re.compile(
             r"(?<!할당받은 )GPU를 (?:\S+ ){0,2}쓰지 않",  # 'GPU를 쓰지 않는 잡', '6시간 동안 GPU를 쓰지 않은 잡'
             r"GPU를 할당받아 두고",
             r"유휴 (?:GPU|잡)",
+            r"쉬(?:는|던) 잡",  # '오래 쉬는 잡 알림'
             r"(?i:\bidle[- ](?:GPU )?(?:jobs?|rule)\b)",
         )
     )
@@ -64,7 +65,7 @@ class Terms(unittest.TestCase):
         self.assertEqual(site_blocks.body(data, "term:idle_job"), site_blocks.IDLE_JOB + "\n")
 
     def test_the_pattern_catches_the_old_and_passes_the_new(self):
-        for old in ("GPU를 쓰지 않는 잡", "**6시간** 동안 GPU를 쓰지 않은 잡", "유휴 GPU 알림", "유휴 잡 취소",
+        for old in ("GPU를 쓰지 않는 잡", "**6시간** 동안 GPU를 쓰지 않은 잡", "유휴 GPU 알림", "유휴 잡 취소", "오래 쉬는 잡 알림",
                     "Slurm 잡으로 GPU를 할당받아 두고", "the idle-GPU rule", "idle jobs"):  # fmt: skip
             self.assertRegex(old, OLD)
         for new in ("할당받은 GPU를 쓰지 않는 잡", "할당받은 GPU를 **6시간** 동안 쓰지 않은 잡", "idle_hours", "`idle*`"):

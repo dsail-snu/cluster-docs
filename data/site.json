@@ -594,6 +594,10 @@
     "memory_gib": 64,
     "tasks": 4096
   },
+  "messages": {
+    "hold_disk": "Your disk use on",
+    "hold_ended": "Your membership ended on"
+  },
   "paths": {
     "scratch": "/scratch",
     "shared": "/home/shared",
@@ -624,8 +628,10 @@
     ],
     "interactive_team_qos": true,
     "leave_grace_days": 60,
+    "max_submit_jobs": 500,
     "stale_days": 60,
     "strict_gpu_type": true,
+    "submit_holds": true,
     "submit_holds_disk": true,
     "warn_fraction": 0.9
   },
@@ -687,6 +693,14 @@
     "kill_wait_seconds": 120,
     "preempt_grace_seconds": 120,
     "sigkill_after_seconds": 240
+  },
+  "storage": {
+    "/home": {
+      "read_bps": 1272070703,
+      "read_iops": 1587,
+      "write_bps": 894575285,
+      "write_iops": 483
+    }
   },
   "threads": {
     "variables": [

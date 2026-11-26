@@ -44,7 +44,7 @@ df -h /home /scratch          # 공간 전체의 용량과 마운트 확인
 공용 모델 캐시는 `/home/shared/models/hub`에 있고, 모든 로그인과 잡에서 `SHARED_HF_HUB_CACHE`가 그곳을 가리킵니다. **읽기 전용**이라 여기에는 내려받을 수 없으니, 각자의 `HF_HUB_CACHE`로 바꾸지 말고 읽을 때 이 경로를 직접 주세요: `from_pretrained(<모델>, cache_dir=os.environ["SHARED_HF_HUB_CACHE"], local_files_only=True)`, 또는 `HF_HUB_OFFLINE=1 hf download <모델> --cache-dir "$SHARED_HF_HUB_CACHE"`가 출력하는 스냅샷 경로. 그 밖의 모델은 평소처럼 각자의 캐시(`HF_HOME` 아래)에 내려받고, 여럿이 쓸 모델은 관리자에게 요청하세요.
 <!-- END GENERATED: models -->
 
-## 어디에 무엇을 둘까
+## 공간별 용도
 
 | 무엇 | 어디에 |
 |------|--------|
@@ -61,7 +61,7 @@ df -h /home /scratch          # 공간 전체의 용량과 마운트 확인
 - 컨테이너 캐시는 노드 로컬이라 잡이 끝나면 사라질 수 있습니다. 보관하려면 `.sqsh` 파일을
   공유 공간으로 옮기세요. -> [컨테이너](containers.md)
 
-## 공유 스토리지를 느리게 만들지 않는 법
+## 공유 스토리지 부하 줄이기 { #공유-스토리지를-느리게-만들지-않는-법 }
 
 --8<-- "io-rules.md"
 

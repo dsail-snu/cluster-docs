@@ -24,7 +24,7 @@
 클러스터가 따로 배포하는 명령도 있습니다.
 
 <!-- BEGIN GENERATED: commands:table -->
-| 명령 | 보여 주는 것 |
+| 명령 | 내용 |
 |---|---|
 | `disk-usage` | 내 파일시스템별 사용량과 파일 수, 경고 수준과 한도, 정리하면 좋을 폴더, 최근 I/O |
 | `gpu-usage` | 잡의 GPU가 실제로 한 일: 사용률, SM 활동, 메모리, 전력 (실행 중이거나 끝난 잡) |
@@ -237,7 +237,7 @@ Slurm은 "이 QoS가 무엇을 선점하는지"만 기록하고, "무엇에 선�
 
 유예 시간 안에 체크포인트를 저장하세요: `SIGTERM` 을 잡거나(아래), `sbatch --signal` 로 미리 신호를 받습니다. 다시 시작한 잡은 그 체크포인트에서 이어 돌면 됩니다.
 
-### 유예 시간을 쓰려면 SIGTERM을 잡으세요
+### 유예 시간 활용: SIGTERM 처리
 
 ```bash
 trap 'touch /scratch/$USER/ckpt.request' TERM
@@ -250,7 +250,7 @@ trap 'touch /scratch/$USER/ckpt.request' TERM
 
 트랩은 마지막 순간을 쓰는 수단일 뿐입니다. **체크포인트를 주기적으로 남기고, 재시작하면 이어서 돌도록** 짜는 것이 근본 대책입니다. -> [스토리지 가이드](../guide/storage.md), [잡 레시피](../guide/job-recipes.md)
 
-### 인터랙티브 잡은 되살아나지 않습니다
+### 인터랙티브 잡: 재시작 없음
 
 `srun --pty`, `salloc` 은 requeue할 수 없으므로 선점되면 **그냥 취소**됩니다. 잃으면 곤란한 작업은 배치 잡으로 돌리세요.
 
@@ -263,7 +263,7 @@ trap 'touch /scratch/$USER/ckpt.request' TERM
 
 잡을 제출하면 클러스터가 규칙에 따라 **GPU 잡이 갈 곳과 받을 CPU, 메모리 양**을 정해 줍니다. 사용자는 **GPU 타입과 개수만** 적으면 됩니다.
 
-### 라우팅: GPU 타입만 적으면 됩니다
+### 라우팅: GPU 타입 지정
 
 | 제출 내용 | 처리 |
 |---|---|
@@ -279,7 +279,7 @@ trap 'touch /scratch/$USER/ckpt.request' TERM
 
 GPU 타입 이름은 `sq` 또는 `sinfo -o "%G"` 로 확인합니다.
 
-### 자동 할당: CPU와 메모리는 GPU 수를 따라갑니다
+### 자동 할당: GPU 수에 비례하는 CPU와 메모리
 
 GPU 잡의 **CPU와 메모리는 요청한 GPU 수에 비례해** 자동으로 정해집니다 (`DefCpuPerGPU`, `DefMemPerCPU`). 노드마다 GPU 한 장에 딸린 CPU와 메모리가 넉넉하게 정해져 있습니다.
 GPU 잡은 이 값을 바꿀 수 없습니다. 더 많이 잡으면 그 노드에 남은 GPU가 CPU나 메모리가 모자라 놀게 되기 때문입니다.

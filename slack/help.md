@@ -2,7 +2,7 @@
 purpose: 클러스터 질문, 문제 신고, 요청을 편하게 남겨 주세요. 모두가 보는 곳에 물어 주시면 같은 문제를 겪는 분도 도움을 받습니다.
 topic: 자주 묻는 질문을 먼저 봐 주세요 | 잡 ID, 시각, 오류 메시지를 그대로 적어 주세요 | 급하면 [[admins]] 멘션
 title: 도움 받기
-table: 질문, 문제 신고, 요청을 편하게 남겨 주세요
+table: 질문, 문제 신고, 요청
 bookmark: :sos: | 자주 묻는 질문 | guide/troubleshooting.md
 bookmark: :wave: | 도움 받기 | help.md
 bookmark: :rocket: | 접속하기 | start/connect.md

@@ -1,7 +1,7 @@
 ---
 purpose: 클러스터 상태를 자동으로 알려 드리는 채널입니다: [[reports:names]]. 글은 자동으로만 올라옵니다.
 topic: [[reports:inline]] | 궁금한 점은 [[#help]]에 남겨 주세요
-title: 상태 채널 읽는 법
+title: 상태 채널 안내
 table: 클러스터 상태: [[reports:names]]
 bookmark: :bar_chart: | 모니터링 안내 | guide/monitoring.md
 ---
@@ -11,7 +11,7 @@ bookmark: :bar_chart: | 모니터링 안내 | guide/monitoring.md
 
 [[reports]]
 
-## [[term:idle_job]]
+## [[term:idle_job_title]]
 
 [[rule:idle]]
 

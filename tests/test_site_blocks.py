@@ -18,7 +18,9 @@ DATA = {
     "slurm": {"kill_wait_seconds": 30, "preempt_grace_seconds": 30, "sigkill_after_seconds": 60},
     "quota": {"/data": {"block_hard_tib": 2.0, "block_warn_tib": 1.8, "inode_hard": 6000000, "inode_warn": 5400000}},
     "reports": {"usage": "hourly", "weekly": "Mon *-*-* 09:00:00", "disk": "*-*-* 08:30:00"},
+    "rules": [{"id": "disk", "active": True}],
 }  # fmt: skip
+UNLIMITED = [{"id": "disk", "active": False}]
 
 
 class Blocks(unittest.TestCase):
@@ -91,7 +93,7 @@ class Blocks(unittest.TestCase):
         self.assertNotIn("거부", site_blocks.sessions_rule(off))
 
     def test_the_limits_appear_when_the_cluster_sets_them(self):
-        none = dict(DATA, quota={})
+        none = dict(DATA, quota={}, rules=UNLIMITED)
         self.assertIn("한도는 없습니다", site_blocks.quota_section(none))
         self.assertIn("디스크 리포트(매일 08:30)", site_blocks.quota_section(none))
         self.assertEqual(site_blocks.quota_each(none, "/scratch"), "\n")
@@ -102,6 +104,16 @@ class Blocks(unittest.TestCase):
         self.assertIn("새 잡 제출도 보류", text)
         self.assertNotIn("보류", site_blocks.quota_section(dict(on, policy=dict(on["policy"], submit_holds_disk=False))))
         self.assertEqual(site_blocks.quota_each(on, "/home"), "한 사람당 10 TB까지 쓰실 수 있고, \n")
+
+    def test_only_some_people_limited_is_no_none(self):
+        """A person's own limit (people.yml disk_quota) with no default: the disk rule is
+        active while site.json quota is empty, and the page says so, never "none"."""
+        data = dict(DATA, quota={}, commands={"usage": {"summary_ko": "x", "options": [],
+                    "subcommands": [{"name": "disk", "summary_ko": "y", "options": []}]}})  # fmt: skip
+        text = site_blocks.quota_section(data)
+        self.assertNotIn("한도는 없습니다", text)
+        self.assertIn("따로 한도가 정해진 사람만", text)
+        self.assertIn("`usage disk`", text)
 
     def test_the_bot_as_the_cluster_runs_it(self):
         bot = {"command": "/c", "subcommands": [{"name": n, "help": n} for n in ("unban", "leave", "data", "help")]}
@@ -281,8 +293,8 @@ class FromTheData(unittest.TestCase):
         holds = site_blocks.submit_refusals(self.data(submit_holds=True))
         self.assertNotIn("Disk on", holds, "disk holds off")
         self.assertNotIn("개**", holds, "no cap")
-        unset = site_blocks.submit_refusals(dict(self.data(submit_holds=True, submit_holds_disk=True), quota={}))
-        self.assertNotIn("Disk on", unset, "no per-person limit yet: nothing to reach (2026-11-27)")
+        unset = site_blocks.submit_refusals(dict(self.data(submit_holds=True, submit_holds_disk=True), rules=UNLIMITED))
+        self.assertNotIn("Disk on", unset, "no one limited yet: nothing to reach (2026-11-27)")
 
     def test_join_and_unban_follow_the_bot(self):
         d = self.data()
@@ -304,8 +316,8 @@ class Rules(unittest.TestCase):
 
     def data(self, **rule):
         r = dict({"id": "gpu-idle", "title": "GPU 유휴 잡", "action": "notice, cancel", "check": "usage",
-                  "anchor": "policy/rules/#gpu-idle", "values": {}}, **rule)  # fmt: skip
-        return dict(DATA, rules=[r], quota={}, commands={"usage": {"summary_ko": "x", "options": []}})
+                  "anchor": "policy/rules/#gpu-idle", "values": {}, "active": True}, **rule)  # fmt: skip
+        return dict(DATA, rules=[r], commands={"usage": {"summary_ko": "x", "options": []}})
 
     def test_each_rule_a_row_carrying_its_anchor(self):
         out = site_blocks.rules_section(self.data(), "policy/rules.md")
@@ -319,10 +331,8 @@ class Rules(unittest.TestCase):
         with self.assertRaises(SystemExit):
             site_blocks.rules_section(self.data(check="gpu-usage"), "policy/rules.md")
 
-    def test_the_disk_limit_only_while_one_is_set(self):
-        disk = self.data(id="disk", anchor="policy/rules/#disk")
-        self.assertNotIn("disk", site_blocks.rules_section(disk, "policy/rules.md"))
-        self.assertIn('id="disk"', site_blocks.rules_section(dict(disk, quota={"/home": {}}), "policy/rules.md"))
+    def test_a_rule_the_cluster_does_not_run_has_no_row(self):
+        self.assertNotIn("gpu-idle", site_blocks.rules_section(self.data(active=False), "policy/rules.md"))
 
     def test_the_rules_page_holds_every_rule(self):
         import json
@@ -330,5 +340,5 @@ class Rules(unittest.TestCase):
         real = json.loads(site_blocks.DATA.read_text())
         page = (site_blocks.ROOT / "docs/policy/rules.md").read_text()
         for r in real["rules"]:
-            if r["id"] != "disk" or real.get("quota"):
+            if r["active"]:
                 self.assertIn(f'<span id="{r["anchor"].partition("#")[2]}"></span>', page, r["id"])

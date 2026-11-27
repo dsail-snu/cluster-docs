@@ -882,6 +882,7 @@
   "rules": [
     {
       "action": "notice, cancel",
+      "active": true,
       "anchor": "policy/rules/#gpu-idle",
       "check": "usage gpu",
       "id": "gpu-idle",
@@ -895,6 +896,7 @@
     },
     {
       "action": "notice, hold",
+      "active": false,
       "anchor": "policy/rules/#disk",
       "check": "usage disk",
       "id": "disk",
@@ -906,6 +908,7 @@
     },
     {
       "action": "purge",
+      "active": true,
       "anchor": "policy/rules/#scratch",
       "check": "usage disk",
       "id": "scratch-purge",
@@ -917,6 +920,7 @@
     },
     {
       "action": "notice",
+      "active": true,
       "anchor": "policy/rules/#io",
       "check": "usage io",
       "id": "io-heavy",
@@ -928,6 +932,7 @@
     },
     {
       "action": "limit",
+      "active": true,
       "anchor": "policy/rules/#login",
       "check": "usage login-node",
       "id": "login-limits",
@@ -936,6 +941,7 @@
     },
     {
       "action": "refuse",
+      "active": true,
       "anchor": "policy/rules/#submit",
       "check": "usage submit",
       "id": "queued-jobs",
@@ -944,6 +950,7 @@
     },
     {
       "action": "hold",
+      "active": true,
       "anchor": "policy/rules/#leave",
       "check": "usage submit",
       "id": "membership-end",

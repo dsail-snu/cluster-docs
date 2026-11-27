@@ -23,7 +23,8 @@ Generators:
                   as command:CMD:SUB (`usage gpu`)
   command:CMD:what, command:CMD:SUB:what
                   what it shows, its Korean summary
-  rules:section   every rule that acts on a person (site.json rules), as a table: its
+  rules:section   every rule that acts on a person and the cluster runs (site.json
+                  rules, active), as a table: its
                   title with its anchor (policy/rules/#ID, on the page the anchor names),
                   what the cluster does and the command that shows where one stands
   policy:FIELD    one value of site.json policy; warn_percent is warn_fraction as a percent;
@@ -66,7 +67,7 @@ Generators:
   rule:sessions   whether srun and salloc GPU sessions must name a team QoS, checked at
                   submit (policy.interactive_team_qos), or only asked to
   quota:section   the per-person disk limits (what happens at one, the warning, a table),
-                  or that there are none: it appears when the cluster sets limits
+                  that only some people have their own, or that there are none
   quota:each:M    "한 사람당 5 TB까지 쓰실 수 있고, " for mount M, or nothing
   bot:section, bot:unban, bot:leave, bot:data, bot:join
                   the /cluster command's requests, or whom to ask while the cluster runs
@@ -171,13 +172,13 @@ ACTIONS = {"notice": "알림", "cancel": "잡 취소", "hold": "제출 보류", 
 def rules_section(data, page):
     """Every rule that acts on a person as a table (site.json rules): its title carrying
     its anchor, what the cluster does, and the command that shows where one stands. Each
-    anchor names a place on PAGE, the page this block sits on, so its links land. The disk
-    limit appears only while per-person limits exist (site.json quota)."""
+    anchor names a place on PAGE, the page this block sits on, so its links land. A rule
+    the cluster does not run (rules active false, the gate usage reads) has no row."""
     here = page.removesuffix(".md") + "/"
     rows = []
     for r in data["rules"]:
-        if r["id"] == "disk" and not data.get("quota"):
-            continue  # no per-person limit to reach (site.json quota), as submit:refusals
+        if not r["active"]:
+            continue  # a rule this cluster does not run (usage shows it off)
         target, _, anchor = r["anchor"].partition("#")
         if target != here or not anchor:
             raise SystemExit(f"rules:section on {page}: rule {r['id']} links {r['anchor']}, not a place here")
@@ -206,12 +207,19 @@ def storage(data, mount, kind):
     raise SystemExit(f"unknown generated block: storage:{mount}:{kind}")
 
 
+def active(data, rule):
+    """Whether the cluster runs RULE (site.json rules active: the gate usage reads). The
+    disk rule is active while someone is limited: a filesystem's default (site.json quota)
+    or a person's own limit."""
+    return next(r["active"] for r in data["rules"] if r["id"] == rule)
+
+
 def submit_refusals(data):
     """The refusals the cluster's own limits give a submission, each a section: the cap on
     queued and running jobs (policy.max_submit_jobs), and with the submit holds the end of
     a membership and a disk hard limit, each quoted as it begins (site.json messages). The
-    disk refusal appears only while per-person limits exist (site.json quota, the
-    condition quota:section states), so no page names a limit the cluster does not set."""
+    disk refusal appears only while someone is limited (the disk rule active), so no page
+    names a limit the cluster does not set."""
     p, m = data["policy"], data.get("messages", {})
     out = []
     if p.get("max_submit_jobs"):
@@ -223,7 +231,7 @@ def submit_refusals(data):
         out.append(f"### `{m['hold_ended']}`\n\n"
                    "소속 기간이 끝나 새 잡을 낼 수 없습니다. 실행 중인 잡은 그대로 돌고, 로그인은 메시지에 적힌 날까지 할 수 있으니 "
                    "그 전에 파일을 옮겨 주세요. 기간이 잘못되었다면 관리자에게 알려 주세요.\n")  # fmt: skip
-        if p.get("submit_holds_disk") and data.get("quota"):
+        if p.get("submit_holds_disk") and active(data, "disk"):
             out.append(f"### `{m['hold_disk']}`\n\n"
                        "메시지에 적힌 곳에서 용량이나 파일 수가 한도에 닿아, 공간을 비울 때까지 새 잡을 낼 수 없습니다. 그곳에는 파일을 더 쓸 수도 없습니다. "
                        f"{command(data, 'usage disk')}로 어디에 얼마나 쓰는지와 정리하면 좋을 폴더를 보고 공간을 비우면, "
@@ -408,8 +416,13 @@ def _tb(tib):
 
 def quota_section(data):
     """The per-person disk limits as the cluster sets them (site.json quota): what happens
-    at a limit, the warning, a table, the files per TB; or that there are none yet."""
+    at a limit, the warning, a table, the files per TB; that only some people have their
+    own (the disk rule active, no default); or that there are none yet."""
     q, p = data["quota"], data["policy"]
+    if not q and active(data, "disk"):
+        return ("기본 용량과 파일 수 한도는 없고, 따로 한도가 정해진 사람만 그 한도를 넘어 쓸 수 없습니다. "
+                f"내 한도와 사용량은 {command(data, 'usage disk')}로, 전체 사용량은 Slack 디스크 리포트"
+                f"({report_when(data, 'disk')})로 확인하실 수 있습니다.\n")
     if not q:
         return ("사람마다 정해진 용량과 파일 수 한도는 없습니다. 사용량은 Slack 디스크 리포트"
                 f"({report_when(data, 'disk')})로 알려 드립니다.\n")

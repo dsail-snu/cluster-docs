@@ -91,12 +91,12 @@ sacct -S today -X --format=JobID,JobName,State,Elapsed
 
 - `sq`: 내 잡의 **NODE(REASON)** 열에 나옵니다. 실행 중인 잡은 그 노드가, 대기 중인 잡은 대기 사유가 보입니다.
 - `scontrol show job <JOBID>`: `NodeList`에 노드가, `AllocTRES`에 받은 GPU 수가 나옵니다.
-- `gpu-usage <JOBID>`: 잡이 실행된 노드와 GPU 수, 그 GPU의 실제 사용률을 보여 줍니다.
+- `usage gpu <JOBID>`: 잡이 실행된 노드와 GPU 수, 그 GPU의 실제 사용률을 보여 줍니다.
 - [웹 대시보드](#웹-대시보드)에서는 잡이 실행 중인 노드와 GPU를 찾아 그 노드의 상태를 볼 수 있습니다.
 
 ## 내 잡이 GPU를 잘 쓰는지
 
-노드에 들어가지 않고 보려면 `gpu-usage <JOBID>`를 씁니다. 실시간으로 보려면 잡이 실행 중인 노드에 들어갑니다.
+노드에 들어가지 않고 보려면 `usage gpu <JOBID>`를 씁니다. 실시간으로 보려면 잡이 실행 중인 노드에 들어갑니다.
 
 ```bash
 srun --jobid=<JOBID> --overlap --pty bash -i
@@ -123,7 +123,7 @@ htop                    # CPU, 메모리
 - **Node Exporter / Hosts**: 모든 호스트의 자세한 수치(CPU, 메모리, 디스크, 네트워크). 위쪽의 **nodename**에서 호스트를 고릅니다.
 - **Slurm / Scheduler**: 클러스터 전체의 노드 상태, 쓰고 있는 CPU와 GPU, 실행 중인 잡과 대기 중인 잡.
 - **Storage / NFS and disks**: 공유 스토리지(NFS)와 디스크를 누가 얼마나 읽고 쓰는지: 노드별, 잡별(**Top jobs by I/O**).
-- **Storage / per person**: 한 사람의 파일시스템별 사용량과 파일 수(경고 수준과 한도), 정리하면 좋을 폴더, 그 사람의 잡과 로그인 노드 작업의 I/O를 시간에 따라 봅니다. `disk-usage`가 보여 주는 값입니다. 위쪽의 **user**에서 사람을 고릅니다.
+- **Storage / per person**: 한 사람의 파일시스템별 사용량과 파일 수(경고 수준과 한도), 정리하면 좋을 폴더, 그 사람의 잡과 로그인 노드 작업의 I/O를 시간에 따라 봅니다. `usage disk`와 `usage io`가 보여 주는 값입니다. 위쪽의 **user**에서 사람을 고릅니다.
 - **Slurm / GPU allocation**: 지금 GPU마다 누가 어떤 잡으로 쓰는지(**Allocations now**), 잡별 GPU 사용률과 메모리, 사람별, 팀별 할당. 내 잡이 실행 중인 노드와 GPU를 여기서 찾습니다.
 <!-- END GENERATED: service:dashboards -->
 

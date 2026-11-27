@@ -140,7 +140,7 @@ sinfo                         # 노드 상태가 보이면 Slurm 정상
 squeue                        # 현재 큐
 qos                           # 내가 쓸 수 있는 QoS, 선점 관계, 팀 몫
 module avail 2>&1 | head      # 사용 가능한 소프트웨어 모듈
-disk-usage                    # 내 디스크 사용량과 한도 (파일시스템별)
+usage                         # 경고, 한도, 취소가 있는 규칙마다 내 현황
 ```
 
 - `qos`에서 `▌`로 표시된 것이 내가 쓸 수 있는 QoS입니다. 기본 QoS와 함께 **본인 팀 QoS**가 보이는지 확인하세요. 보이지 않으면 관리자에게 문의하세요. -> [QoS 설명](../reference/slurm.md#qos)

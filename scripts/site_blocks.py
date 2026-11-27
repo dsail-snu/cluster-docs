@@ -19,8 +19,13 @@ Generators:
   options:CMD     the options of the cluster command CMD, as a table
   options:all     every cluster command's options, each under its own heading
   command:CMD     the cluster command CMD, as code: a page names one only through this,
-                  so it never names a command the cluster does not have
-  command:CMD:what  what CMD shows, its Korean summary
+                  so it never names a command the cluster does not have; a subcommand
+                  as command:CMD:SUB (`usage gpu`)
+  command:CMD:what, command:CMD:SUB:what
+                  what it shows, its Korean summary
+  rules:section   every rule that acts on a person (site.json rules), as a table: its
+                  title with its anchor (policy/rules/#ID, on the page the anchor names),
+                  what the cluster does and the command that shows where one stands
   policy:FIELD    one value of site.json policy; warn_percent is warn_fraction as a percent;
                   gpus_per_node the allowed GPUs per node as a list (1, 2, 4, 8)
   storage:M:seq, storage:M:random
@@ -98,9 +103,30 @@ IDLE_JOB = "GPU 유휴 잡"
 BLOCK = re.compile(r"^([ ]*)(<!-- BEGIN GENERATED: (\S+) -->\n)(.*?)([ ]*<!-- END GENERATED: \3 -->)", re.S | re.M)
 
 
+def entry(data, words):
+    """The cluster command WORDS (["usage", "gpu"]: a command, then its subcommands) as
+    site.json commands holds it, refused when the cluster has none of that name."""
+    found, have = None, data["commands"]
+    for w in words:
+        found = have.get(w) if isinstance(have, dict) else next((s for s in have if s["name"] == w), None)
+        if found is None:
+            raise SystemExit(f"command:{':'.join(words)}: the cluster has no such command (site.json commands)")
+        have = found.get("subcommands") or []
+    return found
+
+
+def every_command(data):
+    """[(name, entry)] of each cluster command and then its subcommands, in name order."""
+    out = []
+    for c in sorted(data["commands"]):
+        out.append((c, data["commands"][c]))
+        out += [(f"{c} {s['name']}", s) for s in data["commands"][c].get("subcommands") or []]
+    return out
+
+
 def options(data, command):
     rows = ["| 옵션 | 설명 |", "|---|---|"]
-    for o in data["commands"][command]["options"]:
+    for o in entry(data, command.split())["options"]:
         flags = ", ".join(f"`{f}`" + (f" `{o['metavar']}`" if o["metavar"] and f.startswith("--") else "") for f in o["flags"])
         rows.append(f"| {flags} | {o['help'].replace('|', '\\|')} |")
     return "\n".join(rows) + "\n"
@@ -125,15 +151,42 @@ def gpus_per_node(data):
 
 
 def command(data, name):
-    """The cluster command NAME as code, refused when the cluster has none of that name."""
-    if name not in data["commands"]:
-        raise SystemExit(f"command:{name}: the cluster has no such command (site.json commands)")
+    """The cluster command NAME ("usage gpu" for a subcommand) as code, refused when the
+    cluster has none of that name."""
+    entry(data, name.split())
     return f"`{name}`"
 
 
 def options_all(data):
-    """Every cluster command's options, each under a heading of its own."""
-    return "\n".join(f"#### `{c}`의 옵션\n\n" + options(data, c) for c in sorted(data["commands"]))
+    """Every cluster command's options and each subcommand's, each under a heading of its own."""
+    return "\n".join(f"#### `{c}`의 옵션\n\n" + options(data, c) for c, _ in every_command(data))
+
+
+# What the cluster does under a rule (site.json rules action, cluster_tools.rules), in the
+# rules page's words; an action not here is refused, so the page never drops one.
+ACTIONS = {"notice": "알림", "cancel": "잡 취소", "hold": "제출 보류", "purge": "파일 삭제",
+           "refuse": "제출 거부", "limit": "한도 적용"}  # fmt: skip
+
+
+def rules_section(data, page):
+    """Every rule that acts on a person as a table (site.json rules): its title carrying
+    its anchor, what the cluster does, and the command that shows where one stands. Each
+    anchor names a place on PAGE, the page this block sits on, so its links land. The disk
+    limit appears only while per-person limits exist (site.json quota)."""
+    here = page.removesuffix(".md") + "/"
+    rows = []
+    for r in data["rules"]:
+        if r["id"] == "disk" and not data.get("quota"):
+            continue  # no per-person limit to reach (site.json quota), as submit:refusals
+        target, _, anchor = r["anchor"].partition("#")
+        if target != here or not anchor:
+            raise SystemExit(f"rules:section on {page}: rule {r['id']} links {r['anchor']}, not a place here")
+        try:
+            does = ", ".join(ACTIONS[a.strip()] for a in r["action"].split(","))
+        except KeyError as e:
+            raise SystemExit(f"rule {r['id']}: action {e} has no Korean in scripts/site_blocks.py ACTIONS") from None
+        rows.append(f'| <span id="{anchor}"></span>{r["title"]} | {does} | {command(data, r["check"])} |')
+    return "\n".join(["| 규칙 | 조치 | 내 현황 |", "|---|---|---|", *rows]) + "\n"
 
 
 def _about(n):
@@ -173,7 +226,7 @@ def submit_refusals(data):
         if p.get("submit_holds_disk") and data.get("quota"):
             out.append(f"### `{m['hold_disk']}`\n\n"
                        "메시지에 적힌 곳에서 용량이나 파일 수가 한도에 닿아, 공간을 비울 때까지 새 잡을 낼 수 없습니다. 그곳에는 파일을 더 쓸 수도 없습니다. "
-                       f"{command(data, 'disk-usage')}로 어디에 얼마나 쓰는지와 정리하면 좋을 폴더를 보고 공간을 비우면, "
+                       f"{command(data, 'usage disk')}로 어디에 얼마나 쓰는지와 정리하면 좋을 폴더를 보고 공간을 비우면, "
                        "곧 다시 제출할 수 있습니다. 실행 중인 잡은 그대로 실행됩니다.\n")  # fmt: skip
     return "\n".join(out) or "\n"
 
@@ -233,7 +286,7 @@ DASHBOARDS = {
                  "위쪽의 **hostname**에서 노드를 고릅니다.",
     "slurm-scheduler": "클러스터 전체의 노드 상태, 쓰고 있는 CPU와 GPU, 실행 중인 잡과 대기 중인 잡.",
     "storage-person": "한 사람의 파일시스템별 사용량과 파일 수(경고 수준과 한도), 정리하면 좋을 폴더, 그 사람의 잡과 로그인 노드 작업의 I/O를 "
-                      "시간에 따라 봅니다. `disk-usage`가 보여 주는 값입니다. 위쪽의 **user**에서 사람을 고릅니다.",
+                      "시간에 따라 봅니다. `usage disk`와 `usage io`가 보여 주는 값입니다. 위쪽의 **user**에서 사람을 고릅니다.",
     "storage-io": "공유 스토리지(NFS)와 디스크를 누가 얼마나 읽고 쓰는지: 노드별, 잡별(**Top jobs by I/O**).",
     "node-exporter-hosts": "모든 호스트의 자세한 수치(CPU, 메모리, 디스크, 네트워크). 위쪽의 **nodename**에서 "
                            "호스트를 고릅니다.",
@@ -277,7 +330,7 @@ def service(data, name):
                     f"여실 수 있습니다. {PORTAL_ADDRESS}\n")
         if svc["dashboard"]:
             return "대시보드 주소는 관리자에게 문의해 주세요.\n"
-        return "웹 대시보드는 운영하지 않습니다. `sq`와 `gpu-usage`로 확인해 주세요.\n"
+        return "웹 대시보드는 운영하지 않습니다. `sq`와 `usage gpu`로 확인해 주세요.\n"
     if name == "job_notices":
         if not svc["job_notices"]:
             return "잡에 `--mail-type`을 적더라도 알림은 보내지 않습니다.\n"
@@ -336,8 +389,9 @@ def bot_subcommands(data):
 
 
 def commands_table(data):
-    """The cluster's own commands as a table, each with its Korean summary (site.json commands)."""
-    return table(("명령", "내용"), [(f"`{c}`", d["summary_ko"]) for c, d in data["commands"].items()])
+    """The cluster's own commands and their subcommands as a table, each with its Korean
+    summary (site.json commands)."""
+    return table(("명령", "내용"), [(f"`{c}`", d["summary_ko"]) for c, d in every_command(data)])
 
 
 def report_when(data, name):
@@ -489,11 +543,10 @@ def body(data, name):
     if kind == "options":
         return options(data, arg)
     if kind == "command":
-        cmd, _, what = arg.partition(":")
-        if what == "what":
-            command(data, cmd)
-            return data["commands"][cmd]["summary_ko"] + "\n"
-        return command(data, arg) + "\n"
+        words = arg.split(":")
+        if words[-1] == "what":
+            return entry(data, words[:-1])["summary_ko"] + "\n"
+        return command(data, " ".join(words)) + "\n"
     if kind == "storage":
         mount, _, which = arg.rpartition(":")
         return storage(data, mount, which) + "\n"
@@ -594,7 +647,9 @@ def fill(text, data, page=""):
     links a section block writes."""
 
     def render(name):
-        return section(name.split(":", 1)[1], page) if name.startswith("section:") else body(data, name)
+        if name.startswith("section:"):
+            return section(name.split(":", 1)[1], page)
+        return rules_section(data, page) if name == "rules:section" else body(data, name)
 
     def one(m):
         indent = m.group(1)

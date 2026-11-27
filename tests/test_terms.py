@@ -32,7 +32,15 @@ ENDINGS = re.compile(DATA["titles"]["endings"])
 EXEMPT = tuple(x["path"] for x in DATA["titles"]["exempt"])
 # The files that quote the variants: the exported glossary and this test.
 QUOTING = {"data/site.json", "tests/test_terms.py"}
-TERM_BLOCK = re.compile(r"<!-- BEGIN GENERATED: (term:idle_job\S*) -->[^\n]*?<!-- END GENERATED: \1 -->")
+# A generated block's value comes from the data (term:idle_job, a rules table), not a hand.
+GENERATED = re.compile(r"<!-- BEGIN GENERATED: (\S+) -->.*?<!-- END GENERATED: \1 -->", re.S)
+# The commands the cluster retired, each to what took its place (site.json
+# commands_retired), and the one pattern that finds a mention (commands_retired_pattern,
+# group 1 the old name), as deepops' own check applies them. Notices keep theirs: they
+# say what was true when they were posted.
+RETIRED = DATA["commands_retired"]
+RETIRED_AT = re.compile(DATA["commands_retired_pattern"])
+NOTICES = "docs/news/posts/"
 PAGES = ("docs/", "snippets/", "slack/")
 
 
@@ -124,9 +132,23 @@ class Terms(unittest.TestCase):
 
     def test_pages_write_the_idle_job_through_its_block(self):
         typed = [f"{p}:{n}" for p, text in texts() if p.startswith(PAGES)
-                 for n, line in enumerate(text.splitlines(), 1)
-                 if site_blocks.IDLE_JOB in TERM_BLOCK.sub("", line)]  # fmt: skip
-        self.assertEqual(typed, [], "write <!-- BEGIN GENERATED: term:idle_job --> (or _title) instead")
+                 for n, line in enumerate(GENERATED.sub("", text).splitlines(), 1)
+                 if site_blocks.IDLE_JOB in line]  # fmt: skip
+        self.assertEqual(typed, [], "write <!-- BEGIN GENERATED: term:idle_job --> instead")
+
+    def test_no_page_names_a_retired_command(self):
+        found = [f"{p}:{n}: {m.group(1)!r} -> {RETIRED[m.group(1)]}" for p, text in texts()
+                 if p.startswith((*PAGES, "scripts/")) and not p.startswith(NOTICES)
+                 for n, line in enumerate(text.splitlines(), 1) for m in RETIRED_AT.finditer(line)]  # fmt: skip
+        self.assertEqual(found, [], "name the command that took its place (site.json commands_retired)")
+
+    def test_the_retired_pattern_finds_a_mention_and_passes_look_alikes(self):
+        self.assertTrue(RETIRED, "data/site.json commands_retired (deepops scripts/docs/site_facts.py)")
+        old = next(iter(RETIRED))
+        for line in (f"`{old}`", f"{old} --top 5", f"<!-- BEGIN GENERATED: command:{old} -->"):
+            self.assertEqual([m.group(1) for m in RETIRED_AT.finditer(line)], [old], line)
+        for line in (f"{old}.py", f"#{old}", f"x-{old}", f"{old}-report", f"/{old}"):
+            self.assertFalse(RETIRED_AT.search(line), line)
 
     def test_titles_are_nouns_and_sentences_stay_descriptive(self):
         found = [v for p, text in texts() if p.endswith(".md") for v in title_problems(p, text)]

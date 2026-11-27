@@ -26,11 +26,14 @@
 <!-- BEGIN GENERATED: commands:table -->
 | 명령 | 내용 |
 |---|---|
-| `disk-usage` | 내 파일시스템별 사용량과 파일 수, 경고 수준과 한도, 정리하면 좋을 폴더, 최근 I/O |
-| `gpu-usage` | 잡이 GPU를 실제로 얼마나 썼는지: 사용률, SM 활동, 메모리, 전력 (실행 중이거나 끝난 잡) |
 | `qos` | 내가 잡을 낼 수 있는 QoS |
-| `scratch-space` | 스크래치 공간에서 정리될 예정인 내 파일과 그 시점 |
 | `sq` | 큐, 누가 무엇을 쓰는지, 파티션별 남은 자원 |
+| `usage` | 경고, 한도, 취소가 있는 규칙마다 내 현황 |
+| `usage gpu` | 잡이 GPU를 실제로 얼마나 썼는지: 사용률, SM 활동, 메모리, 전력 (실행 중이거나 끝난 잡) |
+| `usage disk` | 내 용량과 파일 수, 경고 수준과 한도, 정리하면 좋을 폴더, 정리될 스크래치 파일 |
+| `usage io` | 내 잡과 로그인의 I/O, 내 노드가 공유 스토리지에 거는 부하, 알림 여부 |
+| `usage submit` | 새 잡이 거부될지와 그 이유: 제출 잡 한도, 제출 보류 |
+| `usage login-node` | 이 로그인 노드에서 내 CPU, 메모리, 프로세스 수와 한 사람당 한도 |
 <!-- END GENERATED: commands:table -->
 
 최신 옵션은 각 명령의 `--help`로 확인하세요.
@@ -40,34 +43,6 @@
 클러스터 명령별 옵션입니다. 명령의 정의에서 생성하므로 `--help`와 내용이 같습니다.
 
 <!-- BEGIN GENERATED: options:all -->
-#### `disk-usage`의 옵션
-
-| 옵션 | 설명 |
-|---|---|
-| `-u`, `--user` `NAME` | someone else's figures instead of yours |
-| `--hours` `N` | the I/O window, in hours (default 24) |
-| `--top` `N` | rows per table of folders and I/O (default 10) |
-| `--json` | the figures as JSON, for scripts |
-| `--theme` `FLAVOUR` | catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command |
-| `--themes` | list the flavours with a swatch |
-| `--color` `WHEN`, `--colour` `WHEN` | always, never or auto (default; $NO_COLOR is honoured) |
-| `--no-color`, `--no-colour` | the same as --color never |
-| `--ascii` | ASCII glyphs for terminals without UTF-8 |
-| `--wide` | every column at full width, whatever the terminal fits |
-
-#### `gpu-usage`의 옵션
-
-| 옵션 | 설명 |
-|---|---|
-| `--source` `WHERE` | auto (default: Slurm's figures where the job has them, else Prometheus'), slurm or prometheus |
-| `--json` | the figures as JSON, for scripts |
-| `--theme` `FLAVOUR` | catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command |
-| `--themes` | list the flavours with a swatch |
-| `--color` `WHEN`, `--colour` `WHEN` | always, never or auto (default; $NO_COLOR is honoured) |
-| `--no-color`, `--no-colour` | the same as --color never |
-| `--ascii` | ASCII glyphs for terminals without UTF-8 |
-| `--wide` | every column at full width, whatever the terminal fits |
-
 #### `qos`의 옵션
 
 | 옵션 | 설명 |
@@ -77,18 +52,6 @@
 | `-u`, `--user` `NAME` | answer for someone else instead of you |
 | `--usage` | the live usage figures (--no-usage skips the job list) |
 | `--json` | the model as JSON, for scripts (ignores $QOS_OPTIONS) |
-| `--theme` `FLAVOUR` | catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command |
-| `--themes` | list the flavours with a swatch |
-| `--color` `WHEN`, `--colour` `WHEN` | always, never or auto (default; $NO_COLOR is honoured) |
-| `--no-color`, `--no-colour` | the same as --color never |
-| `--ascii` | ASCII glyphs for terminals without UTF-8 |
-| `--wide` | every column at full width, whatever the terminal fits |
-
-#### `scratch-space`의 옵션
-
-| 옵션 | 설명 |
-|---|---|
-| `--root` `DIR` | the scratch space (default: the cluster's, scratch_root in cluster.json) |
 | `--theme` `FLAVOUR` | catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command |
 | `--themes` | list the flavours with a swatch |
 | `--color` `WHEN`, `--colour` `WHEN` | always, never or auto (default; $NO_COLOR is honoured) |
@@ -123,6 +86,88 @@
 | `--gres` `NAME` | the generic resource to count (default: the one most nodes have) |
 | `-i`, `--interval` `SEC`, `--iterate` `SEC` | redraw every SEC seconds (at least 2); while Slurm fails or does not answer, the wait doubles, up to 60s or SEC if longer |
 | `--json` | the model as JSON, for scripts (ignores $SQ_OPTIONS) |
+| `--theme` `FLAVOUR` | catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command |
+| `--themes` | list the flavours with a swatch |
+| `--color` `WHEN`, `--colour` `WHEN` | always, never or auto (default; $NO_COLOR is honoured) |
+| `--no-color`, `--no-colour` | the same as --color never |
+| `--ascii` | ASCII glyphs for terminals without UTF-8 |
+| `--wide` | every column at full width, whatever the terminal fits |
+
+#### `usage`의 옵션
+
+| 옵션 | 설명 |
+|---|---|
+| `-u`, `--user` `NAME` | someone else's figures instead of yours |
+| `--json` | one object, schema 1 (below) |
+| `--theme` `FLAVOUR` | catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command |
+| `--themes` | list the flavours with a swatch |
+| `--color` `WHEN`, `--colour` `WHEN` | always, never or auto (default; $NO_COLOR is honoured) |
+| `--no-color`, `--no-colour` | the same as --color never |
+| `--ascii` | ASCII glyphs for terminals without UTF-8 |
+| `--wide` | every column at full width, whatever the terminal fits |
+
+#### `usage gpu`의 옵션
+
+| 옵션 | 설명 |
+|---|---|
+| `-u`, `--user` `NAME` | someone else's jobs instead of yours |
+| `--source` `WHERE` | auto (default: Slurm's figures where the job has them, else Prometheus'), slurm or prometheus |
+| `--json` | one object, schema 1 (below): jobs, one report each |
+| `--theme` `FLAVOUR` | catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command |
+| `--themes` | list the flavours with a swatch |
+| `--color` `WHEN`, `--colour` `WHEN` | always, never or auto (default; $NO_COLOR is honoured) |
+| `--no-color`, `--no-colour` | the same as --color never |
+| `--ascii` | ASCII glyphs for terminals without UTF-8 |
+| `--wide` | every column at full width, whatever the terminal fits |
+
+#### `usage disk`의 옵션
+
+| 옵션 | 설명 |
+|---|---|
+| `-u`, `--user` `NAME` | someone else's figures instead of yours |
+| `--top` `N` | rows per table of folders and scratch files (default 10) |
+| `--json` | one object, schema 1 (below): space, folders, scans, scratch |
+| `--theme` `FLAVOUR` | catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command |
+| `--themes` | list the flavours with a swatch |
+| `--color` `WHEN`, `--colour` `WHEN` | always, never or auto (default; $NO_COLOR is honoured) |
+| `--no-color`, `--no-colour` | the same as --color never |
+| `--ascii` | ASCII glyphs for terminals without UTF-8 |
+| `--wide` | every column at full width, whatever the terminal fits |
+
+#### `usage io`의 옵션
+
+| 옵션 | 설명 |
+|---|---|
+| `-u`, `--user` `NAME` | someone else's figures instead of yours |
+| `--hours` `N` | the I/O window, in hours (default 24) |
+| `--top` `N` | rows per table (default 10) |
+| `--json` | one object, schema 1 (below): jobs, logins, nodes |
+| `--theme` `FLAVOUR` | catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command |
+| `--themes` | list the flavours with a swatch |
+| `--color` `WHEN`, `--colour` `WHEN` | always, never or auto (default; $NO_COLOR is honoured) |
+| `--no-color`, `--no-colour` | the same as --color never |
+| `--ascii` | ASCII glyphs for terminals without UTF-8 |
+| `--wide` | every column at full width, whatever the terminal fits |
+
+#### `usage submit`의 옵션
+
+| 옵션 | 설명 |
+|---|---|
+| `-u`, `--user` `NAME` | someone else's figures instead of yours |
+| `--json` | one object, schema 1 (below) |
+| `--theme` `FLAVOUR` | catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command |
+| `--themes` | list the flavours with a swatch |
+| `--color` `WHEN`, `--colour` `WHEN` | always, never or auto (default; $NO_COLOR is honoured) |
+| `--no-color`, `--no-colour` | the same as --color never |
+| `--ascii` | ASCII glyphs for terminals without UTF-8 |
+| `--wide` | every column at full width, whatever the terminal fits |
+
+#### `usage login-node`의 옵션
+
+| 옵션 | 설명 |
+|---|---|
+| `-u`, `--user` `NAME` | someone else's figures instead of yours |
+| `--json` | one object, schema 1 (below) |
 | `--theme` `FLAVOUR` | catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command |
 | `--themes` | list the flavours with a swatch |
 | `--color` `WHEN`, `--colour` `WHEN` | always, never or auto (default; $NO_COLOR is honoured) |

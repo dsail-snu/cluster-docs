@@ -85,6 +85,21 @@ AI 코딩 에이전트(Claude Code, Codex CLI 등)는 쓸 수 있습니다. 다�
 그래서 사용하는 모든 에이전트에 **[AI 에이전트 규칙](ai-agents.md)을 반드시 넣어야** 합니다. 넣는 방법은 그 페이지 첫머리에 있습니다.
 에이전트가 규칙을 어겨도 **책임은 그 에이전트를 실행한 사용자**에게 있습니다.
 
+## 자동으로 적용되는 규칙
+
+아래 규칙은 시스템이 자동으로 적용합니다. 규칙마다 내 현황은 <!-- BEGIN GENERATED: command:usage -->`usage`<!-- END GENERATED: command:usage -->로 한 번에 봅니다.
+
+<!-- BEGIN GENERATED: rules:section -->
+| 규칙 | 조치 | 내 현황 |
+|---|---|---|
+| <span id="gpu-idle"></span>GPU 유휴 잡 | 알림, 잡 취소 | `usage gpu` |
+| <span id="scratch"></span>/scratch 정리 | 파일 삭제 | `usage disk` |
+| <span id="io"></span>공유 스토리지 부하 | 알림 | `usage io` |
+| <span id="login"></span>로그인 노드 한도 | 한도 적용 | `usage login-node` |
+| <span id="submit"></span>제출 잡 한도 | 제출 거부 | `usage submit` |
+| <span id="leave"></span>소속 기간 종료 | 제출 보류 | `usage submit` |
+<!-- END GENERATED: rules:section -->
+
 ## 위반 시 조치
 
 | 행위 | 결과 |

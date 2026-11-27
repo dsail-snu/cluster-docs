@@ -15,7 +15,7 @@ bookmark: :bar_chart: | 모니터링 안내 | guide/monitoring.md
 
 [[rule:idle]]
 
-내 잡의 GPU가 실제로 무엇을 했는지는 로그인 노드에서 `gpu-usage <JOBID>`로 보실 수 있습니다.
+내 잡의 GPU가 실제로 무엇을 했는지는 로그인 노드에서 `usage gpu <JOBID>`로 보실 수 있습니다.
 
 ## 더 자세히
 

@@ -213,22 +213,30 @@ class Blocks(unittest.TestCase):
 
 
 class EveryCommand(unittest.TestCase):
-    """The reference listed options for sq and qos only; disk-usage, gpu-usage and
-    scratch-space had none (2026-11-27 audit)."""
+    """The reference listed options for sq and qos only; the other commands had none
+    (2026-11-27 audit). A command with subcommands (usage gpu) lists each one's too."""
+
+    def data(self):
+        sub = {"name": "sub", "summary_ko": "하위", "options": [{"flags": ["--deep"], "help": "deeper", "metavar": ""}]}
+        return dict(DATA, commands={**DATA["commands"], "other": {"summary_ko": "x", "options": [], "subcommands": [sub]}})
 
     def test_every_commands_options_under_its_heading(self):
-        data = dict(DATA, commands={**DATA["commands"], "other": {"summary_ko": "x", "options": []}})
-        out = site_blocks.body(data, "options:all")
+        out = site_blocks.body(self.data(), "options:all")
         self.assertIn("#### `other`의 옵션", out)
+        self.assertIn("#### `other sub`의 옵션\n\n| 옵션 | 설명 |\n|---|---|\n| `--deep` | deeper |", out)
         self.assertIn("#### `tool`의 옵션", out)
         self.assertIn("| `-a`, `--all` | everything |", out)
+
+    def test_the_commands_table_has_each_subcommand(self):
+        out = site_blocks.body(dict(self.data(), commands={"other": self.data()["commands"]["other"]}), "commands:table")
+        self.assertIn("| `other` | x |\n| `other sub` | 하위 |", out)
 
     def test_the_reference_shows_every_cluster_commands_options(self):
         import json
 
         real = json.loads(site_blocks.DATA.read_text())
         page = (site_blocks.ROOT / "docs/reference/slurm.md").read_text()
-        for command in real["commands"]:
+        for command, _ in site_blocks.every_command(real):
             self.assertIn(f"#### `{command}`의 옵션", page, "options:all on docs/reference/slurm.md")
 
 
@@ -237,8 +245,8 @@ class FromTheData(unittest.TestCase):
     and a value the page's prose cannot hold is refused."""
 
     def data(self, **policy):
-        return dict(DATA, policy=dict(DATA["policy"], **policy), commands={**DATA["commands"], "disk-usage": {
-            "summary_ko": "내 사용량", "options": []}}, messages={"hold_ended": "Ended on", "hold_disk": "Disk on"},
+        return dict(DATA, policy=dict(DATA["policy"], **policy), commands={**DATA["commands"], "usage": {
+            "summary_ko": "내 현황", "options": [], "subcommands": [{"name": "disk", "summary_ko": "내 사용량", "options": []}]}}, messages={"hold_ended": "Ended on", "hold_disk": "Disk on"},
             storage={"/home": {"read_bps": 1272070703, "write_bps": 894575285, "read_iops": 1587, "write_iops": 483}},
             services={"bot": True}, bot={"command": "/c", "subcommands": [{"name": "join"}, {"name": "unban"}]})  # fmt: skip
 
@@ -249,10 +257,13 @@ class FromTheData(unittest.TestCase):
                 site_blocks.body(self.data(gpus_per_node=bad), "policy:gpus_per_node")
 
     def test_a_command_is_named_only_when_the_cluster_has_it(self):
-        self.assertEqual(site_blocks.body(self.data(), "command:disk-usage"), "`disk-usage`\n")
-        self.assertEqual(site_blocks.body(self.data(), "command:disk-usage:what"), "내 사용량\n")
-        with self.assertRaises(SystemExit):
-            site_blocks.body(self.data(), "command:du-me")
+        self.assertEqual(site_blocks.body(self.data(), "command:usage"), "`usage`\n")
+        self.assertEqual(site_blocks.body(self.data(), "command:usage:what"), "내 현황\n")
+        self.assertEqual(site_blocks.body(self.data(), "command:usage:disk"), "`usage disk`\n")
+        self.assertEqual(site_blocks.body(self.data(), "command:usage:disk:what"), "내 사용량\n")
+        for gone in ("command:du-me", "command:usage:du", "command:disk-usage"):
+            with self.assertRaises(SystemExit):
+                site_blocks.body(self.data(), gone)
 
     def test_the_measured_speeds_rounded_as_about(self):
         d = self.data()
@@ -266,7 +277,7 @@ class FromTheData(unittest.TestCase):
         self.assertIn("**500개**", out)
         self.assertIn("### `Ended on`", out)
         self.assertIn("### `Disk on`", out)
-        self.assertIn("`disk-usage`", out, "the disk refusal points at the command")
+        self.assertIn("`usage disk`", out, "the disk refusal points at the command")
         holds = site_blocks.submit_refusals(self.data(submit_holds=True))
         self.assertNotIn("Disk on", holds, "disk holds off")
         self.assertNotIn("개**", holds, "no cap")
@@ -284,3 +295,40 @@ class FromTheData(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Rules(unittest.TestCase):
+    """Every rule that acts on a person (site.json rules, deepops cluster_tools.rules) on
+    the rules page, each where its anchor says, with what the cluster does and the command
+    that shows where one stands (owner, 2026-11-27: users see their own standing)."""
+
+    def data(self, **rule):
+        r = dict({"id": "gpu-idle", "title": "GPU 유휴 잡", "action": "notice, cancel", "check": "usage",
+                  "anchor": "policy/rules/#gpu-idle", "values": {}}, **rule)  # fmt: skip
+        return dict(DATA, rules=[r], quota={}, commands={"usage": {"summary_ko": "x", "options": []}})
+
+    def test_each_rule_a_row_carrying_its_anchor(self):
+        out = site_blocks.rules_section(self.data(), "policy/rules.md")
+        self.assertIn('| <span id="gpu-idle"></span>GPU 유휴 잡 | 알림, 잡 취소 | `usage` |', out)
+
+    def test_an_anchor_elsewhere_an_unknown_action_or_command_is_refused(self):
+        with self.assertRaises(SystemExit):
+            site_blocks.rules_section(self.data(), "guide/storage.md")
+        with self.assertRaises(SystemExit):
+            site_blocks.rules_section(self.data(action="notice, explode"), "policy/rules.md")
+        with self.assertRaises(SystemExit):
+            site_blocks.rules_section(self.data(check="gpu-usage"), "policy/rules.md")
+
+    def test_the_disk_limit_only_while_one_is_set(self):
+        disk = self.data(id="disk", anchor="policy/rules/#disk")
+        self.assertNotIn("disk", site_blocks.rules_section(disk, "policy/rules.md"))
+        self.assertIn('id="disk"', site_blocks.rules_section(dict(disk, quota={"/home": {}}), "policy/rules.md"))
+
+    def test_the_rules_page_holds_every_rule(self):
+        import json
+
+        real = json.loads(site_blocks.DATA.read_text())
+        page = (site_blocks.ROOT / "docs/policy/rules.md").read_text()
+        for r in real["rules"]:
+            if r["id"] != "disk" or real.get("quota"):
+                self.assertIn(f'<span id="{r["anchor"].partition("#")[2]}"></span>', page, r["id"])

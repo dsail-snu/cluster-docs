@@ -23,6 +23,10 @@
         "name": "data"
       },
       {
+        "help": "규칙마다 내 현황 (로그인 노드의 usage 명령과 같은 숫자, 로그인 노드 한도만 빼고)",
+        "name": "usage"
+      },
+      {
         "help": "이 안내",
         "name": "help"
       }
@@ -38,151 +42,6 @@
     }
   },
   "commands": {
-    "disk-usage": {
-      "options": [
-        {
-          "flags": [
-            "-u",
-            "--user"
-          ],
-          "help": "someone else's figures instead of yours",
-          "metavar": "NAME"
-        },
-        {
-          "flags": [
-            "--hours"
-          ],
-          "help": "the I/O window, in hours (default 24)",
-          "metavar": "N"
-        },
-        {
-          "flags": [
-            "--top"
-          ],
-          "help": "rows per table of folders and I/O (default 10)",
-          "metavar": "N"
-        },
-        {
-          "flags": [
-            "--json"
-          ],
-          "help": "the figures as JSON, for scripts",
-          "metavar": ""
-        },
-        {
-          "flags": [
-            "--theme"
-          ],
-          "help": "catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command",
-          "metavar": "FLAVOUR"
-        },
-        {
-          "flags": [
-            "--themes"
-          ],
-          "help": "list the flavours with a swatch",
-          "metavar": ""
-        },
-        {
-          "flags": [
-            "--color",
-            "--colour"
-          ],
-          "help": "always, never or auto (default; $NO_COLOR is honoured)",
-          "metavar": "WHEN"
-        },
-        {
-          "flags": [
-            "--no-color",
-            "--no-colour"
-          ],
-          "help": "the same as --color never",
-          "metavar": ""
-        },
-        {
-          "flags": [
-            "--ascii"
-          ],
-          "help": "ASCII glyphs for terminals without UTF-8",
-          "metavar": ""
-        },
-        {
-          "flags": [
-            "--wide"
-          ],
-          "help": "every column at full width, whatever the terminal fits",
-          "metavar": ""
-        }
-      ],
-      "summary": "your space and files on each filesystem against their limits, folders worth cleaning, recent I/O",
-      "summary_ko": "내 파일시스템별 사용량과 파일 수, 경고 수준과 한도, 정리하면 좋을 폴더, 최근 I/O",
-      "usage": "disk-usage [OPTIONS]"
-    },
-    "gpu-usage": {
-      "options": [
-        {
-          "flags": [
-            "--source"
-          ],
-          "help": "auto (default: Slurm's figures where the job has them, else Prometheus'), slurm or prometheus",
-          "metavar": "WHERE"
-        },
-        {
-          "flags": [
-            "--json"
-          ],
-          "help": "the figures as JSON, for scripts",
-          "metavar": ""
-        },
-        {
-          "flags": [
-            "--theme"
-          ],
-          "help": "catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command",
-          "metavar": "FLAVOUR"
-        },
-        {
-          "flags": [
-            "--themes"
-          ],
-          "help": "list the flavours with a swatch",
-          "metavar": ""
-        },
-        {
-          "flags": [
-            "--color",
-            "--colour"
-          ],
-          "help": "always, never or auto (default; $NO_COLOR is honoured)",
-          "metavar": "WHEN"
-        },
-        {
-          "flags": [
-            "--no-color",
-            "--no-colour"
-          ],
-          "help": "the same as --color never",
-          "metavar": ""
-        },
-        {
-          "flags": [
-            "--ascii"
-          ],
-          "help": "ASCII glyphs for terminals without UTF-8",
-          "metavar": ""
-        },
-        {
-          "flags": [
-            "--wide"
-          ],
-          "help": "every column at full width, whatever the terminal fits",
-          "metavar": ""
-        }
-      ],
-      "summary": "what a job's GPUs did: utilisation, SM activity, memory and power, running or finished",
-      "summary_ko": "잡이 GPU를 실제로 얼마나 썼는지: 사용률, SM 활동, 메모리, 전력 (실행 중이거나 끝난 잡)",
-      "usage": "gpu-usage [OPTIONS] JOB"
-    },
     "qos": {
       "options": [
         {
@@ -271,64 +130,6 @@
       "summary": "the QoS levels you can submit against",
       "summary_ko": "내가 잡을 낼 수 있는 QoS",
       "usage": "qos [OPTIONS]"
-    },
-    "scratch-space": {
-      "options": [
-        {
-          "flags": [
-            "--root"
-          ],
-          "help": "the scratch space (default: the cluster's, scratch_root in cluster.json)",
-          "metavar": "DIR"
-        },
-        {
-          "flags": [
-            "--theme"
-          ],
-          "help": "catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command",
-          "metavar": "FLAVOUR"
-        },
-        {
-          "flags": [
-            "--themes"
-          ],
-          "help": "list the flavours with a swatch",
-          "metavar": ""
-        },
-        {
-          "flags": [
-            "--color",
-            "--colour"
-          ],
-          "help": "always, never or auto (default; $NO_COLOR is honoured)",
-          "metavar": "WHEN"
-        },
-        {
-          "flags": [
-            "--no-color",
-            "--no-colour"
-          ],
-          "help": "the same as --color never",
-          "metavar": ""
-        },
-        {
-          "flags": [
-            "--ascii"
-          ],
-          "help": "ASCII glyphs for terminals without UTF-8",
-          "metavar": ""
-        },
-        {
-          "flags": [
-            "--wide"
-          ],
-          "help": "every column at full width, whatever the terminal fits",
-          "metavar": ""
-        }
-      ],
-      "summary": "which of your files on the scratch space are due to be cleaned up, and when",
-      "summary_ko": "스크래치 공간에서 정리될 예정인 내 파일과 그 시점",
-      "usage": "scratch-space [OPTIONS]"
     },
     "sq": {
       "options": [
@@ -560,8 +361,445 @@
       "summary": "the Slurm queue, who holds what, and what each partition pool has left",
       "summary_ko": "큐, 누가 무엇을 쓰는지, 파티션별 남은 자원",
       "usage": "sq [OPTIONS]"
+    },
+    "usage": {
+      "options": [
+        {
+          "flags": [
+            "-u",
+            "--user"
+          ],
+          "help": "someone else's figures instead of yours",
+          "metavar": "NAME"
+        },
+        {
+          "flags": [
+            "--json"
+          ],
+          "help": "one object, schema 1 (below)",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "--theme"
+          ],
+          "help": "catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command",
+          "metavar": "FLAVOUR"
+        },
+        {
+          "flags": [
+            "--themes"
+          ],
+          "help": "list the flavours with a swatch",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "--color",
+            "--colour"
+          ],
+          "help": "always, never or auto (default; $NO_COLOR is honoured)",
+          "metavar": "WHEN"
+        },
+        {
+          "flags": [
+            "--no-color",
+            "--no-colour"
+          ],
+          "help": "the same as --color never",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "--ascii"
+          ],
+          "help": "ASCII glyphs for terminals without UTF-8",
+          "metavar": ""
+        },
+        {
+          "flags": [
+            "--wide"
+          ],
+          "help": "every column at full width, whatever the terminal fits",
+          "metavar": ""
+        }
+      ],
+      "subcommands": [
+        {
+          "name": "gpu",
+          "options": [
+            {
+              "flags": [
+                "-u",
+                "--user"
+              ],
+              "help": "someone else's jobs instead of yours",
+              "metavar": "NAME"
+            },
+            {
+              "flags": [
+                "--source"
+              ],
+              "help": "auto (default: Slurm's figures where the job has them, else Prometheus'), slurm or prometheus",
+              "metavar": "WHERE"
+            },
+            {
+              "flags": [
+                "--json"
+              ],
+              "help": "one object, schema 1 (below): jobs, one report each",
+              "metavar": ""
+            },
+            {
+              "flags": [
+                "--theme"
+              ],
+              "help": "catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command",
+              "metavar": "FLAVOUR"
+            },
+            {
+              "flags": [
+                "--themes"
+              ],
+              "help": "list the flavours with a swatch",
+              "metavar": ""
+            },
+            {
+              "flags": [
+                "--color",
+                "--colour"
+              ],
+              "help": "always, never or auto (default; $NO_COLOR is honoured)",
+              "metavar": "WHEN"
+            },
+            {
+              "flags": [
+                "--no-color",
+                "--no-colour"
+              ],
+              "help": "the same as --color never",
+              "metavar": ""
+            },
+            {
+              "flags": [
+                "--ascii"
+              ],
+              "help": "ASCII glyphs for terminals without UTF-8",
+              "metavar": ""
+            },
+            {
+              "flags": [
+                "--wide"
+              ],
+              "help": "every column at full width, whatever the terminal fits",
+              "metavar": ""
+            }
+          ],
+          "summary": "what a job's GPUs did: utilisation, SM activity, memory and power, running or finished",
+          "summary_ko": "잡이 GPU를 실제로 얼마나 썼는지: 사용률, SM 활동, 메모리, 전력 (실행 중이거나 끝난 잡)",
+          "usage": "usage gpu [OPTIONS] [JOB]"
+        },
+        {
+          "name": "disk",
+          "options": [
+            {
+              "flags": [
+                "-u",
+                "--user"
+              ],
+              "help": "someone else's figures instead of yours",
+              "metavar": "NAME"
+            },
+            {
+              "flags": [
+                "--top"
+              ],
+              "help": "rows per table of folders and scratch files (default 10)",
+              "metavar": "N"
+            },
+            {
+              "flags": [
+                "--json"
+              ],
+              "help": "one object, schema 1 (below): space, folders, scans, scratch",
+              "metavar": ""
+            },
+            {
+              "flags": [
+                "--theme"
+              ],
+              "help": "catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command",
+              "metavar": "FLAVOUR"
+            },
+            {
+              "flags": [
+                "--themes"
+              ],
+              "help": "list the flavours with a swatch",
+              "metavar": ""
+            },
+            {
+              "flags": [
+                "--color",
+                "--colour"
+              ],
+              "help": "always, never or auto (default; $NO_COLOR is honoured)",
+              "metavar": "WHEN"
+            },
+            {
+              "flags": [
+                "--no-color",
+                "--no-colour"
+              ],
+              "help": "the same as --color never",
+              "metavar": ""
+            },
+            {
+              "flags": [
+                "--ascii"
+              ],
+              "help": "ASCII glyphs for terminals without UTF-8",
+              "metavar": ""
+            },
+            {
+              "flags": [
+                "--wide"
+              ],
+              "help": "every column at full width, whatever the terminal fits",
+              "metavar": ""
+            }
+          ],
+          "summary": "your space and files against their limits, folders worth cleaning, scratch files due to go",
+          "summary_ko": "내 용량과 파일 수, 경고 수준과 한도, 정리하면 좋을 폴더, 정리될 스크래치 파일",
+          "usage": "usage disk [OPTIONS]"
+        },
+        {
+          "name": "io",
+          "options": [
+            {
+              "flags": [
+                "-u",
+                "--user"
+              ],
+              "help": "someone else's figures instead of yours",
+              "metavar": "NAME"
+            },
+            {
+              "flags": [
+                "--hours"
+              ],
+              "help": "the I/O window, in hours (default 24)",
+              "metavar": "N"
+            },
+            {
+              "flags": [
+                "--top"
+              ],
+              "help": "rows per table (default 10)",
+              "metavar": "N"
+            },
+            {
+              "flags": [
+                "--json"
+              ],
+              "help": "one object, schema 1 (below): jobs, logins, nodes",
+              "metavar": ""
+            },
+            {
+              "flags": [
+                "--theme"
+              ],
+              "help": "catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command",
+              "metavar": "FLAVOUR"
+            },
+            {
+              "flags": [
+                "--themes"
+              ],
+              "help": "list the flavours with a swatch",
+              "metavar": ""
+            },
+            {
+              "flags": [
+                "--color",
+                "--colour"
+              ],
+              "help": "always, never or auto (default; $NO_COLOR is honoured)",
+              "metavar": "WHEN"
+            },
+            {
+              "flags": [
+                "--no-color",
+                "--no-colour"
+              ],
+              "help": "the same as --color never",
+              "metavar": ""
+            },
+            {
+              "flags": [
+                "--ascii"
+              ],
+              "help": "ASCII glyphs for terminals without UTF-8",
+              "metavar": ""
+            },
+            {
+              "flags": [
+                "--wide"
+              ],
+              "help": "every column at full width, whatever the terminal fits",
+              "metavar": ""
+            }
+          ],
+          "summary": "your jobs' and logins' I/O, your nodes' share of the shared storage, whether a notice is due",
+          "summary_ko": "내 잡과 로그인의 I/O, 내 노드가 공유 스토리지에 거는 부하, 알림 여부",
+          "usage": "usage io [OPTIONS]"
+        },
+        {
+          "name": "submit",
+          "options": [
+            {
+              "flags": [
+                "-u",
+                "--user"
+              ],
+              "help": "someone else's figures instead of yours",
+              "metavar": "NAME"
+            },
+            {
+              "flags": [
+                "--json"
+              ],
+              "help": "one object, schema 1 (below)",
+              "metavar": ""
+            },
+            {
+              "flags": [
+                "--theme"
+              ],
+              "help": "catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command",
+              "metavar": "FLAVOUR"
+            },
+            {
+              "flags": [
+                "--themes"
+              ],
+              "help": "list the flavours with a swatch",
+              "metavar": ""
+            },
+            {
+              "flags": [
+                "--color",
+                "--colour"
+              ],
+              "help": "always, never or auto (default; $NO_COLOR is honoured)",
+              "metavar": "WHEN"
+            },
+            {
+              "flags": [
+                "--no-color",
+                "--no-colour"
+              ],
+              "help": "the same as --color never",
+              "metavar": ""
+            },
+            {
+              "flags": [
+                "--ascii"
+              ],
+              "help": "ASCII glyphs for terminals without UTF-8",
+              "metavar": ""
+            },
+            {
+              "flags": [
+                "--wide"
+              ],
+              "help": "every column at full width, whatever the terminal fits",
+              "metavar": ""
+            }
+          ],
+          "summary": "whether a new job of yours would be refused: the queued-job cap and the submit holds, with why",
+          "summary_ko": "새 잡이 거부될지와 그 이유: 제출 잡 한도, 제출 보류",
+          "usage": "usage submit [OPTIONS]"
+        },
+        {
+          "name": "login-node",
+          "options": [
+            {
+              "flags": [
+                "-u",
+                "--user"
+              ],
+              "help": "someone else's figures instead of yours",
+              "metavar": "NAME"
+            },
+            {
+              "flags": [
+                "--json"
+              ],
+              "help": "one object, schema 1 (below)",
+              "metavar": ""
+            },
+            {
+              "flags": [
+                "--theme"
+              ],
+              "help": "catppuccin flavour: mocha (default), macchiato, frappe, latte. $CLUSTER_THEME sets it for every cluster command",
+              "metavar": "FLAVOUR"
+            },
+            {
+              "flags": [
+                "--themes"
+              ],
+              "help": "list the flavours with a swatch",
+              "metavar": ""
+            },
+            {
+              "flags": [
+                "--color",
+                "--colour"
+              ],
+              "help": "always, never or auto (default; $NO_COLOR is honoured)",
+              "metavar": "WHEN"
+            },
+            {
+              "flags": [
+                "--no-color",
+                "--no-colour"
+              ],
+              "help": "the same as --color never",
+              "metavar": ""
+            },
+            {
+              "flags": [
+                "--ascii"
+              ],
+              "help": "ASCII glyphs for terminals without UTF-8",
+              "metavar": ""
+            },
+            {
+              "flags": [
+                "--wide"
+              ],
+              "help": "every column at full width, whatever the terminal fits",
+              "metavar": ""
+            }
+          ],
+          "summary": "your CPU, memory and tasks on this login node against the per-person limits",
+          "summary_ko": "이 로그인 노드에서 내 CPU, 메모리, 프로세스 수와 한 사람당 한도",
+          "usage": "usage login-node [OPTIONS]"
+        }
+      ],
+      "summary": "where you stand against every rule that warns, limits or cancels",
+      "summary_ko": "경고, 한도, 취소가 있는 규칙마다 내 현황",
+      "usage": "usage [gpu|disk|io|submit|login-node] [OPTIONS]"
     }
   },
+  "commands_retired": {
+    "disk-usage": "usage disk",
+    "gpu-usage": "usage gpu",
+    "scratch-space": "usage disk"
+  },
+  "commands_retired_pattern": "(?<![#\\w/.-])(scratch\\-space|disk\\-usage|gpu\\-usage)(?![\\w.-])",
   "dates": {
     "home_downtime": "2026-12-05",
     "limits_from": "2026-12-09",
@@ -641,6 +879,80 @@
     "usage": "hourly",
     "weekly": "Mon *-*-* 09:00:00"
   },
+  "rules": [
+    {
+      "action": "notice, cancel",
+      "anchor": "policy/rules/#gpu-idle",
+      "check": "usage gpu",
+      "id": "gpu-idle",
+      "title": "GPU 유휴 잡",
+      "values": {
+        "slurm_usage_report_cancel_after_hours": 6,
+        "slurm_usage_report_cancel_warn_hours": 1,
+        "slurm_usage_report_idle_hours": 2,
+        "slurm_usage_report_idle_util_threshold": 0
+      }
+    },
+    {
+      "action": "notice, hold",
+      "anchor": "policy/rules/#disk",
+      "check": "usage disk",
+      "id": "disk",
+      "title": "디스크 한도",
+      "values": {
+        "cluster_user_warn_fraction": 0.9,
+        "submit_holds_disk": true
+      }
+    },
+    {
+      "action": "purge",
+      "anchor": "policy/rules/#scratch",
+      "check": "usage disk",
+      "id": "scratch-purge",
+      "title": "/scratch 정리",
+      "values": {
+        "scratch_space_grace_days": 14,
+        "scratch_space_stale_days": 60
+      }
+    },
+    {
+      "action": "notice",
+      "anchor": "policy/rules/#io",
+      "check": "usage io",
+      "id": "io-heavy",
+      "title": "공유 스토리지 부하",
+      "values": {
+        "slurm_usage_report_io_minutes": 15,
+        "slurm_usage_report_io_share": 0.4
+      }
+    },
+    {
+      "action": "limit",
+      "anchor": "policy/rules/#login",
+      "check": "usage login-node",
+      "id": "login-limits",
+      "title": "로그인 노드 한도",
+      "values": {}
+    },
+    {
+      "action": "refuse",
+      "anchor": "policy/rules/#submit",
+      "check": "usage submit",
+      "id": "queued-jobs",
+      "title": "제출 잡 한도",
+      "values": {}
+    },
+    {
+      "action": "hold",
+      "anchor": "policy/rules/#leave",
+      "check": "usage submit",
+      "id": "membership-end",
+      "title": "소속 기간 종료",
+      "values": {
+        "people_leave_grace_days": 60
+      }
+    }
+  ],
   "schedules": {
     "scratch_purge": "*-*-* 03:30:00"
   },
@@ -713,7 +1025,7 @@
         "할당받은 GPU를 쓰지 않는 잡",
         "GPU를 할당받아 두고",
         "유휴 GPU",
-        "쉬(?:는|던) 잡",
+        "쉬(?:는|던) (?:잡|GPU)",
         "잡아 둔"
       ],
       "scope": [],
@@ -1076,6 +1388,51 @@
       "title_not": [],
       "use": "구제",
       "why": "A penalty is not \"helped\"; it is remedied."
+    },
+    {
+      "not": [],
+      "scope": [],
+      "title": "/scratch 정리",
+      "title_not": [
+        "스크래치 정리"
+      ],
+      "why": "The scratch purge, named by the path people type."
+    },
+    {
+      "not": [],
+      "scope": [],
+      "title": "공유 스토리지 부하",
+      "title_not": [
+        "^공유 스토리지 I/O$"
+      ],
+      "why": "The rule is about the load one person's I/O puts on everyone's storage."
+    },
+    {
+      "not": [
+        "로그인 노드 (?:제한|상한)"
+      ],
+      "scope": [],
+      "title": "로그인 노드 한도",
+      "title_not": [],
+      "why": "A limit is 한도, as the disk's (상한 is the GPU power cap's word)."
+    },
+    {
+      "not": [],
+      "scope": [],
+      "title": "제출 잡 한도",
+      "title_not": [
+        "낼 수 있는 잡 수"
+      ],
+      "why": "The cap counts queued and running jobs together, as a 한도."
+    },
+    {
+      "not": [],
+      "scope": [],
+      "title": "소속 기간 종료",
+      "title_not": [
+        "구성원 기간"
+      ],
+      "why": "What acts on a person is the end of their membership, not the period itself."
     },
     {
       "not": [],

@@ -1397,6 +1397,15 @@
       "why": "A penalty is not \"helped\"; it is remedied."
     },
     {
+      "not": [
+        "확인 없이 (?:진행|실행)하는 모드"
+      ],
+      "scope": [],
+      "title_not": [],
+      "use": "자동 승인 모드",
+      "why": "The agents' mode that runs without asking, as the agent rules name it; the owner found the long phrase awkward (2026-11-27)."
+    },
+    {
       "not": [],
       "scope": [],
       "title": "/scratch 정리",

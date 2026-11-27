@@ -4,7 +4,7 @@
 
 <!-- BEGIN GENERATED: section:policy -->
 - [클러스터 사용 규정](rules.md): 모든 사용자가 지켜야 하는 클러스터 사용 규정입니다.
-- [AI 에이전트 규칙](ai-agents.md): 이 규칙은 다른 사람과 함께 쓰는 자원(네트워크, 스케줄러, GPU, 공유 스토리지)에 영향을 주는 행동에만 적용한다.
+- [AI 에이전트 규칙](ai-agents.md): 이 규칙은 다른 사람과 함께 쓰는 자원(네트워크, 스케줄러, GPU, 공유 스토리지)에 영향을 주는 행동에만 적용된다.
 <!-- END GENERATED: section:policy -->
 
 규정이 바뀌면 [공지](../news/index.md)로 알려 드립니다.

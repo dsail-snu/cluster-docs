@@ -54,7 +54,7 @@ class ExportTests(unittest.TestCase):
         for gone in ("지침 파일이나 메모리로", "8은 1, 2, 4로 나누어떨어지므로", "그래야 빈 GPU가",
                      "(사람과 AI 에이전트 모두)", "제출 전에 한 번 읽어"):  # fmt: skip
             self.assertNotIn(gone, text)
-        for kept in ("--exclusive", "sbatch --wait", "--qos=<팀 QoS>", "--pty bash -i", "권장 사항 (규정 아님)", "uv",
+        for kept in ("--exclusive", "sbatch --wait", "--qos=<팀 QoS>", "--pty bash -i", "## 권장 사항\n", "uv",
                      "IP가 차단된 사고", "`--json`으로 읽는다"):  # fmt: skip
             self.assertIn(kept, text)
         self.assertNotIn("<!--", text.split("\n", 2)[2], "no marker reaches the agents")

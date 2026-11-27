@@ -2,17 +2,6 @@
     인터랙티브 터미널, Jupyter Notebook, **요청을 기다리는 추론 서버**처럼 **GPU를 언제 쓸지 사용자가 직접 정하는 모든 상황**을 말한다.
     단, **데이터 처리가 끝나면 스스로 자원을 반납하는 자동화 잡**은 여기에 해당하지 않는다.
 
-<!-- people -->
-
-**GPU를 점유하는 세션의 규칙**
-
-| # | 규칙 | 예시 |
-|---|---|---|
-| 1 | **본인 소속 팀 QoS**로 실행 | `--qos=<팀 QoS>` (`qos`로 확인) |
-| 2 | 다 쓰면 **즉시 반납** | 셸에서 `exit`, 또는 `scancel <JOBID>` |
-
-<!-- /people -->
-
 <!-- BEGIN GENERATED: rule:sessions:plain -->`srun`, `salloc`으로 여는 GPU 세션은 팀 QoS(`--qos=<팀 QoS>`)로만 시작할 수 있다. 팀 QoS 없이 제출하면 `qos`로 내 QoS를 확인하라는 안내와 함께 거부된다.<!-- END GENERATED: rule:sessions:plain -->
 
 ```bash

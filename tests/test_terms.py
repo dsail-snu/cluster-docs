@@ -65,7 +65,7 @@ def texts():
 
 def titles(rel, lines):
     """[(line number, title)] of the title positions of a Markdown file."""
-    out, fence = [], False
+    out, code = [], site_blocks.in_code(lines)
     front = lines[:1] == ["---"]
     end = lines.index("---", 1) if front and "---" in lines[1:] else -1
     for i, line in enumerate(lines):
@@ -74,10 +74,7 @@ def titles(rel, lines):
             if m:
                 out.append((i + 1, m.group(2).split("|")[1].strip() if m.group(1) == "bookmark" else m.group(2)))
             continue
-        if re.match(r"\s*(```|~~~)", line):
-            fence = not fence
-            continue
-        if fence:
+        if code[i]:
             continue
         m = (re.match(r"\s*#{1,6}\s+(.*)", line) or re.match(r"\s*(?:[-*]\s+)?\*\*([^*]+)\*\*\s*:?\s*$", line)
              or re.match(r"\s*[-*]\s+\*\*([^*]+)\*\*\s*:", line))  # fmt: skip

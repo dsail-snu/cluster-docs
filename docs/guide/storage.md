@@ -63,6 +63,10 @@ df -h /home /scratch          # 공간 전체의 용량과 마운트 확인
 
 ## 공유 스토리지 부하 줄이기 { #공유-스토리지를-느리게-만들지-않는-법 }
 
+`/home`은 큰 파일을 처음부터 순서대로 읽고 쓰면 <!-- BEGIN GENERATED: storage:/home:seq -->대략 읽기 1.3 GB/s, 쓰기 0.9 GB/s<!-- END GENERATED: storage:/home:seq -->이고,
+작은 파일을 여기저기 읽고 쓰면 <!-- BEGIN GENERATED: storage:/home:random -->대략 초당 1,600번 읽기, 480번 쓰기<!-- END GENERATED: storage:/home:random -->입니다(측정값).
+아래 규칙은 사람과 AI 에이전트 모두 지킵니다.
+
 --8<-- "io-rules.md"
 
 ## 체크포인트 (선점 대비)

@@ -239,6 +239,14 @@ class EveryCommand(unittest.TestCase):
         self.assertIn("#### `tool`의 옵션", out)
         self.assertIn("| `-a`, `--all` | everything |", out)
 
+    def test_the_commands_that_print_json_theirs_or_a_subcommands(self):
+        j = [{"flags": ["--json"], "help": "", "metavar": ""}]
+        cmds = {"a": {"options": j}, "b": {"options": [], "subcommands": [{"name": "s", "options": j}]},
+                "c": {"options": []}}  # fmt: skip
+        self.assertEqual(site_blocks.body(dict(DATA, commands=cmds), "commands:json"), "`a`, `b`\n")
+        with self.assertRaises(SystemExit):
+            site_blocks.body(dict(DATA, commands={"c": {"options": []}}), "commands:json")
+
     def test_the_commands_table_has_each_subcommand(self):
         out = site_blocks.body(dict(self.data(), commands={"other": self.data()["commands"]["other"]}), "commands:table")
         self.assertIn("| `other` | x |\n| `other sub` | 하위 |", out)
@@ -342,3 +350,10 @@ class Rules(unittest.TestCase):
         for r in real["rules"]:
             if r["active"]:
                 self.assertIn(f'<span id="{r["anchor"].partition("#")[2]}"></span>', page, r["id"])
+
+
+class Fences(unittest.TestCase):
+    def test_a_longer_fence_holds_a_shorter_one(self):
+        lines = ["a", "````markdown", "## t", "```bash", "x", "```", "## u", "````", "b"]
+        self.assertEqual(site_blocks.in_code(lines), [False, True, True, True, True, True, True, True, False])
+        self.assertEqual(site_blocks.in_code(["```", "x", "```", "y"]), [True, True, True, False])

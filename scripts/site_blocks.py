@@ -23,6 +23,12 @@ Generators:
                   as command:CMD:SUB (`usage gpu`)
   command:CMD:what, command:CMD:SUB:what
                   what it shows, its Korean summary
+  agents:prompt   the agent rules as agents get them (scripts/agent_rules.py prompt:
+                  snippets/agent-prompt.md published), in one code block for the people's
+                  page to show and copy; its links as written (the export makes them
+                  absolute: the site's address stays out of the repository)
+  commands:json   the cluster commands that print --json (theirs or a subcommand's), as
+                  code: the agent rules send agents to it
   rules:section   every rule that acts on a person and the cluster runs (site.json
                   rules, active), as a table: its
                   title with its anchor (policy/rules/#ID, on the page the anchor names),
@@ -62,7 +68,7 @@ Generators:
   paths:shared_data the shared data folders, as paths
   chat:ROLE       the Slack channel of ROLE (announce, help, status, admin), as code
   rule:idle:plain, rule:sessions:plain
-                  the same in the rule pages' -한다 register (docs/policy/ai-agents.md and
+                  the same in the rule snippets' -한다 register (snippets/agent-prompt.md and
                   the snippets it includes)
   rule:sessions   whether srun and salloc GPU sessions must name a team QoS, checked at
                   submit (policy.interactive_team_qos), or only asked to
@@ -241,7 +247,7 @@ def submit_refusals(data):
 
 def idle_rule(data, plain=False):
     """The rule on jobs leaving their GPUs idle as a sentence; PLAIN in the rule pages' -한다 register
-    (docs/policy/ai-agents.md and the snippets it includes), else the guides' polite one."""
+    (snippets/agent-prompt.md and the snippets it includes), else the guides' polite one."""
     p = data["policy"]
     # How the owner is told (a mention in the report, a DM) is the cluster's setting
     # (policy.idle_notify) and not stated here; with none, the report only lists the job.
@@ -384,6 +390,50 @@ def login_limits(data):
     if not parts:
         return "로그인 노드에는 사람별 자원 한도가 따로 걸려 있지 않습니다.\n"
     return f"로그인 노드에서는 한 사람이 {', '.join(parts)}까지 쓰실 수 있습니다.\n"
+
+
+FENCE_RUN = re.compile(r"^(`{3,}|~{3,})", re.M)
+FENCE_LINE = re.compile(r"^\s*(`{3,}|~{3,})")
+
+
+def in_code(lines):
+    """[bool] for LINES: whether each is a fence line or inside a code block. A block ends
+    only at a fence of its own character at least as long (CommonMark), so the agent rules
+    shown in a four-backtick block keep their bash example inside it."""
+    out, open_ = [], None
+    for line in lines:
+        m = FENCE_LINE.match(line)
+        if m and open_ is None:
+            open_ = m.group(1)
+            out.append(True)
+        elif m and m.group(1)[0] == open_[0] and len(m.group(1)) >= len(open_) and not line.strip()[len(m.group(1)):]:
+            open_ = None
+            out.append(True)
+        else:
+            out.append(open_ is not None)
+    return out
+
+
+def agents_prompt():
+    """The agent rules as agents get them, links as written, in a code block fenced longer
+    than any fence inside them (the rules hold a bash example)."""
+    import agent_rules  # the export's reader; it reads this module too
+
+    text = agent_rules.prompt(absolute=False)
+    longest = max((len(m.group(1)) for m in FENCE_RUN.finditer(text)), default=0)
+    fence = "`" * max(3, longest + 1)
+    return f"{fence}markdown\n{text.rstrip(chr(10))}\n{fence}\n"
+
+
+def json_commands(data):
+    """The cluster commands with a --json option, on themselves or a subcommand."""
+    def has(e):
+        return any("--json" in o["flags"] for o in e.get("options") or [])
+
+    names = [c for c, e in sorted(data["commands"].items()) if has(e) or any(has(s) for s in e.get("subcommands") or [])]
+    if not names:
+        raise SystemExit("commands:json: no cluster command prints --json (site.json commands)")
+    return ", ".join(f"`{c}`" for c in names)
 
 
 def table(header, rows):
@@ -611,6 +661,10 @@ def body(data, name):
         return report_when(data, arg) + "\n"
     if name == "commands:table":
         return commands_table(data)
+    if name == "commands:json":
+        return json_commands(data) + "\n"
+    if name == "agents:prompt":
+        return agents_prompt()
     if name == "chat:channels":
         import channels  # the guides' sources; it reads this module too
 
@@ -699,7 +753,8 @@ def main(argv=None):
     if dated:
         return 1
     stale = []
-    for page in sorted((ROOT / "docs").rglob("*.md")) + sorted((ROOT / "snippets").rglob("*.md")):
+    # The snippets first: a page's agents:prompt shows them as filled.
+    for page in sorted((ROOT / "snippets").rglob("*.md")) + sorted((ROOT / "docs").rglob("*.md")):
         text = page.read_text()
         docs = ROOT / "docs"
         new = fill(text, data, page.relative_to(docs).as_posix() if docs in page.parents else "")

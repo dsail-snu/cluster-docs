@@ -4,7 +4,7 @@
 
 <!-- BEGIN GENERATED: section:policy -->
 - [클러스터 사용 규정](rules.md): 모든 사용자가 지켜야 하는 클러스터 사용 규정입니다.
-- [AI 에이전트 규칙](ai-agents.md): 이 규칙은 다른 사람과 함께 쓰는 자원(네트워크, 스케줄러, GPU, 공유 스토리지)에 영향을 주는 행동에만 적용된다.
+- [AI 에이전트 규칙](ai-agents.md): AI 코딩 에이전트(Claude Code, Codex CLI 등)는 쓸 수 있지만, 그 에이전트에 에이전트 규칙을 반드시 넣어야 합니다(전문은 이 페이지 맨 아래).
 <!-- END GENERATED: section:policy -->
 
 규정이 바뀌면 [공지](../news/index.md)로 알려 드립니다.

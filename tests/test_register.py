@@ -1,9 +1,9 @@
-"""One register per surface (owner, 2026-11-27): the rule pages, docs/policy/ai-agents.md
-and the snippets it includes, are written in the concise -한다 style for people and AI
-agents alike, so no sentence there ends politely (-니다, -세요, -요); the guides,
-notices and Slack keep the polite register. The text a rule page includes from a
-generated block counts too (rule:idle:plain, rule:sessions:plain), and so does the
-agent rules' export, which is built from these pages."""
+"""One register per surface (owner, 2026-11-27): the agent rules (snippets/agent-prompt.md)
+and the rule snippets it includes, which the people's pages include too, are written in
+the concise -한다 style, so no sentence there ends politely (-니다, -세요, -요); the
+pages people read (docs/policy/ai-agents.md among them), notices and Slack keep the
+polite register. The text a rule snippet includes from a generated block counts too
+(rule:idle:plain, rule:sessions:plain), and so does the agent rules' export."""
 
 import importlib.util
 import re
@@ -19,7 +19,7 @@ spec = importlib.util.spec_from_file_location("agent_rules", ROOT / "scripts" / 
 agent_rules = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(agent_rules)
 
-RULE_PAGES = ("docs/policy/ai-agents.md", "snippets/job-rules.md", "snippets/gpu-session-rules.md",
+RULE_PAGES = ("snippets/agent-prompt.md", "snippets/job-rules.md", "snippets/gpu-session-rules.md",
               "snippets/io-rules.md")  # fmt: skip
 # A sentence end: a word, closing punctuation or markup, then a space, the line's end, a
 # table cell's bar or a marker. It is polite when it ends in -세요, -요 (어요, 아요, 해요,
@@ -32,7 +32,6 @@ def _polite(word):
     if word.endswith(("세요", "어요", "아요", "해요", "까요")):
         return True
     return len(word) > 2 and word.endswith("니다") and (ord(word[-3]) - 0xAC00) % 28 == 17
-FENCE = re.compile(r"^\s*(```|~~~)")
 # The -한다 voice (2026-11-27): a sentence there with no named subject reads as what the
 # reader (a person or an agent) does, so an act only the cluster does (applying a rule,
 # watching GPUs, enforcing at submit) either names its actor ("클러스터가", "시스템이") or
@@ -44,14 +43,9 @@ SENTENCE = re.compile(r"[^.!?]+[.!?]?")
 
 def prose(text):
     """TEXT's lines outside code blocks, generated markers dropped (their values kept)."""
-    out, fence = [], False
-    for n, line in enumerate(text.splitlines(), 1):
-        if FENCE.match(line):
-            fence = not fence
-            continue
-        if not fence:
-            out.append((n, site_blocks.MARKERS.sub("", line)))
-    return out
+    lines = text.splitlines()
+    return [(n, site_blocks.MARKERS.sub("", line)) for n, (line, code) in enumerate(zip(lines, site_blocks.in_code(lines)), 1)
+            if not code]  # fmt: skip
 
 
 def polite(text):

@@ -17,6 +17,7 @@
 
 여러 사람이 함께 쓰는 데이터셋, 모델, 컨테이너 이미지는 <!-- BEGIN GENERATED: paths:shared_data -->`/home/shared/datasets`, `/home/shared/models`, `/home/shared/containers`<!-- END GENERATED: paths:shared_data -->에 있습니다(읽기 전용).
 <!-- BEGIN GENERATED: bot:data -->필요한 데이터를 받아 두는 신청은 `/cluster data`로 하실 수 있습니다.<!-- END GENERATED: bot:data -->
+신청해 받은 데이터를 <!-- BEGIN GENERATED: policy:shared_stale_days -->60<!-- END GENERATED: policy:shared_stale_days -->일 동안 아무도 읽지 않으면 신청하신 분께 DM으로 알려 드리고, 그로부터 <!-- BEGIN GENERATED: policy:shared_grace_days -->14<!-- END GENERATED: policy:shared_grace_days -->일 뒤까지도 아무도 읽지 않으면 정리합니다. 쓰는 동안에는 따로 하실 일이 없고, 정리된 뒤에 다시 필요하면 같은 신청으로 다시 받으실 수 있습니다.
 
 ```bash
 df -h /home /scratch          # 공간 전체의 용량과 마운트 확인
@@ -113,7 +114,14 @@ scp -P <SSH 포트> file.tar.gz <아이디>@<로그인 주소>:/scratch/<아이�
 ## 용량 한도와 정리
 
 <!-- BEGIN GENERATED: quota:section -->
-사람마다 정해진 용량과 파일 수 한도는 없습니다. 사용량은 Slack 디스크 리포트(매일 09:00)로 알려 드립니다.
+사람마다 `/home`과 `/scratch`에 아래 용량과 파일 수 한도가 있습니다. 한도에 이르면 그 공간에 더 쓸 수 없고 새 잡 제출도 보류되니, 그 전에 정리해 주시면 감사하겠습니다. 한도의 90%에 이르면 DM으로 미리 알려 드립니다.
+
+| 공간 | 용량 한도 | 파일 수 한도 |
+|---|---|---|
+| `/home` | 10 TB | 3,000만 개 |
+| `/scratch` | 5 TB | 1,500만 개 |
+
+- 파일 수 한도는 용량에 비례합니다(1 TB당 300만 개). 작은 파일 수천만 개는 파일 서버의 모든 사용자를 느리게 하니 묶음 포맷(tar, WebDataset, HDF5, Arrow 등)을 써 주세요.
 <!-- END GENERATED: quota:section -->
 
 - 내 사용량은 `du`로 직접 세지 말고 <!-- BEGIN GENERATED: command:usage:disk -->`usage disk`<!-- END GENERATED: command:usage:disk -->로 확인하세요: <!-- BEGIN GENERATED: command:usage:disk:what -->내 용량과 파일 수, 경고 수준과 한도, 정리하면 좋을 폴더, 정리될 스크래치 파일<!-- END GENERATED: command:usage:disk:what -->.

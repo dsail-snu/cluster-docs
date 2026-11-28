@@ -76,6 +76,23 @@ ssh cluster
 !!! tip "IP가 차단되었다면"
     <!-- BEGIN GENERATED: bot:unban -->`/cluster unban`으로 해제를 신청해 주세요.<!-- END GENERATED: bot:unban --> 풀린 뒤에는 꼭 SSH 키를 등록해 주세요. -> [도움 받기](../help.md)
 
+### 5. 새 접속 줄이기
+
+<!-- BEGIN GENERATED: rule:ssh-rate -->
+로그인 노드에 새 SSH 접속을 **10분 동안 100번** 열면, 그 뒤의 새 접속이 **10분** 동안 막힙니다. 막힌 동안에도 접속을 계속 시도하면 막히는 시간이 늘어나 처음 막힌 때부터 최대 **60분**까지 갑니다. 10분 동안 90번에 이르면 미리, 막히면 바로 DM으로 알려 드립니다.
+<!-- END GENERATED: rule:ssh-rate -->
+
+접속이 막히면 비밀번호로 접속할 때는 <!-- BEGIN GENERATED: message:ssh_rate -->`새 SSH 접속이 잠시 막혔습니다`<!-- END GENERATED: message:ssh_rate -->로 시작하는 안내가 나오지만,
+키로 접속할 때는 안내 없이 `Connection closed by <로그인 주소> port <SSH 포트>`만 나오고 바로 끊깁니다.
+그럴 때는 DM에 적힌 시각까지 기다린 뒤, 아래처럼 접속 하나를 다시 써 주세요. 지금까지 연 횟수는
+<!-- BEGIN GENERATED: command:usage:login-node -->`usage login-node`<!-- END GENERATED: command:usage:login-node -->와 봇의 홈 탭에서 보실 수 있습니다.
+
+- 위의 `~/.ssh/config`처럼 `ControlMaster`를 켜 두면 접속 하나를 다시 씁니다. 다시 쓰는 접속 위의 창과 `scp`는 새 접속으로 세지 않습니다.
+- 여러 명령은 한 번의 접속에서 실행합니다: `ssh cluster 'cmd1 && cmd2'`
+- 파일 여러 개는 파일마다 `scp`나 `ssh`를 부르지 말고 `rsync` 한 번으로 옮깁니다.
+- 잡 상태를 지켜볼 때는 `watch`로 `ssh`를 되풀이하지 말고, 접속한 셸에서 <!-- BEGIN GENERATED: command:sq -->`sq`<!-- END GENERATED: command:sq -->의 `-i <초>` 옵션을 씁니다.
+- 스크립트와 AI 에이전트도 접속을 되풀이하지 않게 합니다([AI 에이전트 규칙](../policy/ai-agents.md)).
+
 ## VSCode로 접속하기
 
 - **VSCode Remote-SSH**는 위의 `~/.ssh/config`를 그대로 인식합니다. VSCode에서 `Remote-SSH: Connect to Host...` -> `cluster`를 선택하세요.

@@ -129,20 +129,31 @@ htop                    # CPU, 메모리
 
 ## Slack 알림
 
-Slack <!-- BEGIN GENERATED: chat:status -->`#infra-status`<!-- END GENERATED: chat:status -->에 올라오는 리포트입니다.
+내게 해당하는 알림은 모두 DM으로 갑니다. 채널의 글은 아무도 멘션하지 않습니다.
 
-<!-- BEGIN GENERATED: reports:list -->
-- **GPU 사용 현황** (매시간): 누가 어떤 GPU를 쓰는지, 남은 GPU, GPU 유휴 잡
-- **주간 GPU 사용** (월요일 09:00): 지난 한 주 사람별 GPU 사용 시간과 GPU 유휴 시간
-- **디스크 사용량** (매일 09:00): 사람별, 공간별 디스크 사용량과 경고 수준을 넘은 사람
-<!-- END GENERATED: reports:list -->
+### DM
 
-내게 DM으로 오는 알림입니다.
-
-- **<!-- BEGIN GENERATED: term:idle_job -->GPU 유휴 잡<!-- END GENERATED: term:idle_job --> 알림**: <!-- BEGIN GENERATED: rule:idle -->Slurm 잡이 할당받은 GPU를 **2시간 넘게 쓰지 않으면** 알려 드립니다. 할당받은 GPU를 **6시간** 동안 쓰지 않은 잡은 자동으로 취소되며, 취소 **1시간 전**에 미리 알려 드립니다.<!-- END GENERATED: rule:idle -->
+- **<!-- BEGIN GENERATED: term:idle_job -->GPU 유휴 잡<!-- END GENERATED: term:idle_job -->**: <!-- BEGIN GENERATED: rule:idle -->Slurm 잡이 할당받은 GPU를 **2시간 넘게 쓰지 않으면** DM으로 알려 드립니다. 할당받은 GPU를 **6시간** 동안 쓰지 않은 잡은 자동으로 취소되며, 취소 **1시간 전**에 미리 알려 드립니다.<!-- END GENERATED: rule:idle -->
   알림을 받으셨다면 잡이 GPU를 제대로 쓰는지 확인해 주시고, 쓰지 않는다면 취소해 주세요.
   -> [디버깅 규정](../policy/rules.md#디버깅)
+- **디스크 한도**: 내 사용량이 경고 수준이나 한도에 이를 때, 공간의 여유가 부족해 많이 쓰는 사람에게 정리를 부탁드릴 때
+  -> [용량 한도와 정리](storage.md#용량-한도와-정리)
+- **공유 스토리지 부하**: 내 잡이 공유 스토리지를 많이 읽고 쓸 때
+- **/scratch 정리**: 정리될 내 파일이 생길 때
+- **SSH 접속 빈도**: 새 접속이 경고 수준에 이르거나 막힐 때 -> [새 접속 줄이기](../start/connect.md#5-새-접속-줄이기)
 - **잡 알림**: <!-- BEGIN GENERATED: service:job_notices -->잡에 `--mail-type=END,FAIL`(또는 `BEGIN`, `ALL` 등)을 적으면 적은 일(시작, 끝, 실패 등)이 생길 때 잡의 주인에게 Slack DM으로 알려 드립니다. 메일은 보내지 않으니 `--mail-user`는 적지 않으셔도 되고, 적으시더라도 알림은 잡의 주인에게 갑니다. 짧은 사이에 생긴 알림은 한 메시지로 모아 드립니다. 받지 않으려면 봇의 홈 탭에서 끄실 수 있습니다.<!-- END GENERATED: service:job_notices -->
+- **신청 결과**: 봇으로 한 신청이 승인되거나 거절될 때
+
+### 상태 채널
+
+Slack <!-- BEGIN GENERATED: chat:status -->`#infra-status`<!-- END GENERATED: chat:status -->에는 클러스터 전체의 기록이 올라옵니다.
+사람 이름은 멘션 없이 글자로만 적으므로 알림이 가지 않습니다.
+
+<!-- BEGIN GENERATED: reports:list -->
+- **GPU 사용 현황** (매시간): 그날 누가 어떤 GPU를 쓰는지와 남은 GPU. 하루 한 메시지를 매시간 고쳐 쓰고, 그 시간의 GPU 유휴 잡, 자동 취소, I/O 과다는 스레드에 적습니다. 자정이 지나면 그날의 일간 GPU 사용으로 바뀝니다
+- **주간 GPU 사용** (월요일 09:00): 지난 한 주 GPU시간 상위와 GPU 유휴 시간 상위
+- **디스크 사용량** (매일 09:00): 공간별 사용량, 경고 수준을 넘은 사람, 여유 공간이 부족할 때 많이 쓰는 사람
+<!-- END GENERATED: reports:list -->
 
 ## 더 읽기
 

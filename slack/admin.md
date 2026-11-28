@@ -7,12 +7,11 @@ bookmark: :newspaper: | Notices | news/index.md
 ---
 # Admin channel
 
-Posts that mention [[admins]] need an administrator. The rest are kept as a record.
+Posts that mention [[admins]] need an administrator to act. The rest are kept as a record.
 
 - **Alert (Alertmanager)**: check what the alert says. The same alert posts again when it resolves.
 - **Request waiting for approval (bot)**: approve or reject with the buttons. The bot tells the requester by DM.
 - **New ban (bot)**: the pinned ban list picks it up. A user asks for an unban with `[[/cluster]] unban`.
-- **Admin note in a usage report**: look into what the report names, such as a job leaving its GPUs idle.
 - **DM log (a thread a day)**: what the bot and the tools sent to users. When a user asks, check here what they got.
 
 ## Pinned message

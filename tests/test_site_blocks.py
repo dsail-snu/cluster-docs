@@ -13,7 +13,7 @@ DATA = {
         {"flags": ["-a", "--all"], "metavar": "", "help": "everything"},
         {"flags": ["-u", "--user"], "metavar": "LOGIN", "help": "one person | theirs"}]}},
     "policy": {"stale_days": 60, "grace_days": 14, "warn_fraction": 0.9, "idle_hours": 2,
-               "cancel_after_hours": 6, "cancel_warn_hours": 1, "idle_notify": ["mention"],
+               "cancel_after_hours": 6, "cancel_warn_hours": 1,
                "interactive_team_qos": True},
     "slurm": {"kill_wait_seconds": 30, "preempt_grace_seconds": 30, "sigkill_after_seconds": 60},
     "quota": {"/data": {"block_hard_tib": 2.0, "block_warn_tib": 1.8, "inode_hard": 6000000, "inode_warn": 5400000}},
@@ -33,26 +33,20 @@ class Blocks(unittest.TestCase):
         self.assertNotIn("old", out)
 
     def test_the_idle_rule_says_whether_a_cancel_is_active(self):
-        on = dict(DATA, policy=dict(DATA["policy"], idle_hours=2, cancel_after_hours=6, cancel_warn_hours=1,
-                                    idle_notify=["mention"]))  # fmt: skip
+        on = dict(DATA, policy=dict(DATA["policy"], idle_hours=2, cancel_after_hours=6, cancel_warn_hours=1))
         off = dict(DATA, policy=dict(on["policy"], cancel_after_hours=0))
         self.assertIn("할당받은 GPU를 **6시간** 동안 쓰지 않은 잡은 자동으로 취소", site_blocks.idle_rule(on))
         self.assertIn("**1시간 전**", site_blocks.idle_rule(on))
         self.assertIn("자동으로 취소하지는 않습니다", site_blocks.idle_rule(off))
 
-    def test_the_idle_rule_claims_no_channel_and_follows_whether_anyone_is_told(self):
-        """How the owner of a job leaving its GPUs idle is told is the cluster's setting (policy.idle_notify:
-        a mention in the hourly report, or a DM); the rule never names one, and with none
-        set it says the report only lists the job."""
-        def told(how):
-            return site_blocks.idle_rule(dict(DATA, policy=dict(DATA["policy"], idle_notify=how)))
-        for how in (["mention"], ["dm"], ["mention", "dm"]):
-            self.assertIn("쓰지 않으면** 알려 드립니다.", told(how))
-            self.assertNotIn("DM", told(how))
-            self.assertNotIn("멘션", told(how))
-        self.assertIn("리포트에 표시됩니다", told([]))
-        with self.assertRaisesRegex(ValueError, "idle_rule"):
-            told(["email"])
+    def test_the_idle_rule_tells_the_owner_by_dm_and_names_no_channel(self):
+        """The owner of a job leaving its GPUs idle is told by DM, never by a mention in a
+        channel (owner decision 12, 2026-11-28); policy.idle_notify is gone from the data."""
+        rule = site_blocks.idle_rule(DATA)
+        self.assertIn("쓰지 않으면** DM으로 알려 드립니다.", rule)
+        self.assertIn("DM으로 알린다", site_blocks.idle_rule(DATA, plain=True))
+        self.assertNotIn("멘션", rule)
+        self.assertNotIn("리포트", rule)
 
     def test_the_services_as_the_cluster_runs_them_and_never_an_address(self):
         def with_(**svc):
@@ -100,10 +94,10 @@ class Blocks(unittest.TestCase):
         q = {"/home": {"block_hard_tib": 10.0, "block_warn_tib": 9.0, "inode_hard": 30000000, "inode_warn": 27000000}}
         on = dict(DATA, quota=q, policy=dict(DATA["policy"], submit_holds_disk=True))
         text = site_blocks.quota_section(on)
-        self.assertIn("| `/home` | 10 TB | 3,000만개 |", text)
+        self.assertIn("| `/home` | 10 TB | 3,000만 개 |", text)
         self.assertIn("새 잡 제출도 보류", text)
         self.assertNotIn("보류", site_blocks.quota_section(dict(on, policy=dict(on["policy"], submit_holds_disk=False))))
-        self.assertEqual(site_blocks.quota_each(on, "/home"), "한 사람당 10 TB까지 쓰실 수 있고, \n")
+        self.assertEqual(site_blocks.quota_each(on, "/home"), "한 사람당 10 TB까지 쓸 수 있다.\n")
 
     def test_only_some_people_limited_is_no_none(self):
         """A person's own limit (people.yml disk_quota) with no default: the disk rule is
@@ -338,6 +332,30 @@ class Rules(unittest.TestCase):
             site_blocks.rules_section(self.data(action="notice, explode"), "policy/rules.md")
         with self.assertRaises(SystemExit):
             site_blocks.rules_section(self.data(check="gpu-usage"), "policy/rules.md")
+
+    def test_the_ssh_rate_rule_refuses_a_connection_not_a_submission(self):
+        """The SSH rate rule's refuse is a new connection's; queued-jobs' stays a submission's."""
+        ssh = self.data(id="ssh-rate", title="SSH 접속 빈도", action="notice, refuse", anchor="policy/rules/#ssh-rate")
+        self.assertIn("| 알림, 새 접속 거부 |", site_blocks.rules_section(ssh, "policy/rules.md"))
+        queued = self.data(id="queued-jobs", title="제출 잡 한도", action="refuse", anchor="policy/rules/#submit")
+        self.assertIn("| 제출 거부 |", site_blocks.rules_section(queued, "policy/rules.md"))
+
+    def test_the_ssh_rate_rule_says_its_values_from_the_data(self):
+        values = {"ssh_rate_mode": "refuse", "ssh_rate_refuse_sessions": 50, "cluster_user_warn_fraction": 0.8,
+                  "ssh_rate_window_minutes": 5, "ssh_rate_block_minutes": 7, "ssh_rate_block_max_minutes": 30}
+        data = self.data(id="ssh-rate", values=values)
+        text = site_blocks.ssh_rate_rule(data)
+        for part in ("**5분 동안 50번**", "새 접속이 **7분** 동안 막힙니다", "최대 **30분**", "5분 동안 40번에 이르면", "DM으로"):
+            self.assertIn(part, text)
+        self.assertIn("막힌다", site_blocks.ssh_rate_rule(data, plain=True))
+        warn = site_blocks.ssh_rate_rule(self.data(id="ssh-rate", values=dict(values, ssh_rate_mode="warn")))
+        self.assertIn("**5분 동안 40번** 열면 DM으로 알려 드립니다", warn)
+        self.assertIn("막지는 않습니다", warn)
+        self.assertEqual(site_blocks.ssh_rate_rule(self.data(id="ssh-rate", values=values, active=False)), "\n")
+
+    def test_a_message_block_is_the_clusters_own_words(self):
+        data = dict(DATA, messages={"ssh_rate": "막혔습니다"})
+        self.assertEqual(site_blocks.body(data, "message:ssh_rate"), "`막혔습니다`\n")
 
     def test_a_rule_the_cluster_does_not_run_has_no_row(self):
         self.assertNotIn("gpu-idle", site_blocks.rules_section(self.data(active=False), "policy/rules.md"))

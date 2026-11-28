@@ -834,7 +834,8 @@
   },
   "messages": {
     "hold_disk": "Your disk use on",
-    "hold_ended": "Your membership ended on"
+    "hold_ended": "Your membership ended on",
+    "ssh_rate": "새 SSH 접속이 잠시 막혔습니다"
   },
   "paths": {
     "scratch": "/scratch",
@@ -861,19 +862,31 @@
     ],
     "grace_days": 14,
     "idle_hours": 2,
-    "idle_notify": [
-      "mention"
-    ],
     "interactive_team_qos": true,
     "leave_grace_days": 60,
     "max_submit_jobs": 500,
+    "shared_grace_days": 14,
+    "shared_stale_days": 60,
     "stale_days": 60,
     "strict_gpu_type": true,
     "submit_holds": true,
     "submit_holds_disk": true,
     "warn_fraction": 0.9
   },
-  "quota": {},
+  "quota": {
+    "/home": {
+      "block_hard_tib": 10.0,
+      "block_warn_tib": 9.0,
+      "inode_hard": 30000000,
+      "inode_warn": 27000000
+    },
+    "/scratch": {
+      "block_hard_tib": 5.0,
+      "block_warn_tib": 4.5,
+      "inode_hard": 15000000,
+      "inode_warn": 13500000
+    }
+  },
   "reports": {
     "disk": "*-*-* 09:00:00",
     "usage": "hourly",
@@ -896,7 +909,7 @@
     },
     {
       "action": "notice, hold",
-      "active": false,
+      "active": true,
       "anchor": "policy/rules/#disk",
       "check": "usage disk",
       "id": "disk",
@@ -938,6 +951,22 @@
       "id": "login-limits",
       "title": "로그인 노드 한도",
       "values": {}
+    },
+    {
+      "action": "notice, refuse",
+      "active": true,
+      "anchor": "policy/rules/#ssh-rate",
+      "check": "usage login-node",
+      "id": "ssh-rate",
+      "title": "SSH 접속 빈도",
+      "values": {
+        "cluster_user_warn_fraction": 0.9,
+        "ssh_rate_block_max_minutes": 60,
+        "ssh_rate_block_minutes": 10,
+        "ssh_rate_mode": "refuse",
+        "ssh_rate_refuse_sessions": 100,
+        "ssh_rate_window_minutes": 10
+      }
     },
     {
       "action": "refuse",
@@ -1039,6 +1068,18 @@
       "title_not": [],
       "use": "GPU 유휴 잡",
       "why": "A noun in titles and sentences alike (owner, 2026-11-27); \"GPU를 쓰지 않는 잡\" alone read as a CPU-only job. Its definition is kept once, in the user docs' GPU session rules (every GPU the job was allocated sat idle the whole time)."
+    },
+    {
+      "not": [
+        "쉰 (?:GPU|상태)",
+        "GPU ?시간 (?:쉼|쉬었)",
+        "쉬는 중",
+        "(?<![가-힣])쉼(?=[:)]|$)"
+      ],
+      "scope": [],
+      "title_not": [],
+      "use": "GPU 유휴 시간",
+      "why": "The minutes a job's GPUs sat at or under the idle threshold (the weekly summary), in the noun the owner named for idle (GPU 유휴, 2026-11-27); the verb forms (쉰, 쉼, 쉬는 중) read as rest. A GPU 유휴 잡 is the other measure, a job whose GPUs all sat idle for the rule's hours."
     },
     {
       "not": [
@@ -1435,6 +1476,17 @@
     {
       "not": [],
       "scope": [],
+      "title": "SSH 접속 빈도",
+      "title_not": [
+        "접속 횟수 제한",
+        "SSH 접속 제한",
+        "세션 제한"
+      ],
+      "why": "The rule counts how often new SSH connections are opened, not whether one may log in."
+    },
+    {
+      "not": [],
+      "scope": [],
       "title": "제출 잡 한도",
       "title_not": [
         "낼 수 있는 잡 수"
@@ -1449,6 +1501,84 @@
         "구성원 기간"
       ],
       "why": "What acts on a person is the end of their membership, not the period itself."
+    },
+    {
+      "not": [],
+      "scope": [],
+      "title": "주간 GPU 사용",
+      "title_not": [
+        "지난 \\{?\\w*\\}?일 GPU 사용"
+      ],
+      "why": "The weekly summary's card, one fixed name in Slack and the docs; its period goes in the header's date."
+    },
+    {
+      "code": {
+        "title": "PAST_TITLE"
+      },
+      "not": [],
+      "scope": [],
+      "title": "경고 수준 초과 사용량",
+      "title_not": [],
+      "use": "경고 수준을 넘은 사용량",
+      "why": "A part of the disk card; in a sentence the verb reads naturally."
+    },
+    {
+      "code": {
+        "title": "PROJECTS_TITLE"
+      },
+      "not": [],
+      "scope": [],
+      "title": "경고 수준 초과 프로젝트",
+      "title_not": [],
+      "use": "경고 수준을 넘은 프로젝트",
+      "why": "As the people's part, for the projects."
+    },
+    {
+      "code": {
+        "title": "FILL_TITLE"
+      },
+      "not": [],
+      "scope": [],
+      "title": "여유 공간 부족",
+      "title_not": [
+        "가득 차 가는"
+      ],
+      "why": "A filesystem near full, as a part's title (owner, 2026-11-28, on \"가득 차 가는 공간\")."
+    },
+    {
+      "code": {
+        "title": "CLEANUP_TITLE"
+      },
+      "not": [],
+      "scope": [],
+      "title": "정리 후보 폴더",
+      "title_not": [],
+      "use": "정리하면 좋을 폴더",
+      "why": "The folders unused past the stale period, largest and oldest first."
+    },
+    {
+      "code": {
+        "title": "OTHERS_TITLE"
+      },
+      "not": [],
+      "scope": [],
+      "title": "명부 외 계정",
+      "title_not": [],
+      "use": "명부에 없는 계정",
+      "why": "root, the services and people who left, on a disk."
+    },
+    {
+      "not": [],
+      "scope": [
+        "roles/cluster_tools_lib/",
+        "roles/cluster_bot/",
+        "roles/slurm_usage_report/"
+      ],
+      "title": "명사형 제목 (관형절 대신 명사 - 경고 수준 초과, 여유 공간 부족)",
+      "title_not": [
+        "[가-힣](?:는|은|을|던|된|될|(?<![역분])할) "
+      ],
+      "why": "A clause in a title (\"가득 차 가는 공간\", \"경고 수준을 넘은 사용량\") reads as a sentence cut short; its noun says it."
     },
     {
       "not": [],

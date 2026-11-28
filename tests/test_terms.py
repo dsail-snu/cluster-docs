@@ -163,7 +163,7 @@ class Terms(unittest.TestCase):
     def test_the_name_is_the_glossarys_and_the_rule_says_allocated(self):
         glossary = next(e for e in DATA["terms"] if e.get("id") == "idle_job")
         self.assertEqual(site_blocks.IDLE_JOB, glossary["use"], "a noun in titles and sentences alike")
-        data = {"policy": {"idle_hours": 2, "cancel_after_hours": 6, "cancel_warn_hours": 1, "idle_notify": ["dm"]}}
+        data = {"policy": {"idle_hours": 2, "cancel_after_hours": 6, "cancel_warn_hours": 1}}
         for policy in (data["policy"], dict(data["policy"], cancel_after_hours=0)):
             rule = site_blocks.idle_rule({"policy": policy})
             self.assertEqual(refused(rule), [], rule)

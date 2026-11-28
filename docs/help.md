@@ -7,13 +7,13 @@
 |---|---|
 | `#infra-help` | 질문, 문제 신고, 요청 |
 | `#infra-announce` | 공지: 규정 변경, 점검, 소프트웨어 업데이트 |
-| `#infra-status` | 클러스터 상태: GPU 사용 현황, 주간 요약, 디스크 사용량 |
+| `#infra-status` | 클러스터 상태: GPU 사용 현황, 주간 GPU 사용, 디스크 사용량 |
 <!-- END GENERATED: chat:channels -->
 
 먼저 [자주 묻는 질문과 문제 해결](guide/troubleshooting.md)에 같은 증상이 있는지 확인하세요.
 
 <!-- BEGIN GENERATED: bot:section -->
-## 봇으로 하는 신청
+## Slack 명령 (/cluster)
 
 계정, 차단 해제, 공동작업 폴더, 공유 데이터는 Slack에서 클러스터 봇에게 신청하실 수 있습니다.
 아무 채널에서나 아래 명령을 입력해 주세요.

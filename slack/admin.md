@@ -1,22 +1,20 @@
 ---
-purpose: 관리자가 처리할 일을 모아 둔 채널입니다: 알림, 승인 대기 신청, 차단 목록, 사용자에게 보낸 DM 기록.
-topic: 멘션이 달린 글을 처리해 주세요 | 차단 목록은 고정 메시지에 | DM 기록은 날짜별 스레드에
-title: 관리자 채널 안내
-bookmark: :books: | 사용자 문서 | index.md
-bookmark: :newspaper: | 공지 목록 | news/index.md
+purpose: Work for the administrators: alerts, requests waiting for approval, the ban list, and the log of DMs sent to users.
+topic: Handle the posts that mention the admins | Ban list: the pinned message | DM log: one thread a day
+title: Admin channel guide
+bookmark: :books: | User docs | index.md
+bookmark: :newspaper: | Notices | news/index.md
 ---
-# 관리자 채널
+# Admin channel
 
-[[admins]] 멘션이 달린 글을 처리해 주세요. 나머지는 기록으로 남겨 둔 글입니다.
+Posts that mention [[admins]] need an administrator. The rest are kept as a record.
 
-| 글 | 할 일 |
-|---|---|
-| 알림 (Alertmanager) | 알림에 적힌 안내대로 확인해 주세요. 해결되면 같은 알림에 해결이 올라옵니다 |
-| 승인 대기 신청 (봇) | 버튼으로 승인하거나 거절해 주세요. 결과는 봇이 신청자에게 DM으로 알립니다 |
-| 새 차단 (봇) | 고정된 차단 목록에 반영됩니다. 해제는 신청자가 `[[/cluster]] unban`으로 신청합니다 |
-| 사용 현황 리포트의 관리자 알림 | [[term:idle_job]] 등, 리포트에 적힌 안내대로 살펴 주세요 |
-| 오늘의 DM 기록 (스레드) | 봇과 도구가 사용자에게 보낸 안내입니다. 문의가 오면 여기서 무엇을 받았는지 확인해 주세요 |
+- **Alert (Alertmanager)**: check what the alert says. The same alert posts again when it resolves.
+- **Request waiting for approval (bot)**: approve or reject with the buttons. The bot tells the requester by DM.
+- **New ban (bot)**: the pinned ban list picks it up. A user asks for an unban with `[[/cluster]] unban`.
+- **Admin note in a usage report**: look into what the report names, such as a job leaving its GPUs idle.
+- **DM log (a thread a day)**: what the bot and the tools sent to users. When a user asks, check here what they got.
 
-## 고정 메시지
+## Pinned message
 
-- 지금의 차단 목록 하나를 고정해 둡니다 (봇이 고쳐 씁니다).
+- The current ban list, pinned once; the bot keeps it up to date.

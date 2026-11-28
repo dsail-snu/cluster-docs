@@ -73,6 +73,17 @@ class Guides(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "named after one of"):
             self.guide(GUIDE, role="lobby")
 
+    def test_an_english_channel_refuses_korean_typed_or_filled(self):
+        """The administrators' channel is English (owner, 2026-11-28); its guide was Korean."""
+        english = GUIDE.replace("[[admins]]", "[[admins]] or [[term:idle_job]]")
+        with self.assertRaisesRegex(ValueError, "admin: the channel is English"):
+            self.guide(english, role="admin")
+        with self.assertRaisesRegex(ValueError, "the channel is English"):
+            self.guide(GUIDE.replace("title: About", "title: 안내"), role="admin")
+        self.data["chat"] = dict(self.data["chat"], admin_group="")
+        self.assertIn("Ask the administrators with", self.guide(role="admin")["canvas"]["markdown"])
+        self.assertIn("관리자", self.guide(GUIDE.replace("Ask", "묻기"))["canvas"]["markdown"])
+
     def test_schedules_as_korean_reads_them(self):
         self.assertEqual(channels.when("hourly"), "매시간")
         self.assertEqual(channels.when("Mon *-*-* 09:00:00"), "월요일 09:00")
@@ -101,6 +112,22 @@ class TheRealGuides(unittest.TestCase):
         status = channels.document(DATA)["channels"]["status"]
         self.assertIn(names, json.dumps(status, ensure_ascii=False))
         self.assertIn(channels.site_blocks.IDLE_JOB, json.dumps(status, ensure_ascii=False))
+
+    def test_the_reports_are_a_list_by_their_cards_titles(self):
+        """The status canvas held the reports as a table under an old weekly name (주간
+        요약); lists are bullets, each report by its card's title (deepops cluster_tools)."""
+        listed = channels.fill("[[reports]]", DATA).splitlines()
+        self.assertEqual([line.split("**")[1] for line in listed], [t for t, _ in channels.REPORTS.values()])
+        self.assertTrue(all(line.startswith("- **") for line in listed), listed)
+        self.assertIn("주간 GPU 사용", [t for t, _ in channels.REPORTS.values()])
+
+    def test_each_guide_is_in_its_channels_language(self):
+        for role, g in channels.document(DATA)["channels"].items():
+            text = json.dumps(g, ensure_ascii=False)
+            if role in channels.ENGLISH:
+                self.assertNotRegex(text, channels.HANGUL, role)
+            else:
+                self.assertRegex(text, channels.HANGUL, role)
 
 
 if __name__ == "__main__":

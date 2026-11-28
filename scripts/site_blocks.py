@@ -284,18 +284,19 @@ def ssh_rate_rule(data, plain=False):
         return "\n"
     v = rule_values(data, "ssh-rate")
     warn = int(v["ssh_rate_refuse_sessions"] * v["cluster_user_warn_fraction"])
-    blocked, grows, goes, told = (
-        ("막힌다", "늘어나", "간다", "DM으로 알린다") if plain
-        else ("막힙니다", "늘어나", "갑니다", "DM으로 알려 드립니다")
+    blocked, goes, told = (
+        ("막힌다", "간다", "DM으로 알린다") if plain else ("막힙니다", "갑니다", "DM으로 알려 드립니다")
     )  # fmt: skip
-    window = v["ssh_rate_window_minutes"]
+    window, refuse, block = v["ssh_rate_window_minutes"], v["ssh_rate_refuse_sessions"], v["ssh_rate_block_minutes"]
     if v["ssh_rate_mode"] != "refuse":  # warn: counted and told, nobody refused
-        return (f"로그인 노드에 새 SSH 접속을 **{window}분 동안 {warn}번** 열면 {told}. "
+        return (f"로그인 노드에 새 SSH 접속을 **{window}분 동안 {warn}번** 열면 몇 분 안에 {told}. "
                 f"접속을 막지는 {'않는다' if plain else '않습니다'}.\n")
-    return (f"로그인 노드에 새 SSH 접속을 **{window}분 동안 {v['ssh_rate_refuse_sessions']}번** 열면, 그 뒤의 새 접속이 "
-            f"**{v['ssh_rate_block_minutes']}분** 동안 {blocked}. 막힌 동안에도 접속을 계속 시도하면 막히는 시간이 "
-            f"{grows} 처음 막힌 때부터 최대 **{v['ssh_rate_block_max_minutes']}분**까지 {goes}. "
-            f"{window}분 동안 {warn}번에 이르면 미리, 막히면 바로 {told}.\n")  # fmt: skip
+    # The DM comes from the usage report's few-minute round (deepops slurm-usage-report
+    # --ssh), so it is neither instant nor a sure warning before a block.
+    return (f"로그인 노드에 새 SSH 접속을 **{window}분 동안 {refuse}번** 열면, 그 뒤의 새 접속이 **{block}분** 동안 "
+            f"{blocked}. 막힌 동안에도 {window}분 동안 {refuse}번 넘게 계속 접속을 시도하면 {block}분씩 늘어나, "
+            f"처음 막힌 때부터 최대 **{v['ssh_rate_block_max_minutes']}분**까지 {goes}. "
+            f"{window}분 동안 {warn}번에 이르거나 막히면 몇 분 안에 {told}.\n")  # fmt: skip
 
 
 WEEKDAYS = "월화수목금토일"

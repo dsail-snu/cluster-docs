@@ -345,11 +345,12 @@ class Rules(unittest.TestCase):
                   "ssh_rate_window_minutes": 5, "ssh_rate_block_minutes": 7, "ssh_rate_block_max_minutes": 30}
         data = self.data(id="ssh-rate", values=values)
         text = site_blocks.ssh_rate_rule(data)
-        for part in ("**5분 동안 50번**", "새 접속이 **7분** 동안 막힙니다", "최대 **30분**", "5분 동안 40번에 이르면", "DM으로"):
+        for part in ("**5분 동안 50번**", "새 접속이 **7분** 동안 막힙니다", "최대 **30분**", "5분 동안 40번에 이르거나 막히면 몇 분 안에 DM으로", "5분 동안 50번 넘게 계속 접속을 시도하면 7분씩"):
             self.assertIn(part, text)
         self.assertIn("막힌다", site_blocks.ssh_rate_rule(data, plain=True))
+        self.assertNotIn("바로", text, "the DM comes on the report's round, not at once")
         warn = site_blocks.ssh_rate_rule(self.data(id="ssh-rate", values=dict(values, ssh_rate_mode="warn")))
-        self.assertIn("**5분 동안 40번** 열면 DM으로 알려 드립니다", warn)
+        self.assertIn("**5분 동안 40번** 열면 몇 분 안에 DM으로 알려 드립니다", warn)
         self.assertIn("막지는 않습니다", warn)
         self.assertEqual(site_blocks.ssh_rate_rule(self.data(id="ssh-rate", values=values, active=False)), "\n")
 

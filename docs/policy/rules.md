@@ -69,6 +69,15 @@ srun --jobid=<JOBID> --overlap --pty bash -i
 - **반드시 SSH 키를 등록**해 비밀번호 없이 접속하세요. -> [SSH 키 등록 방법](../start/connect.md)
 - 접속 주소와 포트는 계정을 발급할 때 관리자가 알려 줍니다 (`<로그인 주소>`, `<SSH 포트>`).
 
+### SSH 접속 빈도
+
+<!-- BEGIN GENERATED: rule:ssh-rate -->
+로그인 노드에 새 SSH 접속을 **10분 동안 100번** 열면, 그 뒤의 새 접속이 **10분** 동안 막힙니다. 막힌 동안에도 접속을 계속 시도하면 막히는 시간이 늘어나 처음 막힌 때부터 최대 **60분**까지 갑니다. 10분 동안 90번에 이르면 미리, 막히면 바로 DM으로 알려 드립니다.
+<!-- END GENERATED: rule:ssh-rate -->
+
+- 로그인 노드에 새로 여는 SSH 접속만 셉니다. 이미 연 접속을 다시 쓰는 창(`ControlMaster`)과 열려 있는 세션은 세지 않고, 관리자 계정과 시스템 계정도 세지 않습니다.
+- 접속을 줄이는 방법과 막혔을 때 할 일은 [접속하기: 새 접속 줄이기](../start/connect.md#5-새-접속-줄이기)에 있습니다.
+
 ## 로그인 노드
 
 로그인 노드는 모두가 함께 쓰는 접속 지점입니다. 안정성을 위해 **사용자별 자원 한도**가 걸려 있습니다. <!-- BEGIN GENERATED: login:limits -->로그인 노드에서는 한 사람이 CPU 8개, 메모리 64 GB, 프로세스 4,096개까지 쓰실 수 있습니다.<!-- END GENERATED: login:limits -->
@@ -108,9 +117,11 @@ AI 코딩 에이전트(Claude Code, Codex CLI 등)는 쓸 수 있습니다. 다�
 | 규칙 | 조치 | 내 현황 |
 |---|---|---|
 | <span id="gpu-idle"></span>GPU 유휴 잡 | 알림, 잡 취소 | `usage gpu` |
+| <span id="disk"></span>디스크 한도 | 알림, 제출 보류 | `usage disk` |
 | <span id="scratch"></span>/scratch 정리 | 파일 삭제 | `usage disk` |
 | <span id="io"></span>공유 스토리지 부하 | 알림 | `usage io` |
 | <span id="login"></span>로그인 노드 한도 | 한도 적용 | `usage login-node` |
+| <span id="ssh-rate"></span>SSH 접속 빈도 | 알림, 새 접속 거부 | `usage login-node` |
 | <span id="submit"></span>제출 잡 한도 | 제출 거부 | `usage submit` |
 | <span id="leave"></span>소속 기간 종료 | 제출 보류 | `usage submit` |
 <!-- END GENERATED: rules:section -->

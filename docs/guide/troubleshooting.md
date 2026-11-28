@@ -73,6 +73,10 @@ QoS와 우선순위의 배경은 [Slurm 레퍼런스](../reference/slurm.md#qos)
 ### `Your membership ended on`
 
 소속 기간이 끝나 새 잡을 낼 수 없습니다. 실행 중인 잡은 그대로 돌고, 로그인은 메시지에 적힌 날까지 할 수 있으니 그 전에 파일을 옮겨 주세요. 기간이 잘못되었다면 관리자에게 알려 주세요.
+
+### `Your disk use on`
+
+메시지에 적힌 곳에서 용량이나 파일 수가 한도에 닿아, 공간을 비울 때까지 새 잡을 낼 수 없습니다. 그곳에는 파일을 더 쓸 수도 없습니다. `usage disk`로 어디에 얼마나 쓰는지와 정리하면 좋을 폴더를 보고 공간을 비우면, 곧 다시 제출할 수 있습니다. 실행 중인 잡은 그대로 실행됩니다.
 <!-- END GENERATED: submit:refusals -->
 
 ### `Requested node configuration is not available`

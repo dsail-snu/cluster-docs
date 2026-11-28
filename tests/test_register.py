@@ -85,9 +85,9 @@ class Register(unittest.TestCase):
         self.assertFalse(actorless("실패 횟수는 서버마다 따로 센다."), "the reader's own act")
 
     def test_the_rule_pages_blocks_have_their_plain_form(self):
-        data = {"policy": {"idle_hours": 2, "cancel_after_hours": 6, "cancel_warn_hours": 1, "idle_notify": ["dm"],
+        data = {"policy": {"idle_hours": 2, "cancel_after_hours": 6, "cancel_warn_hours": 1,
                            "interactive_team_qos": True}}  # fmt: skip
-        for policy in (data["policy"], dict(data["policy"], cancel_after_hours=0, idle_notify=[], interactive_team_qos=False)):
+        for policy in (data["policy"], dict(data["policy"], cancel_after_hours=0, interactive_team_qos=False)):
             d = {"policy": policy}
             self.assertEqual(polite(site_blocks.idle_rule(d, plain=True)), [])
             self.assertEqual(polite(site_blocks.sessions_rule(d, plain=True)), [])

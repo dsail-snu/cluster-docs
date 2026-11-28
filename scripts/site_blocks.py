@@ -45,9 +45,12 @@ Generators:
   quota:MOUNT:F   a limit of the filesystem at MOUNT: block_hard, block_warn (TB),
                   inode_hard, inode_warn (a count); quota:ratio, files per TB
   term:idle_job   the one name for a job whose allocated GPUs all sat idle (IDLE_JOB)
-  rule:idle       the rule on such jobs as a sentence: that the owner is told from the
-                  idle hours (or, with policy.idle_notify empty, only listed), and the
-                  cancel with its warning, or that no cancel is active (cancel 0)
+  rule:idle       the rule on such jobs as a sentence: that the owner is told by DM from
+                  the idle hours, and the cancel with its warning, or that no cancel is
+                  active (cancel 0)
+  rule:ssh-rate   the SSH rate rule as sentences (site.json rules ssh-rate values): the
+                  new connections it allows in its window, the block and its cap, the DMs
+  message:NAME    the start of one message people see (site.json messages), as code
   env:table       the users' environment variables: each with its value in a login and
                   in a job (the cluster's one list, user_environment)
   env:NAME        the login value of the variable NAME, inline
@@ -174,6 +177,9 @@ def options_all(data):
 # rules page's words; an action not here is refused, so the page never drops one.
 ACTIONS = {"notice": "알림", "cancel": "잡 취소", "hold": "제출 보류", "purge": "파일 삭제",
            "refuse": "제출 거부", "limit": "한도 적용"}  # fmt: skip
+# An action whose word differs by rule: the SSH rate rule refuses a new connection, not
+# a submission.
+RULE_ACTIONS = {("ssh-rate", "refuse"): "새 접속 거부"}
 
 
 def rules_section(data, page):
@@ -190,7 +196,7 @@ def rules_section(data, page):
         if target != here or not anchor:
             raise SystemExit(f"rules:section on {page}: rule {r['id']} links {r['anchor']}, not a place here")
         try:
-            does = ", ".join(ACTIONS[a.strip()] for a in r["action"].split(","))
+            does = ", ".join(RULE_ACTIONS.get((r["id"], a.strip())) or ACTIONS[a.strip()] for a in r["action"].split(","))
         except KeyError as e:
             raise SystemExit(f"rule {r['id']}: action {e} has no Korean in scripts/site_blocks.py ACTIONS") from None
         rows.append(f'| <span id="{anchor}"></span>{r["title"]} | {does} | {command(data, r["check"])} |')
@@ -250,22 +256,46 @@ def idle_rule(data, plain=False):
     """The rule on jobs leaving their GPUs idle as a sentence; PLAIN in the rule pages' -한다 register
     (snippets/agent-prompt.md and the snippets it includes), else the guides' polite one."""
     p = data["policy"]
-    # How the owner is told (a mention in the report, a DM) is the cluster's setting
-    # (policy.idle_notify) and not stated here; with none, the report only lists the job.
-    if set(p["idle_notify"]) - {"mention", "dm"}:
-        raise ValueError(f"policy.idle_notify {p['idle_notify']!r}: teach scripts/site_blocks.py idle_rule")
-    tell, shown, cancel, warn, kept = (
-        ("알린다", "사용 현황 리포트에 표시된다", "취소되고", "미리 알린다", "취소하지는 않는다") if plain
-        else ("알려 드립니다", "사용 현황 리포트에 표시됩니다", "취소되며", "미리 알려 드립니다", "취소하지는 않습니다")
+    # The owner is told by DM, as everyone is of a rule on them; a channel names no one
+    # (owner decision 12, 2026-11-28).
+    tell, cancel, warn, kept = (
+        ("DM으로 알린다", "취소되고", "미리 알린다", "취소하지는 않는다") if plain
+        else ("DM으로 알려 드립니다", "취소되며", "미리 알려 드립니다", "취소하지는 않습니다")
     )  # fmt: skip
-    told = tell if p["idle_notify"] else shown
-    text = f"Slurm 잡이 할당받은 GPU를 **{p['idle_hours']}시간 넘게 쓰지 않으면** {told}."
+    text = f"Slurm 잡이 할당받은 GPU를 **{p['idle_hours']}시간 넘게 쓰지 않으면** {tell}."
     if p["cancel_after_hours"]:
         text += (f" 할당받은 GPU를 **{p['cancel_after_hours']}시간** 동안 쓰지 않은 잡은 자동으로 {cancel}, "
                  f"취소 **{p['cancel_warn_hours']}시간 전**에 {warn}.")
     else:
         text += f" {IDLE_JOB}을 자동으로 {kept}."
     return text + "\n"
+
+
+def rule_values(data, rule_id):
+    """The values of the rule RULE_ID as the cluster runs it (site.json rules)."""
+    return next(r["values"] for r in data["rules"] if r["id"] == rule_id)
+
+
+def ssh_rate_rule(data, plain=False):
+    """The SSH rate rule as sentences (site.json rules ssh-rate): how many new connections
+    in how long, the block and how it grows, and the DMs; PLAIN in the rule pages' -한다
+    register, else the guides' polite one. Nothing when the cluster does not run it."""
+    if not active(data, "ssh-rate"):
+        return "\n"
+    v = rule_values(data, "ssh-rate")
+    warn = int(v["ssh_rate_refuse_sessions"] * v["cluster_user_warn_fraction"])
+    blocked, grows, goes, told = (
+        ("막힌다", "늘어나", "간다", "DM으로 알린다") if plain
+        else ("막힙니다", "늘어나", "갑니다", "DM으로 알려 드립니다")
+    )  # fmt: skip
+    window = v["ssh_rate_window_minutes"]
+    if v["ssh_rate_mode"] != "refuse":  # warn: counted and told, nobody refused
+        return (f"로그인 노드에 새 SSH 접속을 **{window}분 동안 {warn}번** 열면 {told}. "
+                f"접속을 막지는 {'않는다' if plain else '않습니다'}.\n")
+    return (f"로그인 노드에 새 SSH 접속을 **{window}분 동안 {v['ssh_rate_refuse_sessions']}번** 열면, 그 뒤의 새 접속이 "
+            f"**{v['ssh_rate_block_minutes']}분** 동안 {blocked}. 막힌 동안에도 접속을 계속 시도하면 막히는 시간이 "
+            f"{grows} 처음 막힌 때부터 최대 **{v['ssh_rate_block_max_minutes']}분**까지 {goes}. "
+            f"{window}분 동안 {warn}번에 이르면 미리, 막히면 바로 {told}.\n")  # fmt: skip
 
 
 WEEKDAYS = "월화수목금토일"
@@ -455,11 +485,13 @@ def commands_table(data):
 
 # The status channel's reports (site.json reports), each by its card's title (deepops
 # cluster_tools: disk_report, usage_report) and what it holds: the channels' guides and
-# the monitoring page name them from here.
+# the monitoring page name them from here. They are the public record: people by name as
+# text, never a mention; each person is told by DM (owner decision 12, 2026-11-28).
 REPORTS = {
-    "usage": ("GPU 사용 현황", f"누가 어떤 GPU를 쓰는지, 남은 GPU, {IDLE_JOB}"),
-    "weekly": ("주간 GPU 사용", "지난 한 주 사람별 GPU 사용 시간과 GPU 유휴 시간"),
-    "disk": ("디스크 사용량", "사람별, 공간별 디스크 사용량과 경고 수준을 넘은 사람"),
+    "usage": ("GPU 사용 현황", "그날 누가 어떤 GPU를 쓰는지와 남은 GPU. 하루 한 메시지를 매시간 고쳐 쓰고, 그 시간의 "
+              f"{IDLE_JOB}, 자동 취소, I/O 과다는 스레드에 적습니다. 자정이 지나면 그날의 일간 GPU 사용으로 바뀝니다"),
+    "weekly": ("주간 GPU 사용", "지난 한 주 GPU시간 상위와 GPU 유휴 시간 상위"),
+    "disk": ("디스크 사용량", "공간별 사용량, 경고 수준을 넘은 사람, 여유 공간이 부족할 때 많이 쓰는 사람"),
 }
 
 
@@ -494,22 +526,23 @@ def quota_section(data):
                 f"({report_when(data, 'disk')})로 알려 드립니다.\n")
     spaces = "과 ".join(f"`{m}`" for m in q) if len(q) == 2 else ", ".join(f"`{m}`" for m in q)
     held = "고 새 잡 제출도 보류되니" if p.get("submit_holds_disk") else "으니"
-    rows = [(f"`{m}`", f"{_tb(v['block_hard_tib'])} | {count(v['inode_hard'])}개") for m, v in q.items()]
+    rows = [(f"`{m}`", f"{_tb(v['block_hard_tib'])} | {count(v['inode_hard'])} 개") for m, v in q.items()]
     first = next(iter(q.values()))
     return (
         f"사람마다 {spaces}에 아래 용량과 파일 수 한도가 있습니다. 한도에 이르면 그 공간에 더 쓸 수 없{held}, "
-        f"그 전에 정리해 주시면 감사하겠습니다. 한도의 {round(p['warn_fraction'] * 100)}%에 이르면 Slack으로 미리 알려 드립니다.\n\n"
+        f"그 전에 정리해 주시면 감사하겠습니다. 한도의 {round(p['warn_fraction'] * 100)}%에 이르면 DM으로 미리 알려 드립니다.\n\n"
         + "| 공간 | 용량 한도 | 파일 수 한도 |\n|---|---|---|\n"
         + "".join(f"| {a} | {b} |\n" for a, b in rows)
-        + f"\n- 파일 수 한도는 용량에 비례합니다(1 TB당 {count(round(first['inode_hard'] / first['block_hard_tib']))}개). "
+        + f"\n- 파일 수 한도는 용량에 비례합니다(1 TB당 {count(round(first['inode_hard'] / first['block_hard_tib']))} 개). "
         "작은 파일 수천만 개는 파일 서버의 모든 사용자를 느리게 하니 묶음 포맷(tar, WebDataset, HDF5, Arrow 등)을 써 주세요.\n"
     )
 
 
 def quota_each(data, mount):
-    """One filesystem's per-person limit as the start of a sentence, or nothing."""
+    """One filesystem's per-person limit as a sentence in the rule snippets' -한다
+    register, or nothing."""
     q = data["quota"].get(mount)
-    return f"한 사람당 {_tb(q['block_hard_tib'])}까지 쓰실 수 있고, \n" if q else "\n"
+    return f"한 사람당 {_tb(q['block_hard_tib'])}까지 쓸 수 있다.\n" if q else "\n"
 
 
 def bot(data, name):
@@ -635,6 +668,10 @@ def body(data, name):
         return policy(data, arg)
     if kind == "quota":
         return quota(data, arg)
+    if name in ("rule:ssh-rate", "rule:ssh-rate:plain"):
+        return ssh_rate_rule(data, plain=name.endswith(":plain"))
+    if kind == "message":
+        return f"`{data['messages'][arg]}`\n"
     if name in ("rule:idle", "rule:idle:plain"):
         return idle_rule(data, plain=name.endswith(":plain"))
     if name == "term:idle_job":

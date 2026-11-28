@@ -121,7 +121,7 @@ class Blocks(unittest.TestCase):
         off = dict(DATA, bot=bot, services={"bot": False})
         self.assertIn("`/c unban`", site_blocks.bot(on, "unban"))
         self.assertIn("관리자에게", site_blocks.bot(off, "unban"))
-        self.assertIn("## 봇으로 하는 신청", site_blocks.bot(on, "section"))
+        self.assertIn("## Slack 명령 (/c)", site_blocks.bot(on, "section"))
         self.assertEqual(site_blocks.bot(off, "section"), "\n")
         for name in ("unban", "leave", "data"):
             self.assertNotIn("/c", site_blocks.bot(off, name))

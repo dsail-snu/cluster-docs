@@ -88,6 +88,7 @@ Generators:
   slurm:FIELD     one value of site.json slurm
   reports:NAME    when the status channel's report NAME runs (site.json reports), as
                   the channels' guides say it (scripts/channels.py when): 매일 09:00
+  reports:list    the status channel's reports, each its card's title, when and what
 
 Usage: site_blocks.py [--check]
 Standard library only.
@@ -452,6 +453,21 @@ def commands_table(data):
     return table(("명령", "내용"), [(f"`{c}`", d["summary_ko"]) for c, d in every_command(data)])
 
 
+# The status channel's reports (site.json reports), each by its card's title (deepops
+# cluster_tools: disk_report, usage_report) and what it holds: the channels' guides and
+# the monitoring page name them from here.
+REPORTS = {
+    "usage": ("GPU 사용 현황", f"누가 어떤 GPU를 쓰는지, 남은 GPU, {IDLE_JOB}"),
+    "weekly": ("주간 GPU 사용", "지난 한 주 사람별 GPU 사용 시간과 GPU 유휴 시간"),
+    "disk": ("디스크 사용량", "사람별, 공간별 디스크 사용량과 경고 수준을 넘은 사람"),
+}
+
+
+def reports_list(data):
+    """The status channel's reports as a list: each card's title, when, what it holds."""
+    return "".join(f"- **{title}** ({report_when(data, k)}): {what}\n" for k, (title, what) in REPORTS.items())
+
+
 def report_when(data, name):
     """When the status channel's report NAME runs (site.json reports), in the channels'
     guides' words (scripts/channels.py when)."""
@@ -511,7 +527,7 @@ def bot(data, name):
     if name == "section":
         if not on:
             return "\n"
-        return ("## 봇으로 하는 신청\n\n계정, 차단 해제, 공동작업 폴더, 공유 데이터는 Slack에서 클러스터 봇에게 신청하실 수 있습니다.\n"
+        return (f"## Slack 명령 ({b['command']})\n\n계정, 차단 해제, 공동작업 폴더, 공유 데이터는 Slack에서 클러스터 봇에게 신청하실 수 있습니다.\n"
                 "아무 채널에서나 아래 명령을 입력해 주세요.\n\n" + bot_subcommands(data)
                 + "\n관리자가 승인하면 봇이 DM으로 알려 드립니다. 봇의 홈 탭에서 내 신청과 공동작업 폴더를 보실 수 있습니다.\n")  # fmt: skip
     if name == "join":
@@ -657,6 +673,8 @@ def body(data, name):
         return f"{data['bot']['command']}\n"
     if name == "bot:subcommands":
         return bot_subcommands(data)
+    if name == "reports:list":
+        return reports_list(data)
     if kind == "reports":
         return report_when(data, arg) + "\n"
     if name == "commands:table":

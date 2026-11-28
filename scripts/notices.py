@@ -30,12 +30,9 @@ ROOT = Path(__file__).resolve().parents[1]
 POSTS = "docs/news/posts"
 # Paths whose changes change the rules: the policy pages and the rule blocks they include.
 POLICY = ("docs/policy/", "snippets/")
-CATEGORIES = {
-    "policy": (":scroll:", "규정"),
-    "update": (":arrows_counterclockwise:", "업데이트"),
-    "maintenance": (":wrench:", "점검"),
-    "notice": (":mega:", "공지"),
-}
+# Each kind's label, shown under the notice; the header is the title alone, as on every
+# card the cluster posts (deepops cluster_tools.cards: no emoji in a title).
+CATEGORIES = {"policy": "규정", "update": "업데이트", "maintenance": "점검", "notice": "공지"}
 # How long each kind of notice stays pinned in the Slack channel, from its date: days, or
 # UNTIL (the notice states its end, pin_until: in its front matter), or None (not pinned).
 # pin_until: (a date, date:NAME of the site's schedule, or none) overrides the kind's;
@@ -268,15 +265,14 @@ INVITE = "궁금한 점은 {help} 채널에 편하게 남겨 주세요."
 
 
 def blocks(notice, base, help_channel):
-    icon = CATEGORIES[notice.categories[0]][0]
-    labels = ", ".join(CATEGORIES[c][1] for c in notice.categories)
+    labels = ", ".join(CATEGORIES[c] for c in notice.categories)
     page = notice.path.removeprefix("docs/")
-    header = f"{icon} {notice.title}"
+    header = notice.title
     lead = absolute(notice.summary, base, page) + "\n" + INVITE.format(help=help_channel)
     if len(header) > HEADER_MAX or len(lead) > SECTION_MAX:
         raise ValueError(f"{notice.path}: the title or summary is longer than Slack shows ({HEADER_MAX}, {SECTION_MAX})")
     return [
-        {"type": "header", "text": {"type": "plain_text", "text": header, "emoji": True}},
+        {"type": "header", "text": {"type": "plain_text", "text": header}},
         rich_text(lead),
         {"type": "actions", "elements": [{"type": "button", "text": {"type": "plain_text", "text": "자세히 보기"},
                                           "url": notice.url(base)}]},

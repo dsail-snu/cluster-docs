@@ -129,7 +129,16 @@ htop                    # CPU, 메모리
 
 ## Slack 알림
 
-- **GPU 사용량 보고**: <!-- BEGIN GENERATED: reports:usage -->매시간<!-- END GENERATED: reports:usage --> 클러스터 GPU 사용 현황이 Slack <!-- BEGIN GENERATED: chat:status -->`#infra-status`<!-- END GENERATED: chat:status -->에 올라옵니다.
+Slack <!-- BEGIN GENERATED: chat:status -->`#infra-status`<!-- END GENERATED: chat:status -->에 올라오는 리포트입니다.
+
+<!-- BEGIN GENERATED: reports:list -->
+- **GPU 사용 현황** (매시간): 누가 어떤 GPU를 쓰는지, 남은 GPU, GPU 유휴 잡
+- **주간 GPU 사용** (월요일 09:00): 지난 한 주 사람별 GPU 사용 시간과 GPU 유휴 시간
+- **디스크 사용량** (매일 09:00): 사람별, 공간별 디스크 사용량과 경고 수준을 넘은 사람
+<!-- END GENERATED: reports:list -->
+
+내게 DM으로 오는 알림입니다.
+
 - **<!-- BEGIN GENERATED: term:idle_job -->GPU 유휴 잡<!-- END GENERATED: term:idle_job --> 알림**: <!-- BEGIN GENERATED: rule:idle -->Slurm 잡이 할당받은 GPU를 **2시간 넘게 쓰지 않으면** 알려 드립니다. 할당받은 GPU를 **6시간** 동안 쓰지 않은 잡은 자동으로 취소되며, 취소 **1시간 전**에 미리 알려 드립니다.<!-- END GENERATED: rule:idle -->
   알림을 받으셨다면 잡이 GPU를 제대로 쓰는지 확인해 주시고, 쓰지 않는다면 취소해 주세요.
   -> [디버깅 규정](../policy/rules.md#디버깅)

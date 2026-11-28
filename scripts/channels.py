@@ -21,7 +21,7 @@ Placeholders, filled from data/site.json so no fact is typed twice:
   [[bot.subcommands]] its subcommands as a table, with their Korean help
   [[commands]]        the cluster commands as a table, with their Korean summaries
   [[rule:idle]]       the rule on jobs leaving their GPUs idle (scripts/site_blocks.py)
-  [[reports]]         the status channel's reports as a table: when, what
+  [[reports]]         the status channel's reports as a list: title, when, what
   [[reports:inline]]  the same on one line
   [[reports:names]]   the reports' names, in a sentence
   [[term:idle_job]]   the one name for a job whose allocated GPUs all sat idle
@@ -43,17 +43,18 @@ from siteurls import LINK, ROOT, page_url, site_url  # noqa: E402
 
 SOURCES = "slack"
 ROLES = ("help", "announce", "status", "admin")  # the help page's table order
+# Each channel's language (owner, 2026-11-28): the administrators' channel is English, as
+# its alerts are; the channels people read are Korean. An English guide with Hangul left
+# in it (typed, or from a placeholder) is refused.
+ENGLISH = {"admin"}
+HANGUL = re.compile("[\u1100-\u11ff\u3130-\u318f\uac00-\ud7a3]")
 LIMIT = 250
 PLACEHOLDER = re.compile(r"\[\[([^\]]+)\]\]")
 FIELDS = ("purpose", "topic", "title")
 DAYS = {"Mon": "월요일", "Tue": "화요일", "Wed": "수요일", "Thu": "목요일", "Fri": "금요일", "Sat": "토요일",
         "Sun": "일요일"}  # fmt: skip
 CALENDAR = re.compile(r"(?:(Mon|Tue|Wed|Thu|Fri|Sat|Sun) +)?\*-\*-\* +(\d{2}):(\d{2})(?::00)?")
-REPORTS = {  # what each of the status channel's reports holds (site.json reports)
-    "usage": ("GPU 사용 현황", f"누가 어떤 GPU를 쓰는지, 남은 GPU, {site_blocks.IDLE_JOB}"),
-    "weekly": ("주간 요약", "지난 한 주 사람별 GPU 사용 시간과 할당받은 GPU를 쓰지 않은 시간"),
-    "disk": ("디스크 사용량", "사람별, 공간별 디스크 사용량과 경고 수준을 넘은 사람"),
-}
+REPORTS = site_blocks.REPORTS
 
 
 def when(schedule):
@@ -104,8 +105,9 @@ def _table(header, rows):
     return site_blocks.table(header, rows).rstrip("\n")
 
 
-def fill(text, data):
-    """TEXT with every placeholder but [[#ROLE]] filled from DATA; an unknown one raises."""
+def fill(text, data, english=False):
+    """TEXT with every placeholder but [[#ROLE]] filled from DATA (ENGLISH: for an English
+    guide); an unknown one raises."""
     chat, bot = data["chat"], data["bot"]
 
     def one(m):
@@ -115,7 +117,7 @@ def fill(text, data):
                 raise ValueError(f"[[{name}]]: no such channel role")
             return m.group(0)
         if name == "admins":
-            return chat["admin_group"] or "관리자"
+            return chat["admin_group"] or ("the administrators" if english else "관리자")
         if name == "/cluster":
             return bot["command"]
         if name == "bot.subcommands":
@@ -125,8 +127,7 @@ def fill(text, data):
         if name == "rule:idle":
             return site_blocks.idle_rule(data).strip()
         if name == "reports":
-            return _table(("언제", "무엇"), [(when(data["reports"][k]), f"{short}: {what}")
-                                             for k, (short, what) in REPORTS.items()])  # fmt: skip
+            return site_blocks.reports_list(data).rstrip("\n")
         if name == "reports:inline":
             return " | ".join(f"{when(data['reports'][k])} {short}" for k, (short, _) in REPORTS.items())
         if name == "reports:names":
@@ -151,18 +152,24 @@ def _link(target, root, base):
 def channel(guide, data, root=ROOT):
     base = site_url(root)
     names = data["chat"]["channels"]
-    shown = {f: fill(guide[f], data) for f in ("purpose", "topic")}
+    english = guide["role"] in ENGLISH
+    shown = {f: fill(guide[f], data, english) for f in ("purpose", "topic")}
     for field, value in shown.items():  # as Slack will hold it: each [[#ROLE]] a name
         as_set = re.sub(r"\[\[#([a-z]+)\]\]", lambda m: names[m.group(1)], value)
         if len(as_set) > LIMIT:
             raise ValueError(f"{guide['role']}: the {field} is {len(as_set)} characters; Slack keeps {LIMIT}")
-    markdown = LINK.sub(lambda m: f"[{m.group(1)}]({_link(m.group(2), root, base)})", fill(guide["markdown"], data))
-    return {
+    markdown = LINK.sub(lambda m: f"[{m.group(1)}]({_link(m.group(2), root, base)})",
+                        fill(guide["markdown"], data, english))  # fmt: skip
+    out = {
         **shown,
         "canvas": {"title": guide["title"], "markdown": markdown},
         "bookmarks": [{"title": b["title"], "url": _link(b["link"], root, base), "emoji": b["emoji"]}
                       for b in guide["bookmarks"]],  # fmt: skip
     }
+    korean = HANGUL.search(json.dumps(out, ensure_ascii=False))
+    if english and korean:
+        raise ValueError(f"{guide['role']}: the channel is English; {korean.group(0)!r} is Korean")
+    return out
 
 
 def document(data, root=ROOT):

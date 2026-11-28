@@ -95,7 +95,7 @@ class ParseTests(unittest.TestCase):
     def test_slack_blocks(self):
         n = notices.parse("docs/news/posts/2026-11-19-docs-site.md", GOOD)
         b = notices.blocks(n, "https://x.example/docs/", "#help")
-        self.assertEqual(b[0]["text"]["text"], ":mega: 제목")
+        self.assertEqual(b[0]["text"], {"type": "plain_text", "text": "제목"}, "the title alone, no kind emoji")
         [items, invite] = b[1]["elements"]
         self.assertEqual((b[1]["type"], items["type"], items["style"], items["indent"]),
                          ("rich_text", "rich_text_list", "bullet", 0))

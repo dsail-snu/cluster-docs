@@ -4,10 +4,10 @@ a refused variant. The owner asked for the glossary on 2026-11-27, after "GPU를
 잡" read as a CPU-only job. The name of a job whose allocated GPUs all sat idle is also
 site_blocks.IDLE_JOB, which pages write through the term:idle_job block.
 
-Titles are nouns, sentences stay descriptive (owner, 2026-11-27): an entry's title form
-(as 중단 노드 beside 쓸 수 없는 노드) in every title, its sentence form everywhere
-else, the title idioms (title_not) refused in titles, and no title ending a sentence
-outside the exempt files (site.json titles). A title here is a Markdown heading, a
+One word per thing, in titles and sentences alike (owner, 2026-11-29: the 2026-11-27
+split of 중단 노드 in titles beside 쓸 수 없는 노드 in sentences is retired, the other
+name refused). Titles are nouns: the title idioms (title_not) are refused in titles, and
+no title ends a sentence outside the exempt files (site.json titles). A title here is a Markdown heading, a
 bold-only line or a list item's bold lead, a table header row, or a Slack guide's title,
 table or bookmark (slack/*.md front matter), as deepops' scripts/deepops/terms.py reads
 them; code blocks hold none."""
@@ -27,7 +27,6 @@ DATA = json.loads((ROOT / "data" / "site.json").read_text())
 # A scoped entry names deepops paths; here every page is in scope of the others.
 ENTRIES = [dict(e, patterns=[re.compile(p) for p in e["not"]], title_patterns=[re.compile(p) for p in e.get("title_not", [])])
            for e in DATA["terms"] if not e.get("scope")]  # fmt: skip
-FORMED = [e for e in ENTRIES if e.get("title") and e.get("use") and e["title"] != e["use"]]
 ENDINGS = re.compile(DATA["titles"]["endings"])
 EXEMPT = tuple(x["path"] for x in DATA["titles"]["exempt"])
 # The files that quote the variants: the exported glossary and this test.
@@ -96,21 +95,12 @@ def bare(title):
 
 
 def title_problems(rel, text):
-    lines, out = text.split("\n"), []
-    found = titles(rel, lines)
-    by_line = {}
-    for n, t in found:
-        by_line.setdefault(n, []).append(t)
+    out = []
+    for n, t in titles(rel, text.split("\n")):
         shown = bare(t)
-        out += [f"{rel}:{n}: title {t!r} -> {e['title']}" for e in FORMED if e["use"] in shown]
-        out += [f"{rel}:{n}: title {t!r} -> {e['title']}" for e in ENTRIES for p in e["title_patterns"] if p.search(shown)]
+        out += [f"{rel}:{n}: title {t!r} -> {e['use']}" for e in ENTRIES for p in e["title_patterns"] if p.search(shown)]
         if re.search("[\uac00-\ud7a3]", shown) and ENDINGS.search(shown) and not rel.startswith(EXEMPT):
             out.append(f"{rel}:{n}: title {t!r} ends a sentence -> a noun")
-    for n, line in enumerate(lines, 1):
-        rest = site_blocks.MARKERS.sub("", line)
-        for t in by_line.get(n, []):
-            rest = rest.replace(bare(t), "")
-        out += [f"{rel}:{n}: {e['title']!r} outside a title -> {e['use']}" for e in FORMED if e["title"] in rest]
     return out
 
 
@@ -147,18 +137,24 @@ class Terms(unittest.TestCase):
         for line in (f"{old}.py", f"#{old}", f"x-{old}", f"{old}-report", f"/{old}"):
             self.assertFalse(RETIRED_AT.search(line), line)
 
-    def test_titles_are_nouns_and_sentences_stay_descriptive(self):
+    def test_titles_are_nouns(self):
         found = [v for p, text in texts() if p.endswith(".md") for v in title_problems(p, text)]
         self.assertEqual(found, [], "titles are nouns (deepops scripts/deepops/terms_ko.yml, titles)")
 
     def test_the_title_rules_catch_what_they_should(self):
-        self.assertTrue(title_problems("a.md", "## 쓸 수 없는 노드\n"))
-        self.assertTrue(title_problems("a.md", "중단 노드는 잡을 받지 않습니다.\n"))
         self.assertTrue(title_problems("a.md", "# 사용 규정이 바뀝니다\n"))
         self.assertTrue(title_problems("a.md", "| 명령 | 하는 일 |\n|---|---|\n"))
-        self.assertFalse(title_problems("a.md", "## 중단 노드 { #old }\n\n쓸 수 없는 노드는 잡을 받지 않습니다.\n"))
+        self.assertFalse(title_problems("a.md", "## 중단 노드 { #old }\n"))
         self.assertFalse(title_problems("a.md", "```bash\n# 확인합니다\n```\n"))
         self.assertFalse(title_problems(EXEMPT[0], "### 밖에서 접속이 안 돼요\n"))
+
+    def test_one_thing_has_one_name_in_titles_and_sentences(self):
+        """Owner, 2026-11-29: the glossary's word in a sentence too, the other name refused."""
+        self.assertFalse(any("title" in e for e in DATA["terms"]), "an entry has one word (use)")
+        self.assertEqual(refused("중단 노드는 잡을 받지 않습니다."), [])
+        self.assertTrue(refused("쓸 수 없는 노드는 잡을 받지 않습니다."))
+        self.assertTrue(refused("하루 한 메시지를 매시간 고쳐 쓰고"))
+        self.assertFalse(refused("캔버스를 직접 고쳐도 다음 배포에서 되돌아갑니다"), "editing stays 고치다")
 
     def test_the_name_is_the_glossarys_and_the_rule_says_allocated(self):
         glossary = next(e for e in DATA["terms"] if e.get("id") == "idle_job")

@@ -247,7 +247,7 @@ def submit_refusals(data):
         if p.get("submit_holds_disk") and active(data, "disk"):
             out.append(f"### `{m['hold_disk']}`\n\n"
                        "메시지에 적힌 곳에서 용량이나 파일 수가 한도에 닿아, 공간을 비울 때까지 새 잡을 낼 수 없습니다. 그곳에는 파일을 더 쓸 수도 없습니다. "
-                       f"{command(data, 'usage disk')}로 어디에 얼마나 쓰는지와 정리하면 좋을 폴더를 보고 공간을 비우면, "
+                       f"{command(data, 'usage disk')}로 어디에 얼마나 쓰는지와 정리 후보 폴더를 보고 공간을 비우면, "
                        "곧 다시 제출할 수 있습니다. 실행 중인 잡은 그대로 실행됩니다.\n")  # fmt: skip
     return "\n".join(out) or "\n"
 
@@ -327,11 +327,11 @@ PORTAL_GROUPS = {
 # at their own jobs and nodes. tests/test_site_blocks.py holds every exported uid to a line.
 DASHBOARDS = {
     "slurm-gpu-allocation": "지금 GPU마다 누가 어떤 잡으로 쓰는지(**Allocations now**), 잡별 GPU 사용률과 메모리, "
-                            "사람별, 팀별 할당. 내 잡이 실행 중인 노드와 GPU를 여기서 찾습니다.",
+                            "사용자별, 팀별 할당. 내 잡이 실행 중인 노드와 GPU를 여기서 찾습니다.",
     "gpu-nodes": "GPU 노드 한 대의 GPU(사용률, 메모리, 온도, 전력)와 CPU, 메모리, 디스크, 네트워크. "
                  "위쪽의 **hostname**에서 노드를 고릅니다.",
     "slurm-scheduler": "클러스터 전체의 노드 상태, 쓰고 있는 CPU와 GPU, 실행 중인 잡과 대기 중인 잡.",
-    "storage-person": "한 사람의 파일시스템별 사용량과 파일 수(경고 수준과 한도), 정리하면 좋을 폴더, 그 사람의 잡과 로그인 노드 작업의 I/O를 "
+    "storage-person": "한 사람의 파일시스템별 사용량과 파일 수(경고 수준과 한도), 정리 후보 폴더, 그 사람의 잡과 로그인 노드 작업의 I/O를 "
                       "시간에 따라 봅니다. `usage disk`와 `usage io`가 보여 주는 값입니다. 위쪽의 **user**에서 사람을 고릅니다.",
     "storage-io": "공유 스토리지(NFS)와 디스크를 누가 얼마나 읽고 쓰는지: 노드별, 잡별(**Top jobs by I/O**).",
     "node-exporter-hosts": "모든 호스트의 자세한 수치(CPU, 메모리, 디스크, 네트워크). 위쪽의 **nodename**에서 "
@@ -420,7 +420,7 @@ def login_limits(data):
     """The login nodes' per-person limits as a sentence (site.json login), or that none is set."""
     parts = login_parts(data)
     if not parts:
-        return "로그인 노드에는 사람별 자원 한도가 따로 걸려 있지 않습니다.\n"
+        return "로그인 노드에는 사용자별 자원 한도가 따로 걸려 있지 않습니다.\n"
     return f"로그인 노드에서는 한 사람이 {', '.join(parts)}까지 쓰실 수 있습니다.\n"
 
 
@@ -489,10 +489,10 @@ def commands_table(data):
 # the monitoring page name them from here. They are the public record: people by name as
 # text, never a mention; each person is told by DM (owner decision 12, 2026-11-28).
 REPORTS = {
-    "usage": ("GPU 사용 현황", "그날 누가 어떤 GPU를 쓰는지와 남은 GPU. 하루 한 메시지를 매시간 고쳐 쓰고, 그 시간의 "
+    "usage": ("GPU 사용 현황", "그날 누가 어떤 GPU를 쓰는지와 남은 GPU. 하루 한 메시지를 매시간 갱신하고, 그 시간의 "
               f"{IDLE_JOB}, 자동 취소, I/O 과다는 스레드에 적습니다. 자정이 지나면 그날의 일간 GPU 사용으로 바뀝니다"),
     "weekly": ("주간 GPU 사용", "지난 한 주 GPU시간 상위와 GPU 유휴 시간 상위"),
-    "disk": ("디스크 사용량", "공간별 사용량, 경고 수준을 넘은 사람, 여유 공간이 부족할 때 많이 쓰는 사람"),
+    "disk": ("디스크 사용량", "공간별 사용량, 경고 수준 초과 사용량, 여유 공간이 부족할 때 많이 쓰는 사용자"),
 }
 
 

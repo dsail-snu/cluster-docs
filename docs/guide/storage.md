@@ -124,7 +124,7 @@ scp -P <SSH 포트> file.tar.gz <아이디>@<로그인 주소>:/scratch/<아이�
 - 파일 수 한도는 용량에 비례합니다(1 TB당 300만 개). 작은 파일 수천만 개는 파일 서버의 모든 사용자를 느리게 하니 묶음 포맷(tar, WebDataset, HDF5, Arrow 등)을 써 주세요.
 <!-- END GENERATED: quota:section -->
 
-- 내 사용량은 `du`로 직접 세지 말고 <!-- BEGIN GENERATED: command:usage:disk -->`usage disk`<!-- END GENERATED: command:usage:disk -->로 확인하세요: <!-- BEGIN GENERATED: command:usage:disk:what -->내 용량과 파일 수, 경고 수준과 한도, 정리하면 좋을 폴더, 정리될 스크래치 파일<!-- END GENERATED: command:usage:disk:what -->.
+- 내 사용량은 `du`로 직접 세지 말고 <!-- BEGIN GENERATED: command:usage:disk -->`usage disk`<!-- END GENERATED: command:usage:disk -->로 확인하세요: <!-- BEGIN GENERATED: command:usage:disk:what -->내 용량과 파일 수, 경고 수준과 한도, 정리 후보 폴더, 정리될 스크래치 파일<!-- END GENERATED: command:usage:disk:what -->.
   전체는 Slack 디스크 리포트(<!-- BEGIN GENERATED: reports:disk -->매일 09:00<!-- END GENERATED: reports:disk -->)로,
   `/scratch`에서 정리될 내 파일도 <!-- BEGIN GENERATED: command:usage:disk -->`usage disk`<!-- END GENERATED: command:usage:disk -->에 나옵니다.
 

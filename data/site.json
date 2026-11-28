@@ -570,7 +570,7 @@
             }
           ],
           "summary": "your space and files against their limits, folders worth cleaning, scratch files due to go",
-          "summary_ko": "내 용량과 파일 수, 경고 수준과 한도, 정리하면 좋을 폴더, 정리될 스크래치 파일",
+          "summary_ko": "내 용량과 파일 수, 경고 수준과 한도, 정리 후보 폴더, 정리될 스크래치 파일",
           "usage": "usage disk [OPTIONS]"
         },
         {
@@ -1052,9 +1052,7 @@
   },
   "terms": [
     {
-      "code": {
-        "use": "IDLE_JOB"
-      },
+      "code": "IDLE_JOB",
       "id": "idle_job",
       "not": [
         "(?<!할당받은 )GPU를 (?:\\S+ ){0,2}쓰지 않",
@@ -1204,6 +1202,53 @@
     },
     {
       "not": [
+        "(?:매시간|매일|봇이|자동으로|최신으로|늘) 고(?:치|칩|쳐|친)",
+        "고쳐 (?:두|씁|쓰|씀)"
+      ],
+      "scope": [],
+      "title_not": [],
+      "use": "갱신",
+      "why": "A message, record or pin the bot refreshes is 갱신됩니다 (owner, 2026-11-29); 고치다 is to correct a mistake, so \"매시간 고칩니다\" read as hourly errors. Editing a file stays 고칩니다."
+    },
+    {
+      "not": [
+        "사람별"
+      ],
+      "scope": [],
+      "title_not": [],
+      "use": "사용자별",
+      "why": "The reports' tables head their column 사용자, and sq's USERS column was both 사람별 점유 and 사용자별 점유 (2026-11-29)."
+    },
+    {
+      "not": [
+        "Slurm 잡 알림"
+      ],
+      "scope": [],
+      "title_not": [],
+      "use": "잡 알림",
+      "why": "The DM of --mail-type, as the Home tab and the docs name it."
+    },
+    {
+      "not": [
+        "계정 이름",
+        "사용자 이름"
+      ],
+      "scope": [],
+      "title_not": [],
+      "use": "아이디",
+      "why": "A person's login is 아이디 in the bot, the forms and the docs; the connect page called it 계정 이름 and 사용자 이름 too."
+    },
+    {
+      "not": [
+        "사용자별 자원 제한"
+      ],
+      "scope": [],
+      "title_not": [],
+      "use": "사용자별 자원 한도",
+      "why": "The login node's per-person limits are 한도, as 로그인 노드 한도."
+    },
+    {
+      "not": [
         "도움 채널"
       ],
       "scope": [],
@@ -1245,15 +1290,16 @@
       "why": "A shared folder's owners were 관리자, the cluster administrators' word, so \"관리자가 승인합니다\" meant two people."
     },
     {
-      "code": {
-        "title": "DOWN_TITLE"
-      },
-      "not": [],
+      "code": "DOWN_TITLE",
+      "not": [
+        "쓸 수 없는 노드",
+        "사용 불가(?:능한)? 노드",
+        "장애 노드"
+      ],
       "scope": [],
-      "title": "중단 노드",
       "title_not": [],
-      "use": "쓸 수 없는 노드",
-      "why": "A drained or down node in a title is 중단 노드 (owner, 2026-11-27); not 장애 노드, since a drain is no failure. Sentences say what it means."
+      "use": "중단 노드",
+      "why": "A drained or down node, in titles and sentences alike (owner, 2026-11-29; the 2026-11-27 split with 쓸 수 없는 노드 in sentences is retired); not 장애 노드, since a drain is no failure."
     },
     {
       "not": [
@@ -1449,19 +1495,19 @@
     {
       "not": [],
       "scope": [],
-      "title": "/scratch 정리",
       "title_not": [
         "스크래치 정리"
       ],
+      "use": "/scratch 정리",
       "why": "The scratch purge, named by the path people type."
     },
     {
       "not": [],
       "scope": [],
-      "title": "공유 스토리지 부하",
       "title_not": [
         "^공유 스토리지 I/O$"
       ],
+      "use": "공유 스토리지 부하",
       "why": "The rule is about the load one person's I/O puts on everyone's storage."
     },
     {
@@ -1469,102 +1515,96 @@
         "로그인 노드 (?:제한|상한)"
       ],
       "scope": [],
-      "title": "로그인 노드 한도",
       "title_not": [],
+      "use": "로그인 노드 한도",
       "why": "A limit is 한도, as the disk's (상한 is the GPU power cap's word)."
     },
     {
       "not": [],
       "scope": [],
-      "title": "SSH 접속 빈도",
       "title_not": [
         "접속 횟수 제한",
         "SSH 접속 제한",
         "세션 제한"
       ],
+      "use": "SSH 접속 빈도",
       "why": "The rule counts how often new SSH connections are opened, not whether one may log in."
     },
     {
       "not": [],
       "scope": [],
-      "title": "제출 잡 한도",
       "title_not": [
         "낼 수 있는 잡 수"
       ],
+      "use": "제출 잡 한도",
       "why": "The cap counts queued and running jobs together, as a 한도."
     },
     {
       "not": [],
       "scope": [],
-      "title": "소속 기간 종료",
       "title_not": [
         "구성원 기간"
       ],
+      "use": "소속 기간 종료",
       "why": "What acts on a person is the end of their membership, not the period itself."
     },
     {
       "not": [],
       "scope": [],
-      "title": "주간 GPU 사용",
       "title_not": [
         "지난 \\{?\\w*\\}?일 GPU 사용"
       ],
+      "use": "주간 GPU 사용",
       "why": "The weekly summary's card, one fixed name in Slack and the docs; its period goes in the header's date."
     },
     {
-      "code": {
-        "title": "PAST_TITLE"
-      },
-      "not": [],
+      "code": "PAST_TITLE",
+      "not": [
+        "경고 수준을 넘은 사용량"
+      ],
       "scope": [],
-      "title": "경고 수준 초과 사용량",
       "title_not": [],
-      "use": "경고 수준을 넘은 사용량",
-      "why": "A part of the disk card; in a sentence the verb reads naturally."
+      "use": "경고 수준 초과 사용량",
+      "why": "A part of the disk card."
     },
     {
-      "code": {
-        "title": "PROJECTS_TITLE"
-      },
-      "not": [],
+      "code": "PROJECTS_TITLE",
+      "not": [
+        "경고 수준을 넘은 프로젝트"
+      ],
       "scope": [],
-      "title": "경고 수준 초과 프로젝트",
       "title_not": [],
-      "use": "경고 수준을 넘은 프로젝트",
+      "use": "경고 수준 초과 프로젝트",
       "why": "As the people's part, for the projects."
     },
     {
-      "code": {
-        "title": "FILL_TITLE"
-      },
+      "code": "FILL_TITLE",
       "not": [],
       "scope": [],
-      "title": "여유 공간 부족",
       "title_not": [
         "가득 차 가는"
       ],
+      "use": "여유 공간 부족",
       "why": "A filesystem near full, as a part's title (owner, 2026-11-28, on \"가득 차 가는 공간\")."
     },
     {
-      "code": {
-        "title": "CLEANUP_TITLE"
-      },
-      "not": [],
+      "code": "CLEANUP_TITLE",
+      "not": [
+        "정리하면 좋을 폴더"
+      ],
       "scope": [],
-      "title": "정리 후보 폴더",
       "title_not": [],
-      "use": "정리하면 좋을 폴더",
+      "use": "정리 후보 폴더",
       "why": "The folders unused past the stale period, largest and oldest first."
     },
     {
-      "code": {
-        "title": "OTHERS_TITLE"
-      },
-      "not": [],
+      "code": "OTHERS_TITLE",
+      "not": [
+        "명부에 없는 계정"
+      ],
       "scope": [],
-      "title": "명부 외 계정",
       "title_not": [],
-      "use": "명부에 없는 계정",
+      "use": "명부 외 계정",
       "why": "root, the services and people who left, on a disk."
     },
     {
@@ -1574,55 +1614,55 @@
         "roles/cluster_bot/",
         "roles/slurm_usage_report/"
       ],
-      "title": "명사형 제목 (관형절 대신 명사 - 경고 수준 초과, 여유 공간 부족)",
       "title_not": [
         "[가-힣](?:는|은|을|던|된|될|(?<![역분])할) "
       ],
+      "use": "명사형 제목 (관형절 대신 명사 - 경고 수준 초과, 여유 공간 부족)",
       "why": "A clause in a title (\"가득 차 가는 공간\", \"경고 수준을 넘은 사용량\") reads as a sentence cut short; its noun says it."
     },
     {
       "not": [],
       "scope": [],
-      "title": "역할",
       "title_not": [
         "(?<![가-힣])하는 일"
       ],
+      "use": "역할",
       "why": "A table's or heading's \"하는 일\" is the thing's role."
     },
     {
       "not": [],
       "scope": [],
-      "title": "사용법, 확인 방법, 변경 방법 (동작의 명사 + 방법)",
       "title_not": [
         "[가-힣]+는 법"
       ],
+      "use": "사용법, 확인 방법, 변경 방법 (동작의 명사 + 방법)",
       "why": "\"쓰는 법\", \"보는 법\", \"바꾸는 법\" are sentences cut short; the noun says it."
     },
     {
       "not": [],
       "scope": [],
-      "title": "내용",
       "title_not": [
         "보여 주는 것"
       ],
+      "use": "내용",
       "why": "What a command shows, as a table header."
     },
     {
       "not": [],
       "scope": [],
-      "title": "용도",
       "title_not": [
         "두는 것"
       ],
+      "use": "용도",
       "why": "What a place is for, as a table header."
     },
     {
       "not": [],
       "scope": [],
-      "title": "대상 노드",
       "title_not": [
         "받는 노드"
       ],
+      "use": "대상 노드",
       "why": "The nodes a step applies to, as a table header."
     }
   ],

@@ -8,7 +8,7 @@ pin_until: date:home_downtime
 # /home 점검에 따른 클러스터 일시 중단 안내
 
 - **<!-- BEGIN GENERATED: day:home_downtime -->2026-12-05(토)<!-- END GENERATED: day:home_downtime --> 02:00부터 10:00까지**
-  - `/home`의 사람별 사용량을 파일시스템이 직접 세도록 바꿉니다. <!-- BEGIN GENERATED: day:limits_from -->2026-12-09(수)<!-- END GENERATED: day:limits_from -->부터의 한도를 정확하게 세기 위한
+  - `/home`의 사용자별 사용량을 파일시스템이 직접 세도록 바꿉니다. <!-- BEGIN GENERATED: day:limits_from -->2026-12-09(수)<!-- END GENERATED: day:limits_from -->부터의 한도를 정확하게 세기 위한
     작업이며, 데이터를 옮기거나 바꾸지 않습니다.
   - 점검하는 동안 클러스터 전체(로그인 노드, 잡, `/home`, `/sw`)를 쓰실 수 없습니다.
     끝나는 대로 Slack 공지 채널에서 바로 알려 드리겠습니다.
